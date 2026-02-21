@@ -1,7 +1,11 @@
 from numgame.config import settings
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 
-# Database Connection
-engine = create_engine(settings.database_url)
-DBSession = sessionmaker(bind=engine)
+async def register():
+    # Database Connection
+    engine = create_async_engine(settings.database_url, echo=True)
+    DBSession = sessionmaker(engine, class_=AsyncSession)
+    # Get time
+    date_time = datetime.now()
