@@ -35,3 +35,12 @@ class Players(Base):
     registered_at = Column(DateTime, nullable=False)
     wins = Column(Integer, nullable=False)
     total_games = Column(Integer, nullable=False)
+    # to dictionary
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_name": self.user_name,
+            "registered_at": self.registered_at,
+            "wins": self.wins,
+            "total_games": self.total_games
+        }
