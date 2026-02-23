@@ -8,7 +8,7 @@ Base = declarative_base()
 # Games data
 class Games(Base):
     # Table name
-    __tablename__ = 'Games'
+    __tablename__ = 'games'
     # Columns
     id = Column(String(100), primary_key=True)
     first_move = Column(String(100), ForeignKey("Players.id"),nullable=False)
@@ -28,7 +28,7 @@ class Games(Base):
 # Player data
 class Players(Base):
     # Table name
-    __tablename__ = "Players"
+    __tablename__ = "players"
     # Columns
     id = Column(String(100), primary_key=True)
     user_name = Column(String(100), unique=True, nullable=False)
