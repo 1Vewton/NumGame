@@ -1,6 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
+from sqlalchemy import inspect
 
 # Base
 Base = declarative_base()
@@ -16,6 +17,7 @@ class Games(Base):
     winner = Column(String(100), ForeignKey("Players.id"), nullable=True)
     rounds = Column(Integer, nullable=False)
     started_time = Column(DateTime, nullable=False)
+    ended_time = Column(DateTime, nullable=True)
     # constraints
     __table_args__ = (
         CheckConstraint('first_move != second_move', name='check_players_different'),
@@ -24,7 +26,25 @@ class Games(Base):
     first_player = relationship("Players", foreign_keys=[first_move])
     second_player = relationship("Players", foreign_keys=[second_move])
     winner_player = relationship("Players", foreign_keys=[winner])
-
+    # autogen repr
+    def __repr__(self_):
+        ret = f'{type(self_).__name__}<'
+        for key in inspect(type(self_)).c.keys():
+            ret += f'{key}: {getattr(self_, key)},'
+        ret = ret.rstrip(',')
+        ret += '>'
+        return ret
+    # to dictionary
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "first_move": self.first_move,
+            "second_move": self.second_move,
+            "winner": self.winner,
+            "rounds": self.rounds,
+            "started_time": self.started_time,
+            "ended_time": self.ended_time
+        }
 # Player data
 class Players(Base):
     # Table name
@@ -35,9 +55,14 @@ class Players(Base):
     registered_at = Column(DateTime, nullable=False)
     wins = Column(Integer, nullable=False)
     total_games = Column(Integer, nullable=False)
-    # repr
-    def __repr__(self):
-        return f'User(id={self.id}, name={self.user_name}, registered_at={self.registered_at}, wins={self.wins}, total_games={self.total_games})'
+    # autogen repr
+    def __repr__(self_):
+        ret = f'{type(self_).__name__}<'
+        for key in inspect(type(self_)).c.keys():
+            ret += f'{key}: {getattr(self_, key)},'
+        ret = ret.rstrip(',')
+        ret += '>'
+        return ret
     # to dictionary
     def to_dict(self):
         return {
