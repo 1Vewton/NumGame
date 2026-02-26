@@ -1,3 +1,4 @@
+from numgame.config import settings
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -11,7 +12,6 @@ from sqlalchemy import select
 from datetime import datetime
 from numgame.utils import generate_uuid
 from logging import getLogger
-from numgame.config import settings
 import uvicorn
 
 # run before execution
@@ -72,6 +72,10 @@ async def userRegister(new_user: NewPlayerData, session: Annotated[AsyncSession,
         }
         return JSONResponse(content=content, status_code=500)
 
-if __name__ == "__main__":
+# run server
+def run():
     logger.info("Starting server")
     uvicorn.run(app, host="localhost", port=settings.server_port)
+
+if __name__ == "__main__":
+    run()
