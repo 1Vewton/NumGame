@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # Database
     database_url:str = ""
+    # Server
+    server_port:str = ""
     # Load .env
     model_config = SettingsConfigDict(
         env_file="../backend.env",
