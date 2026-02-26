@@ -19,15 +19,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
 
 # Basic Settings
 logger = getLogger("Server")
+tags = [
+    {
+        "name": "userRegister",
+        "description": "The api for registration of user"
+    }
+]
 # APP
 app = FastAPI(
     lifespan=lifespan,
     title="NumGame Server",
-    description="Backend Server for NumGame"
+    description="Backend Server for NumGame",
+    openapi_tags=tags
 )
 
 # Register API
-@app.post(path="/api/userRegister")
+@app.post(path="/api/userRegister", tags=["userRegister"])
 async def userRegister(new_user: NewPlayerData, session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("Creating new user")
     try:
