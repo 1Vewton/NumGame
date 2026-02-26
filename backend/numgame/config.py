@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     # Database
     database_url:str = ""
     # Server
-    server_port:str = ""
+    server_port:int = 8080
     # Load .env
     model_config = SettingsConfigDict(
         env_file="../backend.env",
