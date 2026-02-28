@@ -129,11 +129,28 @@ async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(ge
         user_id = request.cookies.get("user_id")
         # Check if user id exists.
         if user_id:
-            pass
+            # Get user from dB
+            user_info = await session.execute(select(players).where(players.id == user_id))
+            result = user_info.first()
+            if result:
+                # Successfully logged in
+                processed_result = result[0]
+                content = {
+                    "success": True,
+                    "user_name": processed_result.user_name,
+                    "user_id": processed_result.id
+                }
+                return JSONResponse(content=content, status_code=200)
+            else:
+                content = {
+                    "success": False,
+                    "reason": "User id does not exist"
+                }
+                return JSONResponse(content=content, status_code=401)
         else:
             content = {
                 "success": False,
-                "reason": "User id does not exist"
+                "reason": "User id not found"
             }
             return JSONResponse(content=content, status_code=401)
     except Exception as e:
