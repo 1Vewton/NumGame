@@ -1,6 +1,6 @@
 from numgame.config import settings
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
 from collections.abc import AsyncGenerator
 from typing import Any, Annotated
@@ -34,6 +34,10 @@ tags = [
     {
         "name": "userLogin",
         "description": "The api for login of user"
+    },
+    {
+        "name": "autoLogin",
+        "description": "The api for auto login of user"
     }
 ]
 # APP
@@ -87,15 +91,17 @@ async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depe
         user_name = user.player_name
         # Query
         user_info = await session.execute(select(players).where(players.user_name == user_name))
-        result = user_info.first()[0]
+        result = user_info.first()
         if result:
+            result_processed = result[0]
             # Response
             content = {
                 "success": True,
-                "user_name": result.user_name
+                "user_name": result_processed.user_name,
+                "user_id": result_processed.id
             }
             response = JSONResponse(content=content, status_code=200)
-            response.set_cookie(key="user_id", value=result.id, httponly=True)
+            response.set_cookie(key="user_id", value=result_processed.id, httponly=True)
             return response
         else:
             # When the user name does not exist
@@ -108,6 +114,31 @@ async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depe
     except Exception as e:
         # Error Handling
         logger.error(f"User login failed due to {e}")
+        # Response
+        content = {
+            "success": False,
+            "reason": str(e)
+        }
+        return JSONResponse(content=content, status_code=500)
+# API to auto login
+@app.get(path="/api/autoLogin", tags=["autoLogin"])
+async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(get_db)]):
+    logger.info("automatically login user")
+    try:
+        # Get cookie
+        user_id = request.cookies.get("user_id")
+        # Check if user id exists.
+        if user_id:
+            pass
+        else:
+            content = {
+                "success": False,
+                "reason": "User id does not exist"
+            }
+            return JSONResponse(content=content, status_code=401)
+    except Exception as e:
+        # Error handling
+        logger.error(f"Auto login failed due to {e}")
         # Response
         content = {
             "success": False,
