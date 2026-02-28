@@ -6,7 +6,7 @@ from collections.abc import AsyncGenerator
 from typing import Any, Annotated
 from numgame.data_management import init_models, get_db
 from numgame.data_models import players
-from numgame.request_body import NewPlayerData
+from numgame.request_body import NewPlayerData, PlayerData
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
@@ -26,6 +26,10 @@ tags = [
     {
         "name": "userRegister",
         "description": "The api for registration of user"
+    },
+    {
+        "name": "userLogin",
+        "description": "The api for login of user"
     }
 ]
 # APP
@@ -71,6 +75,7 @@ async def userRegister(new_user: NewPlayerData, session: Annotated[AsyncSession,
             "reason": str(e)
         }
         return JSONResponse(content=content, status_code=500)
+# API to get user info
 
 # run server
 def run():
