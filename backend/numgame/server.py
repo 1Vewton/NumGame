@@ -17,6 +17,9 @@ from datetime import datetime
 from numgame.utils import generate_uuid
 from logging import getLogger
 import uvicorn
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # run before execution
 @asynccontextmanager
@@ -38,8 +41,14 @@ tags = [
     {
         "name": "autoLogin",
         "description": "The api for auto login of user"
+    },
+    {
+        "name": "userInfo",
+        "description": "The api for the front-end to get user info"
     }
 ]
+# limiter
+limiter = Limiter(key_func=get_remote_address)
 # APP
 app = FastAPI(
     lifespan=lifespan,
@@ -47,10 +56,13 @@ app = FastAPI(
     description="Backend Server for NumGame",
     openapi_tags=tags
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Register API
 @app.post(path="/api/userRegister", tags=["userRegister"])
-async def userRegister(new_user: NewPlayerData, session: Annotated[AsyncSession, Depends(get_db)]):
+@limiter.limit("5/minute")
+async def userRegister(request:Request, new_user: NewPlayerData, session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("Creating new user")
     try:
         # Set data
