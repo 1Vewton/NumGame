@@ -6,7 +6,11 @@ from collections.abc import AsyncGenerator
 from typing import Any, Annotated
 from numgame.data_management import init_models, get_db
 from numgame.data_models import players
-from numgame.request_body import NewPlayerData, PlayerData
+from numgame.request_body import (
+    PlayerData,
+    NewPlayerData,
+    LoginPlayerData
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
@@ -76,6 +80,40 @@ async def userRegister(new_user: NewPlayerData, session: Annotated[AsyncSession,
         }
         return JSONResponse(content=content, status_code=500)
 # API to get user info
+@app.post(path="/api/userLogin", tags=["userLogin"])
+async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depends(get_db)]):
+    logger.info("Logging in user")
+    try:
+        user_name = user.player_name
+        # Query
+        user_info = await session.execute(select(players).where(players.user_name == user_name))
+        result = user_info.first()[0]
+        if result:
+            # Response
+            content = {
+                "success": True,
+                "user_name": result.user_name
+            }
+            response = JSONResponse(content=content, status_code=200)
+            response.set_cookie(key="user_id", value=result.id, httponly=True)
+            return response
+        else:
+            # When the user name does not exist
+            content = {
+                "success": False,
+                "reason": "Username does not exist"
+            }
+            response = JSONResponse(content=content, status_code=401)
+            return response
+    except Exception as e:
+        # Error Handling
+        logger.error(f"User login failed due to {e}")
+        # Response
+        content = {
+            "success": False,
+            "reason": str(e)
+        }
+        return JSONResponse(content=content, status_code=500)
 
 # run server
 def run():
