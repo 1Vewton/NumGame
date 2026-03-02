@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import Optional
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE_PATH = BASE_DIR / "backend.env"
@@ -10,7 +11,9 @@ class Settings(BaseSettings):
     # Server
     server_port:int = 8080
     # Redis Server
-    redis_server:str = ""
+    redis_host:str = ""
+    redis_port:int = 6379
+    redis_password:Optional[str] = None
     # Load .env
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,

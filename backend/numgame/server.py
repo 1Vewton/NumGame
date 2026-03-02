@@ -17,6 +17,8 @@ from numgame.request_body import (
     LoginPlayerData
 )
 from numgame.utils import generate_uuid
+import numgame.logger_config as logger_config
+from numgame.redis_manager import create_redis_client
 # ORM Dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -29,8 +31,14 @@ from slowapi.errors import RateLimitExceeded
 # run before execution
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
+    # Database Config
     await init_models()
+    # Redis Config
+    redis_client = await create_redis_client()
+    app.state.redis_client = redis_client
     yield
+    await redis_client.aclose()
+    logger.info(f"Redis connection closed")
 
 # Basic Settings
 logger = getLogger("Server")
@@ -239,6 +247,7 @@ async def userInfo(request:Request,
 
 # run server
 def run():
+    logger_config.setup_logging()
     logger.info("Starting server")
     uvicorn.run(app, host="localhost", port=settings.server_port)
 
