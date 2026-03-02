@@ -3,6 +3,7 @@ from sqlalchemy import MetaData
 from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy import inspect
+import datetime
 
 # Base
 class Base(DeclarativeBase):
@@ -22,7 +23,17 @@ class Base(DeclarativeBase):
     )
     # to dict
     def to_dict(self):
-        return {c.name: getattr(self, c.name, None) for c in self.__table__.columns}
+        result = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name, None)
+            # Change it to timestamp if it is datetime
+            if (value is not None) and (isinstance(value, datetime.datetime)):
+                if value.tzinfo is None:
+                    value = value.replace(tzinfo=datetime.timezone.utc)
+                value = value.timestamp()
+            # Add it to result
+            result[column.name] = value
+        return result
 
 # Games data
 class games(Base):
