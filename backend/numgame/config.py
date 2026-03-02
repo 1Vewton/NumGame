@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     redis_host:str = ""
     redis_port:int = 6379
     redis_password:Optional[str] = None
+    game_management_hashtable:str = "GameManagement"
+    # Frontend setting
+    frontend_url:str = ""
     # Load .env
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
