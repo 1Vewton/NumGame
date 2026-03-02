@@ -20,7 +20,7 @@ class PlayerData(BaseModel):
                              description="The name of the player",
                              min_length=3,
                              max_length=100)
-    palyer_id: str = Field(title="Player ID",
+    player_id: str = Field(title="Player ID",
                            description="The ID of the player",
                            min_length=3,
                            max_length=100)

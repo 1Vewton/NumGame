@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     database_url:str = ""
     # Server
     server_port:int = 8080
+    # Redis Server
+    redis_server:str = ""
     # Load .env
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
