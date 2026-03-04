@@ -2,7 +2,7 @@ import redis.asyncio as aioredis
 import logging
 from numgame.config import settings
 
-logger = logging.getLogger("redis manager")
+logger = logging.getLogger("Redis Manager")
 # Create an async redis client
 async def create_redis_client() -> aioredis.Redis:
     # Redis client config

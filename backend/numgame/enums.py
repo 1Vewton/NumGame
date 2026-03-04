@@ -7,3 +7,11 @@ class Operations(Enum):
     ENHANCE_PRODUCTIVITY = 3
     ENHANCE_DESTRUCTIBILITY = 4
     ENHANCE_ACTION_POINT = 5
+
+# Robot Status
+class StateMachine(Enum):
+    START_STAGE = 1
+    ADVANTAGE = 3
+    DISADVANTAGE = 4
+    BALANCE = 5
+    RUSH_STAGE = 6
