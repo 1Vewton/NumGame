@@ -3,6 +3,6 @@ import logging
 from fastapi import APIRouter
 
 # logger
-logger = logging.getLogger("game server")
+logger = logging.getLogger("Game Server")
 # Router
 router = APIRouter(prefix="/game")

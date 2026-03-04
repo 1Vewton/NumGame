@@ -3,7 +3,7 @@ import os
 
 def setup_logging():
     # logger
-    logger = logging.getLogger("logger")
+    logger = logging.getLogger("Logger")
     log_file = "app.log"
     
     # Create logs directory if it doesn't exist
