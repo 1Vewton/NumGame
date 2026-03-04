@@ -1,9 +1,8 @@
 import logging
 from typing import Annotated
 # FastAPI dependencies
-from fastapi import Depends, Request
+from fastapi import Depends, Request, APIRouter
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter
 # Project dependencies
 from numgame.data_management import get_db
 from numgame.data_models import players

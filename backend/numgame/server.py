@@ -10,11 +10,12 @@ from numgame.config import settings
 from numgame.data_management import init_models
 import numgame.logger_config as logger_config
 from numgame.redis_manager import create_redis_client
+from numgame.server_user_management import user_router
+from numgame.server_utils import utils_router
+from numgame.utils import limiter
 # Slowapi Dependencies
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from numgame.server_user_management import user_router
-from numgame.utils import limiter
 
 # run before execution
 @asynccontextmanager
@@ -46,6 +47,10 @@ tags = [
     {
         "name": "userInfo",
         "description": "The api for the front-end to get user info"
+    },
+    {
+        "name": "generateUserName",
+        "description": "The api for generating random user name"
     }
 ]
 # APP
@@ -61,6 +66,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Add router
 app.include_router(user_router)
+app.include_router(utils_router)
 
 # run server
 def run():
