@@ -1,3 +1,4 @@
+import asyncio
 # Fastapi dependencies
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -20,8 +21,9 @@ utils_router = APIRouter(prefix="/utils")
 async def generateUserName():
     logger.info(f"Generating username")
     try:
+        loop = asyncio.get_event_loop()
         # Generate name
-        name = generate_random_name()
+        name = await loop.run_in_executor(None, generate_random_name)
         content = {
             "success": True,
             "username": name
