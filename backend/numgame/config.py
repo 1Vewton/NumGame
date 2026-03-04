@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     game_management_hashtable:str = "GameManagement"
     # Frontend setting
     frontend_url:str = ""
+    # Util setting
+    names_csv:str = "names_and_connotations.csv"
     # Load .env
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
