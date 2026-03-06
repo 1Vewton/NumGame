@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     frontend_url:str = ""
     # Util setting
     names_csv:str = "names_and_connotations.csv"
+    # Bot config
+    simple_bot_name:str = "<bot>"
     # Load .env
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
