@@ -52,3 +52,30 @@ class BotStateMachine:
         self.current_state = None
         # Bot Name
         self.name = "<bot> " + generate_random_name()
+        # Data
+        self.point = 0
+        self.opponent_point = 0
+        self.productivity = 0
+        self.destructivity = 0
+        self.target = 0
+    # Update state
+    def update_state(self, point, opponent_point, productivity, destructivity, target):
+        # Data update
+        self.point = point
+        self.opponent_point = opponent_point
+        self.productivity = productivity
+        self.destructivity = destructivity
+        self.target = target
+        # Update state of the state machine
+        if(self.point <= 2
+                and self.opponent_point <= 2
+                and self.destructivity <= 2):
+            self.current_state = StateMachine.START_STAGE
+        elif(self.opponent_point - self.point > self.target/4):
+            self.current_state = StateMachine.DISADVANTAGE
+        elif(self.point - self.opponent_point > self.target/4):
+            self.current_state = StateMachine.ADVANTAGE
+        elif(self.point>self.target):
+            self.current_state = StateMachine.RUSH_STAGE
+        else:
+            self.current_state = StateMachine.BALANCE
