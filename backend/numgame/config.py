@@ -1,9 +1,18 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 from typing import Optional
+import os
 
+# Env selection between test env and real env
+def select_env():
+    suffix = os.getenv('ENV_FILE_PATH')
+    if suffix:
+        return f"backend.env{suffix}"
+    else:
+        return "backend.env"
+# Directory processing
 BASE_DIR = Path(__file__).resolve().parent.parent
-ENV_FILE_PATH = BASE_DIR / "backend.env"
+ENV_FILE_PATH = BASE_DIR / select_env()
 # Settings loading
 class Settings(BaseSettings):
     # Database
