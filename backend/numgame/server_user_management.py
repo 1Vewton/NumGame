@@ -12,6 +12,7 @@ from numgame.request_body import (
     LoginPlayerData
 )
 from numgame.utils import generate_uuid, limiter
+from numgame.config import settings
 # ORM Dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -72,15 +73,25 @@ async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depe
         result = user_info.first()
         if result:
             result_processed = result[0]
-            # Response
-            content = {
-                "success": True,
-                "user_name": result_processed.user_name,
-                "user_id": result_processed.id
-            }
-            response = JSONResponse(content=content, status_code=200)
-            response.set_cookie(key="user_id", value=result_processed.id, httponly=True)
-            return response
+            # Check whether the user attempts to log in to bot account
+            if result_processed.user_name != settings.simple_bot_name:
+                # Response
+                content = {
+                    "success": True,
+                    "user_name": result_processed.user_name,
+                    "user_id": result_processed.id
+                }
+                response = JSONResponse(content=content, status_code=200)
+                response.set_cookie(key="user_id", value=result_processed.id, httponly=True)
+                return response
+            else:
+                # Response
+                content = {
+                    "success": False,
+                    "reason": "You cannot log in the system with bot account!"
+                }
+                response = JSONResponse(content=content, status_code=403)
+                return response
         else:
             # When the user name does not exist
             content = {
@@ -113,15 +124,24 @@ async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(ge
             if result:
                 # Successfully logged in
                 processed_result = result[0]
-                content = {
-                    "success": True,
-                    "user_name": processed_result.user_name,
-                    "user_id": processed_result.id
-                }
-                # Set response and cookie
-                response = JSONResponse(content=content, status_code=200)
-                response.set_cookie(key="user_id", value=processed_result.id, httponly=True)
-                return response
+                if processed_result != settings.simple_bot_name:
+                    content = {
+                        "success": True,
+                        "user_name": processed_result.user_name,
+                        "user_id": processed_result.id
+                    }
+                    # Set response and cookie
+                    response = JSONResponse(content=content, status_code=200)
+                    response.set_cookie(key="user_id", value=processed_result.id, httponly=True)
+                    return response
+                else:
+                    # Response
+                    content = {
+                        "success": False,
+                        "reason": "You cannot log in the system with bot account!"
+                    }
+                    response = JSONResponse(content=content, status_code=403)
+                    return response
             else:
                 content = {
                     "success": False,
