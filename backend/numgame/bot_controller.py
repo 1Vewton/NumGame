@@ -1,5 +1,5 @@
 from enums import *
-from utils import generate_random_name
+from numgame.config import settings
 import numpy as np
 
 # Bot Logic
@@ -52,7 +52,7 @@ class BotStateMachine:
         # The current state
         self.current_state = None
         # Bot Name
-        self.name = "<bot>"
+        self.name = settings.simple_bot_name
         # Data
         self.point = 0
         self.opponent_point = 0
