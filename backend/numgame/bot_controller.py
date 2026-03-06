@@ -1,5 +1,6 @@
 from enums import *
 from utils import generate_random_name
+import numpy as np
 
 # Bot Logic
 class BotStateMachine:
@@ -75,7 +76,18 @@ class BotStateMachine:
             self.current_state = StateMachine.DISADVANTAGE
         elif(self.point - self.opponent_point > self.target/4):
             self.current_state = StateMachine.ADVANTAGE
-        elif(self.point>self.target):
+        elif(self.point>=self.target):
             self.current_state = StateMachine.RUSH_STAGE
         else:
             self.current_state = StateMachine.BALANCE
+    # Bot choice
+    def choose_action(self):
+        weight = self.operation_weights[self.current_state]
+        choice = np.random.choice(self.operations, p=weight)
+        return choice
+
+# Test
+if __name__ == "__main__":
+    bot = BotStateMachine()
+    bot.update_state(10,0,0,0,10)
+    print(bot.choose_action())
