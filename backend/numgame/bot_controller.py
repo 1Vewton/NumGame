@@ -52,7 +52,7 @@ class BotStateMachine:
         # The current state
         self.current_state = None
         # Bot Name
-        self.name = "<bot> " + generate_random_name()
+        self.name = "<bot>"
         # Data
         self.point = 0
         self.opponent_point = 0

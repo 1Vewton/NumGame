@@ -1,6 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, CheckConstraint
+from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, CheckConstraint, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy import inspect
 import datetime
@@ -74,6 +74,7 @@ class players(Base):
     registered_at = Column(DateTime, nullable=False)
     wins = Column(Integer, nullable=False, default=0)
     total_games = Column(Integer, nullable=False, default=0)
+    is_bot = Column(Boolean, nullable=False, default=False)
     # autogen repr
     def __repr__(self_):
         ret = f'{type(self_).__name__}<'

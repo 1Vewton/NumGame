@@ -8,6 +8,7 @@ ENV_FILE_PATH = BASE_DIR / "backend.env"
 class Settings(BaseSettings):
     # Database
     database_url:str = ""
+    sync_database_url:str = ""
     # Server
     server_port:int = 8080
     # Redis Server
