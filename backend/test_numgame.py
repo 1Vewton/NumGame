@@ -1,5 +1,6 @@
 # Project dependencies
 from numgame.server import app
+from numgame.config import settings
 # Test dependencies
 from fastapi.testclient import TestClient
 import pytest
@@ -39,6 +40,35 @@ def client():
         yield test_client
 
 
+# Test Random Name generation
 def test_random_name(client):
     response = client.get("/api/utils/generateUserName")
     assert response.status_code == 200
+
+
+# Test simple bot management
+def test_simple_bot_name(client):
+    response = client.post("/api/user/userLogin",
+                           json={"player_name": settings.simple_bot_name})
+    assert response.status_code == 403
+
+
+# User Management Test Class
+class TestUserManagement:
+    # Initialization
+    cookie = None
+    test_name = "test"
+
+    # Test user registration
+    def test_register(self, client):
+        response = client.post("/api/user/userRegister",
+                               json={"player_name": self.test_name})
+        assert response.status_code == 201
+        assert response.json()["user_name"] == self.test_name
+
+    # Test user login
+    def test_login(self, client):
+        response = client.post("/api/user/userLogin",
+                               json={"player_name": self.test_name})
+        assert response.status_code == 200
+        assert response.json()["user_name"] == self.test_name
