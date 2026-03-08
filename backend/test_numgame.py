@@ -56,10 +56,10 @@ def test_simple_bot_name(client):
 # User Management Test Class
 class TestUserManagement:
     # Initialization
-    cookie = None
     test_name = "test"
 
     # Test user registration
+    @pytest.mark.order(1)
     def test_register(self, client):
         response = client.post("/api/user/userRegister",
                                json={"player_name": self.test_name})
@@ -67,8 +67,14 @@ class TestUserManagement:
         assert response.json()["user_name"] == self.test_name
 
     # Test user login
+    @pytest.mark.order(2)
     def test_login(self, client):
         response = client.post("/api/user/userLogin",
                                json={"player_name": self.test_name})
+        assert response.status_code == 200
+        # Test whether the info is correctly returned
+        assert response.json()["user_name"] == self.test_name
+        # Auto login
+        response = client.get("/api/user/autoLogin")
         assert response.status_code == 200
         assert response.json()["user_name"] == self.test_name
