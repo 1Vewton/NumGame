@@ -8,7 +8,9 @@ import logging
 logger = logging.getLogger("DataBaseManager")
 # DB connection
 async_engine = create_async_engine(settings.database_url, echo=False)
-DBSession = async_sessionmaker(async_engine, expire_on_commit=False, class_=AsyncSession)
+DBSession = async_sessionmaker(async_engine,
+                               expire_on_commit=False,
+                               class_=AsyncSession)
 # get Database
 async def get_db() -> AsyncGenerator[AsyncSession, Any]:
     async with DBSession() as session, session.begin():

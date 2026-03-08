@@ -1,4 +1,4 @@
-from enums import *
+from enums import Operations, StateMachine
 from numgame.config import settings
 import numpy as np
 

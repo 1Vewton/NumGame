@@ -23,7 +23,8 @@ async def generateUserName():
     try:
         loop = asyncio.get_event_loop()
         # Generate name
-        name = await loop.run_in_executor(None, generate_random_name)
+        name = await loop.run_in_executor(None,
+                                          generate_random_name)
         content = {
             "success": True,
             "username": name
