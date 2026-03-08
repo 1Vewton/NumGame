@@ -36,7 +36,9 @@ async def userRegister(request:Request,
         registration_date = datetime.now()
         player_id = generate_uuid()
         user_name = new_user.player_name
-        existing = await session.execute(select(players).where(players.user_name == user_name))
+        existing = await session.execute(select(players).where(
+            players.user_name == user_name
+        ))
         if existing.scalar_one_or_none():
             content = {
                 "success": False,
@@ -44,7 +46,9 @@ async def userRegister(request:Request,
             }
             return JSONResponse(content=content, status_code=409)
         # New player instance
-        new_player_data = players(id=player_id, user_name=user_name, registered_at=registration_date)
+        new_player_data = players(id=player_id,
+                                  user_name=user_name,
+                                  registered_at=registration_date)
         # Add it to database
         session.add(new_player_data)
         # Response
@@ -62,14 +66,18 @@ async def userRegister(request:Request,
             "reason": str(e)
         }
         return JSONResponse(content=content, status_code=500)
+
 # API to get user info
 @user_router.post(path="/userLogin", tags=["userLogin"])
-async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depends(get_db)]):
+async def userLogin(user: LoginPlayerData,
+                    session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("Logging in user")
     try:
         user_name = user.player_name
         # Query
-        user_info = await session.execute(select(players).where(players.user_name == user_name))
+        user_info = await session.execute(select(players).where(
+            players.user_name == user_name
+        ))
         result = user_info.first()
         if result:
             result_processed = result[0]
@@ -82,7 +90,9 @@ async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depe
                     "user_id": result_processed.id
                 }
                 response = JSONResponse(content=content, status_code=200)
-                response.set_cookie(key="user_id", value=result_processed.id, httponly=True)
+                response.set_cookie(key="user_id",
+                                    value=result_processed.id,
+                                    httponly=True)
                 return response
             else:
                 # Response
@@ -109,9 +119,11 @@ async def userLogin(user: LoginPlayerData, session: Annotated[AsyncSession, Depe
             "reason": str(e)
         }
         return JSONResponse(content=content, status_code=500)
+
 # API to auto login
 @user_router.get(path="/autoLogin", tags=["autoLogin"])
-async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(get_db)]):
+async def autoLogin(request:Request,
+                    session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("automatically login user")
     try:
         # Get cookie
@@ -119,7 +131,9 @@ async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(ge
         # Check if user id exists.
         if user_id:
             # Get user from dB
-            user_info = await session.execute(select(players).where(players.id == user_id))
+            user_info = await session.execute(select(players).where(
+                players.id == user_id
+            ))
             result = user_info.first()
             if result:
                 # Successfully logged in
@@ -132,7 +146,9 @@ async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(ge
                     }
                     # Set response and cookie
                     response = JSONResponse(content=content, status_code=200)
-                    response.set_cookie(key="user_id", value=processed_result.id, httponly=True)
+                    response.set_cookie(key="user_id",
+                                        value=processed_result.id,
+                                        httponly=True)
                     return response
                 else:
                     # Response
@@ -163,6 +179,7 @@ async def autoLogin(request:Request, session: Annotated[AsyncSession, Depends(ge
             "reason": str(e)
         }
         return JSONResponse(content=content, status_code=500)
+
 # info getting API
 @user_router.post(path="/userInfo", tags=["userInfo"])
 async def userInfo(request:Request,

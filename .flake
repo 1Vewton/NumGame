@@ -1,2 +1,2 @@
 [flake8]
-exclude = .venv,venv,__pycache__,node_modules
+exclude = .venv,venv,__pycache__,node_modules,alembic,tests

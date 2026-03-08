@@ -41,20 +41,30 @@ class games(Base):
     __tablename__ = 'games'
     # Columns
     id = Column(String(100), primary_key=True)
-    first_move = Column(String(100), ForeignKey("players.id", ondelete="CASCADE"),nullable=False)
-    second_move = Column(String(100), ForeignKey("players.id", ondelete="CASCADE"), nullable=False)
-    winner = Column(String(100), ForeignKey("players.id", ondelete="CASCADE"), nullable=True)
+    first_move = Column(String(100),
+                        ForeignKey("players.id", ondelete="CASCADE"),
+                        nullable=False)
+    second_move = Column(String(100),
+                         ForeignKey("players.id", ondelete="CASCADE"),
+                         nullable=False)
+    winner = Column(String(100),
+                    ForeignKey("players.id", ondelete="CASCADE"),
+                    nullable=True)
     rounds = Column(Integer, nullable=False)
     started_time = Column(DateTime, nullable=False)
     ended_time = Column(DateTime, nullable=True)
     # constraints
     __table_args__ = (
-        CheckConstraint('first_move != second_move', name='check_players_different'),
+        CheckConstraint('first_move != second_move',
+                        name='check_players_different'),
     )
     # Relations
-    first_player = relationship("players", foreign_keys=[first_move])
-    second_player = relationship("players", foreign_keys=[second_move])
-    winner_player = relationship("players", foreign_keys=[winner])
+    first_player = relationship("players",
+                                foreign_keys=[first_move])
+    second_player = relationship("players",
+                                 foreign_keys=[second_move])
+    winner_player = relationship("players",
+                                 foreign_keys=[winner])
     # autogen repr
     def __repr__(self_):
         ret = f'{type(self_).__name__}<'

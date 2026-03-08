@@ -26,7 +26,9 @@ from datetime import datetime
 async def create_bot_account():
     async for session in get_db():
         # Find simple bot
-        existing = await session.execute(select(players).where(players.user_name == settings.simple_bot_name))
+        existing = await session.execute(select(players).where(
+            players.user_name == settings.simple_bot_name
+        ))
         if existing.scalar_one_or_none():
             # Bot already exists
             logger.info("Bot exists")
@@ -44,6 +46,7 @@ async def create_bot_account():
                 is_bot=is_bot
             )
             session.add(bot)
+
 # run before execution
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
