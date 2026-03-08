@@ -22,6 +22,7 @@ from slowapi.errors import RateLimitExceeded
 from sqlalchemy import select
 from datetime import datetime
 
+
 # Create bot
 async def create_bot_account():
     async for session in get_db():
@@ -47,6 +48,7 @@ async def create_bot_account():
             )
             session.add(bot)
 
+
 # run before execution
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
@@ -59,6 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
     yield
     await redis_client.aclose()
     logger.info(f"Redis connection closed")
+
 
 # Basic Settings
 logger = getLogger("Server")
@@ -99,11 +102,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.include_router(user_router)
 app.include_router(utils_router)
 
+
 # run server
 def run():
     logger_config.setup_logging()
     logger.info("Starting server")
     uvicorn.run(app, host="localhost", port=settings.server_port)
+
 
 if __name__ == "__main__":
     run()

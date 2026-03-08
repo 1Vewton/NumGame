@@ -15,9 +15,12 @@ logger = logging.getLogger("Utils")
 BASE_DIR = Path(__file__).resolve().parent.parent
 NAMES_FILE_PATH = BASE_DIR / f"assets/{settings.names_csv}"
 
+
 # Generate uuid
 def generate_uuid():
     return str(uuid.uuid4())
+
+
 # Generate random name
 def generate_random_name():
     # Read from fi;e
@@ -28,7 +31,8 @@ def generate_random_name():
     # Capitalize
     name[0] = name[0][0].upper() + name[0][1:]
     name[1] = name[1][0].upper() + name[1][1:]
-    return name[0]+" "+name[1]
+    return name[0] + " " + name[1]
+
 
 if __name__ == "__main__":
     print(generate_random_name())

@@ -15,6 +15,7 @@ logger = logging.getLogger("Utility Server")
 # API Router
 utils_router = APIRouter(prefix="/utils")
 
+
 # APIs
 # Generate user name
 @utils_router.get("/generateUserName", tags=["generateUserName"])

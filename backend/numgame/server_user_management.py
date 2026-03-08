@@ -20,14 +20,15 @@ from datetime import datetime
 
 # Logger
 logger = logging.getLogger("User Management Server")
-#API Router
+# API Router
 user_router = APIRouter(prefix="/user")
+
 
 # User management APIs.
 # Register API
 @user_router.post(path="/userRegister", tags=["userRegister"])
 @limiter.limit("5/minute")
-async def userRegister(request:Request,
+async def userRegister(request: Request,
                        new_user: NewPlayerData,
                        session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("Creating new user")
@@ -66,6 +67,7 @@ async def userRegister(request:Request,
             "reason": str(e)
         }
         return JSONResponse(content=content, status_code=500)
+
 
 # API to get user info
 @user_router.post(path="/userLogin", tags=["userLogin"])
@@ -120,9 +122,10 @@ async def userLogin(user: LoginPlayerData,
         }
         return JSONResponse(content=content, status_code=500)
 
+
 # API to auto login
 @user_router.get(path="/autoLogin", tags=["autoLogin"])
-async def autoLogin(request:Request,
+async def autoLogin(request: Request,
                     session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("automatically login user")
     try:
@@ -180,10 +183,11 @@ async def autoLogin(request:Request,
         }
         return JSONResponse(content=content, status_code=500)
 
+
 # info getting API
 @user_router.post(path="/userInfo", tags=["userInfo"])
-async def userInfo(request:Request,
-                   player_data:PlayerData,
+async def userInfo(request: Request,
+                   player_data: PlayerData,
                    session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("Requesting user information")
     try:

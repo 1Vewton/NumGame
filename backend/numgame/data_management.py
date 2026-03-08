@@ -16,10 +16,12 @@ DBSession = async_sessionmaker(async_engine,
                                expire_on_commit=False,
                                class_=AsyncSession)
 
+
 # get Database
 async def get_db() -> AsyncGenerator[AsyncSession, Any]:
     async with DBSession() as session, session.begin():
         yield session
+
 
 # Data Model Initialization
 async def init_models() -> None:
