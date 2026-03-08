@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
     asyncio.create_task(create_bot_account())
     yield
     await redis_client.aclose()
-    logger.info(f"Redis connection closed")
+    logger.info("Redis connection closed")
 
 
 # Basic Settings

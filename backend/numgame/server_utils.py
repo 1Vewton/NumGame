@@ -4,9 +4,6 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 # logging
 import logging
-
-from starlette import status
-
 # Project dependencies
 from numgame.utils import generate_random_name
 
@@ -20,7 +17,7 @@ utils_router = APIRouter(prefix="/utils")
 # Generate user name
 @utils_router.get("/generateUserName", tags=["generateUserName"])
 async def generateUserName():
-    logger.info(f"Generating username")
+    logger.info("Generating username")
     try:
         loop = asyncio.get_event_loop()
         # Generate name
