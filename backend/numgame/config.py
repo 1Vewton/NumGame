@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 import os
 
+
 # Env selection between test env and real env
 def select_env():
     suffix = os.getenv('ENV_FILE_PATH')
@@ -11,9 +12,11 @@ def select_env():
     else:
         return "backend.env"
 
+
 # Directory processing
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE_PATH = BASE_DIR / select_env()
+
 
 # Settings loading
 class Settings(BaseSettings):
@@ -35,9 +38,10 @@ class Settings(BaseSettings):
     simple_bot_name: str = "<bot>"
     # Load .env
     model_config = SettingsConfigDict(
-        env_file = ENV_FILE_PATH,
-        env_file_encoding = "utf-8",
-        extra = "allow",
+        env_file=ENV_FILE_PATH,
+        env_file_encoding="utf-8",
+        extra="allow",
     )
+
 
 settings = Settings()

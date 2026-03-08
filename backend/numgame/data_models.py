@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import inspect
 import datetime
 
+
 # Base
 class Base(DeclarativeBase):
     """Base class for SQLAlchemy models.
@@ -44,6 +45,7 @@ class Base(DeclarativeBase):
             result[column.name] = value
         return result
 
+
 # Games data
 class games(Base):
     # Table name
@@ -74,6 +76,7 @@ class games(Base):
                                  foreign_keys=[second_move])
     winner_player = relationship("players",
                                  foreign_keys=[winner])
+
     # autogen repr
     def __repr__(self_):
         ret = f'{type(self_).__name__}<'
@@ -82,6 +85,7 @@ class games(Base):
         ret = ret.rstrip(',')
         ret += '>'
         return ret
+
 
 # Player data
 class players(Base):
@@ -94,6 +98,7 @@ class players(Base):
     wins = Column(Integer, nullable=False, default=0)
     total_games = Column(Integer, nullable=False, default=0)
     is_bot = Column(Boolean, nullable=False, default=False)
+
     # autogen repr
     def __repr__(self_):
         ret = f'{type(self_).__name__}<'

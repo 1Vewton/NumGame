@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 # Game operations
 class Operations(Enum):
     PRODUCE = 1
@@ -7,6 +8,7 @@ class Operations(Enum):
     ENHANCE_PRODUCTIVITY = 3
     ENHANCE_DESTRUCTIBILITY = 4
     ENHANCE_ACTION_POINT = 5
+
 
 # Robot Status
 class StateMachine(Enum):

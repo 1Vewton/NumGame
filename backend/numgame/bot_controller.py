@@ -2,6 +2,7 @@ from enums import Operations, StateMachine
 from numgame.config import settings
 import numpy as np
 
+
 # Bot Logic
 class BotStateMachine:
     def __init__(self):
@@ -73,9 +74,9 @@ class BotStateMachine:
                 and self.opponent_point <= 2
                 and self.destructivity <= 2):
             self.current_state = StateMachine.START_STAGE
-        elif (self.opponent_point - self.point > self.target/4):
+        elif (self.opponent_point - self.point > self.target / 4):
             self.current_state = StateMachine.DISADVANTAGE
-        elif(self.point - self.opponent_point > self.target/4):
+        elif (self.point - self.opponent_point > self.target / 4):
             self.current_state = StateMachine.ADVANTAGE
         elif (self.point >= self.target):
             self.current_state = StateMachine.RUSH_STAGE
@@ -88,8 +89,9 @@ class BotStateMachine:
         choice = np.random.choice(self.operations, p=weight)
         return choice
 
+
 # Test
 if __name__ == "__main__":
     bot = BotStateMachine()
-    bot.update_state(10,0,0,0,10)
+    bot.update_state(10, 0, 0, 0, 10)
     print(bot.choose_action())
