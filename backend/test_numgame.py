@@ -1,6 +1,5 @@
 # Project dependencies
 from numgame.server import app
-from numgame.redis_manager import create_redis_client
 # Test dependencies
 from fastapi.testclient import TestClient
 import pytest
@@ -14,6 +13,12 @@ def fake_redis():
     server = fakeredis.FakeServer()
     client = fakeredis.FakeRedis(server=server,
                                  decode_responses=True)
+
+    # Define aclose to prevent attribution error
+    async def aclose():
+        pass
+
+    client.aclose = aclose
     return client
 
 
