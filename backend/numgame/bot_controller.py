@@ -62,7 +62,13 @@ class BotStateMachine:
         self.target = 0
 
     # Update state
-    def update_state(self, point, opponent_point, productivity, destructivity, target):
+    def update_state(self,
+                     point,
+                     opponent_point,
+                     productivity,
+                     destructivity,
+                     target
+                     ):
         # Data update
         self.point = point
         self.opponent_point = opponent_point

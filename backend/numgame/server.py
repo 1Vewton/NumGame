@@ -2,10 +2,10 @@ from logging import getLogger
 import uvicorn
 import asyncio
 from collections.abc import AsyncGenerator
-from typing import Any, Annotated
+from typing import Any
 from contextlib import asynccontextmanager
 # FastAPI dependencies
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 # Project Dependencies
 from numgame.config import settings
 from numgame.data_management import init_models, get_db
