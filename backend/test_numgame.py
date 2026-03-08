@@ -28,7 +28,7 @@ def mock_redis_client(monkeypatch, fake_redis):
     async def mock_create_redis_client():
         return fake_redis
 
-    monkeypatch.setattr("numgame.redis_manager.create_redis_client",
+    monkeypatch.setattr("numgame.server.create_redis_client",
                         mock_create_redis_client)
 
 
