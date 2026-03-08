@@ -30,7 +30,7 @@ numgame_backend = "numgame.server:run"
 
 [tool.pytest.ini_options]
 env = [
-    "ENV=test"
+    "ENV=.test"
 ]
 python_files = "test_*.py"
 python_functions = "test_*"
