@@ -1,6 +1,14 @@
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, CheckConstraint, Boolean
+from sqlalchemy import (
+    Column,
+    String,
+    DateTime,
+    Integer,
+    ForeignKey,
+    CheckConstraint,
+    Boolean
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy import inspect
 import datetime
@@ -21,6 +29,7 @@ class Base(DeclarativeBase):
             "pk": "pk_%(table_name)s",
         }
     )
+
     # to dict
     def to_dict(self):
         result = {}
