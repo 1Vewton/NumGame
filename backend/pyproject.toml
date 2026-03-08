@@ -7,10 +7,14 @@ requires-python = ">=3.13"
 dependencies = [
     "aiosqlite>=0.22.1",
     "alembic>=1.18.4",
+    "fakeredis>=2.34.1",
     "fastapi>=0.131.0",
+    "httpx>=0.28.1",
     "numpy>=2.4.2",
     "pandas>=3.0.1",
     "pydantic-settings>=2.13.0",
+    "pytest>=9.0.2",
+    "pytest-env>=1.5.0",
     "redis>=7.2.1",
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.46",
@@ -23,3 +27,11 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 numgame_backend = "numgame.server:run"
+
+[tool.pytest.ini_options]
+env = [
+    "ENV=test"
+]
+python_files = "test_*.py"
+python_functions = "test_*"
+asyncio_mode = "auto"
