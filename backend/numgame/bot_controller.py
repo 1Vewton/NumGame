@@ -13,35 +13,35 @@ class BotStateMachine:
                            Operations.ENHANCE_ACTION_POINT]
         # Weight of operation for each state
         self.operation_weights = {
-            StateMachine.START_STAGE:[
+            StateMachine.START_STAGE: [
                 0.1,
                 0.0,
                 0.45,
                 0.40,
                 0.05
             ],
-            StateMachine.BALANCE:[
+            StateMachine.BALANCE: [
                 0.25,
                 0.25,
                 0.25,
                 0.2,
                 0.05
             ],
-            StateMachine.ADVANTAGE:[
+            StateMachine.ADVANTAGE: [
                 0.5,
                 0.05,
                 0.2,
                 0.2,
                 0.05
             ],
-            StateMachine.DISADVANTAGE:[
+            StateMachine.DISADVANTAGE: [
                 0.1,
                 0.4,
                 0.2,
                 0.3,
                 0.0
             ],
-            StateMachine.RUSH_STAGE:[
+            StateMachine.RUSH_STAGE: [
                 0.4,
                 0.4,
                 0.075,
@@ -59,6 +59,7 @@ class BotStateMachine:
         self.productivity = 0
         self.destructivity = 0
         self.target = 0
+
     # Update state
     def update_state(self, point, opponent_point, productivity, destructivity, target):
         # Data update
@@ -68,18 +69,19 @@ class BotStateMachine:
         self.destructivity = destructivity
         self.target = target
         # Update state of the state machine
-        if(self.point <= 2
+        if (self.point <= 2
                 and self.opponent_point <= 2
                 and self.destructivity <= 2):
             self.current_state = StateMachine.START_STAGE
-        elif(self.opponent_point - self.point > self.target/4):
+        elif (self.opponent_point - self.point > self.target/4):
             self.current_state = StateMachine.DISADVANTAGE
         elif(self.point - self.opponent_point > self.target/4):
             self.current_state = StateMachine.ADVANTAGE
-        elif(self.point>=self.target):
+        elif (self.point >= self.target):
             self.current_state = StateMachine.RUSH_STAGE
         else:
             self.current_state = StateMachine.BALANCE
+
     # Bot choice
     def choose_action(self):
         weight = self.operation_weights[self.current_state]

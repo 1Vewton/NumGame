@@ -20,6 +20,7 @@ async def create_redis_client() -> aioredis.Redis:
         logger.error(f"Redis ping failed: {e}")
         raise e
     return client
+
 # Get redis
 def get_redis(request:Request) -> aioredis.Redis:
     return request.app.state.redis_client
