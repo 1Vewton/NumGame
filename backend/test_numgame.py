@@ -58,13 +58,17 @@ class TestUserManagement:
     # Initialization
     test_name = "test"
 
-    # Test user login
-    @pytest.mark.order(2)
-    def test_login(self, client):
+    # Test user register
+    @pytest.mark.order(1)
+    def test_register(self, client):
         response = client.post("/api/user/userRegister",
                                json={"player_name": self.test_name})
         assert response.status_code == 201
         assert response.json()["user_name"] == self.test_name
+
+
+    # Test login
+    def test_login(self, client):
         response = client.post("/api/user/userLogin",
                                json={"player_name": self.test_name})
         print(response.json())
