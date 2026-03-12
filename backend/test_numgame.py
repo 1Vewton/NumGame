@@ -4,7 +4,7 @@ from numgame.config import settings
 # Test dependencies
 from fastapi.testclient import TestClient
 import pytest
-import fakeredis
+import fakeredis.aioredis as fakeredis
 
 
 # Overwrite Redis
@@ -58,19 +58,16 @@ class TestUserManagement:
     # Initialization
     test_name = "test"
 
-    # Test user registration
-    @pytest.mark.order(1)
-    def test_register(self, client):
+    # Test user login
+    @pytest.mark.order(2)
+    def test_login(self, client):
         response = client.post("/api/user/userRegister",
                                json={"player_name": self.test_name})
         assert response.status_code == 201
         assert response.json()["user_name"] == self.test_name
-
-    # Test user login
-    @pytest.mark.order(2)
-    def test_login(self, client):
         response = client.post("/api/user/userLogin",
                                json={"player_name": self.test_name})
+        print(response.json())
         assert response.status_code == 200
         # Test whether the info is correctly returned
         assert response.json()["user_name"] == self.test_name
