@@ -67,6 +67,7 @@ class TestUserManagement:
         assert response.json()["user_name"] == self.test_name
 
     # Test login
+    @pytest.mark.order(2)
     def test_login(self, client):
         response = client.post("/api/user/userLogin",
                                json={"player_name": self.test_name})
