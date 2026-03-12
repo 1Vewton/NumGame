@@ -66,7 +66,6 @@ class TestUserManagement:
         assert response.status_code == 201
         assert response.json()["user_name"] == self.test_name
 
-
     # Test login
     def test_login(self, client):
         response = client.post("/api/user/userLogin",
