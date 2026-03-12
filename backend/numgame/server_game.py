@@ -15,6 +15,9 @@ from numgame.redis_manager import get_redis
 from numgame.game_process import (
     initializeBotPlay
 )
+from numgame.token_management import (
+    search_user_token
+)
 # ORM dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -37,28 +40,36 @@ async def botPlay(websocket: WebSocket,
     await websocket.accept()
     # Basic game settings
     game_id = generate_uuid()
-    redis_storage_id = f"game_{game_id}"
+    redis_storage_id = f"bot_game:{game_id}"
     is_game_initialized = False
     try:
         # Check user info
         logger.info("Checking user info")
-        user_id = websocket.cookies.get("user_id")
-        if user_id:
-            # Check whether the cookie exists
-            user_info = await session.execute(
-                select(players).where(
-                    players.id == user_id
-                )
+        login_token = websocket.cookies.get("login_token")
+        if login_token:
+            search_user_id = search_user_token(
+                token=login_token,
+                client=redis
             )
-            result = user_info.first()
-            # Check whether the user exists
-            if result:
-                # Initialize the game
-                await initializeBotPlay(client=redis, game_id=redis_storage_id)
-                is_game_initialized = True
+            if search_user_id["success"]:
+                user_id = search_user_id["user_id"]
+                # Check whether the cookie exists
+                user_info = await session.execute(
+                    select(players).where(
+                        players.id == user_id
+                    )
+                )
+                result = user_info.first()
+                # Check whether the user exists
+                if result:
+                    # Initialize the game
+                    await initializeBotPlay(client=redis, game_id=redis_storage_id)
+                    is_game_initialized = True
+                else:
+                    # User not exist
+                    await websocket.close(code=1008, reason="User not found")
             else:
-                # User not exist
-                await websocket.close(code=1008, reason="User not found")
+                await websocket.close(code=1008, reason="Token invalid or expired")
         else:
             # Cookie not exist
             await websocket.close(code=1008, reason="Please log in first!")

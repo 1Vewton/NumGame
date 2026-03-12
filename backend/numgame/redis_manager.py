@@ -12,7 +12,8 @@ async def create_redis_client() -> aioredis.Redis:
     client = aioredis.Redis(
         host=settings.redis_host,
         port=settings.redis_port,
-        password=settings.redis_password
+        password=settings.redis_password,
+        decode_responses=True
     )
     # Check Redis connection state
     try:

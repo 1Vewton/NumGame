@@ -25,3 +25,9 @@ async def initializeBotPlay(client: aioredis.Redis, game_id: str):
     }
     # Store it to hash table
     await client.hset(game_id, mapping=score_info)
+
+
+# Delete game data
+async def deleteData(client: aioredis.Redis, game_id: str):
+    logger.info(f"Delete Data of key {game_id}")
+    await client.delete(game_id)
