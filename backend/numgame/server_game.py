@@ -10,10 +10,17 @@ from fastapi import (
 # Project Dependencies
 from numgame.data_management import get_db
 from numgame.data_models import players
+from numgame.utils import generate_uuid
+from numgame.redis_manager import get_redis
+from numgame.game_process import (
+    initializeBotPlay
+)
 # ORM dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Annotated
+# Redis
+import redis.asyncio as aioredis
 
 # logger
 logger = logging.getLogger("Game Server")
@@ -24,9 +31,14 @@ router = APIRouter(prefix="/game")
 # Play with bot
 @router.websocket("/botPlay")
 async def botPlay(websocket: WebSocket,
-                  session: Annotated[AsyncSession, Depends(get_db)]):
+                  session: Annotated[AsyncSession, Depends(get_db)],
+                  redis: aioredis.Redis = Depends(get_redis)):
     # Accept connection
     await websocket.accept()
+    # Basic game settings
+    game_id = generate_uuid()
+    redis_storage_id = f"game_{game_id}"
+    is_game_initialized = False
     try:
         # Check user info
         logger.info("Checking user info")
@@ -41,7 +53,9 @@ async def botPlay(websocket: WebSocket,
             result = user_info.first()
             # Check whether the user exists
             if result:
-                pass
+                # Initialize the game
+                await initializeBotPlay(client=redis, game_id=redis_storage_id)
+                is_game_initialized = True
             else:
                 # User not exist
                 await websocket.close(code=1008, reason="User not found")
@@ -57,3 +71,6 @@ async def botPlay(websocket: WebSocket,
     except Exception as e:
         # Error handling of other errors
         await websocket.close(code=1011, reason=str(e))
+    # Handle the game info deleting at the end
+    if is_game_initialized:
+        pass
