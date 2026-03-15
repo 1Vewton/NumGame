@@ -78,18 +78,69 @@ async def botPlay(websocket: WebSocket,
                     bot = BotStateMachine()
                     # Track whether the game is finished
                     game_finished = asyncio.Event()
+                    # Heartbeat Sequence Number
+                    next_sequence = 0
+                    timeout_count = 0
+                    # Pending
+                    pending_hb = {}
 
                     # Heart Beat
                     async def send_heartbeat():
-                        while not game_finished.is_set():
-                            # Interval for sending heartbeat
-                            await asyncio.sleep(settings.heartbeat_interval)
-                            # heartbeat content
-                            heartbeat_content = {
-                                "type": "heartbeat",
-                                "time_stamp": asyncio.get_running_loop().time()
-                            }
-                            await websocket.send_json(heartbeat_content)
+                        nonlocal next_sequence, timeout_count
+                        try:
+                            while not game_finished.is_set():
+                                # Interval for sending heartbeat
+                                await asyncio.sleep(settings.heartbeat_interval)
+                                # Sequence processing
+                                sequence = next_sequence
+                                next_sequence += 1
+                                # Add it into pending hbs
+                                hb = asyncio.get_running_loop().create_future()
+                                pending_hb[sequence] = hb
+                                # heartbeat content
+                                heartbeat_content = {
+                                    "type": "heartbeat",
+                                    "time_stamp": asyncio.get_running_loop().time(),
+                                    "sequence": sequence
+                                }
+                                # Send heartbeat
+                                await websocket.send_json(heartbeat_content)
+                                send_time = asyncio.get_running_loop().time()
+                                # Waiting for receiving
+                                try:
+                                    await asyncio.wait_for(hb, timeout=settings.heartbeat_timeout)
+                                    # Clear the timeout count
+                                    timeout_count = 0
+                                    logger.info(f"Heartbeat {sequence} acknowledged")
+                                except asyncio.TimeoutError:
+                                    timeout_count += 1
+                                    logger.error(f"Heartbeat {sequence} timed out")
+                                    # Timeout count exceed the total timeout allowed
+                                    if timeout_count >= settings.total_timeout_cnt:
+                                        await websocket.close(code=1008,
+                                                              reason=f"Heartbeat timeout exceeded maximum timeout count allowed {settings.total_timeout_cnt}")
+                                        game_finished.set()
+                                        return
+                                except asyncio.CancelledError:
+                                    break
+                                finally:
+                                    # Clearer
+                                    pending_hb.pop(sequence, None)
+                        except WebSocketDisconnect:
+                            logger.warning("Client disconnected during heartbeat process")
+                        except Exception as e:
+                            logger.error(f"Heartbeat failed due to {e}")
+                        finally:
+                            # Finish the game
+                            game_finished.set()
+
+                    # Message receiving
+                    async def receive_message():
+                        try:
+                            while not game_finished.is_set():
+                                message = await websocket.receive_json()
+                        except WebSocketDisconnect:
+                            logger.error("Client disconnected during main game process")
 
                     # Tasks
                     heartbeat_task = asyncio.create_task(send_heartbeat())
@@ -100,6 +151,10 @@ async def botPlay(websocket: WebSocket,
                     )
                     # Cancel tasks
                     heartbeat_task.cancel()
+                    try:
+                        await heartbeat_task
+                    except asyncio.CancelledError:
+                        pass
                 else:
                     # User not exist
                     await websocket.close(code=1008, reason="User not found")
@@ -117,6 +172,7 @@ async def botPlay(websocket: WebSocket,
     except Exception as e:
         # Error handling of other errors
         await websocket.close(code=1011, reason=str(e))
-    # Handle the game info deleting at the end
-    if is_game_initialized:
-        await deleteData(client=redis, game_id=redis_storage_id)
+    finally:
+        # Handle the game info deleting at the end
+        if is_game_initialized:
+            await deleteData(client=redis, game_id=redis_storage_id)
