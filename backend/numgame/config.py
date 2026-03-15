@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     sync_database_url: str = ""
     # Server
     server_port: int = 8080
+    # Websocket Connection
+    heartbeat_interval: int = 30
     # Redis Server
     redis_host: str = ""
     redis_port: int = 6379
