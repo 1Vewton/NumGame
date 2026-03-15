@@ -8,6 +8,7 @@ from fastapi import (
     WebSocketDisconnect,
     WebSocketException
 )
+from fastapi.responses import JSONResponse
 # Project Dependencies
 from numgame.data_management import get_db
 from numgame.data_models import players
@@ -35,11 +36,22 @@ import redis.asyncio as aioredis
 # logger
 logger = logging.getLogger("Game Server")
 # Router
-router = APIRouter(prefix="/game")
+game_router = APIRouter(prefix="/game")
+
+
+# Game server test endpoint
+@game_router.get("/test", tags=["test"])
+async def test():
+    return JSONResponse(
+        status_code=200,
+        content={
+            "message": "Hello World!"
+        }
+    )
 
 
 # Play with bot
-@router.websocket("/botPlay")
+@game_router.websocket("/botPlay")
 async def botPlay(websocket: WebSocket,
                   session: Annotated[AsyncSession, Depends(get_db)],
                   redis: aioredis.Redis = Depends(get_redis)):
@@ -138,9 +150,25 @@ async def botPlay(websocket: WebSocket,
                     async def receive_message():
                         try:
                             while not game_finished.is_set():
+                                # Receive message
                                 message = await websocket.receive_json()
+                                msg_type = message.get("type")
+                                # If it is a response for the heartbeat
+                                if msg_type == "heartbeat":
+                                    sequence_res = message.get("sequence")
+                                    # Finish the heartbeat
+                                    if sequence_res is not None and sequence_res in pending_hb.keys():
+                                        future = pending_hb[sequence_res]
+                                        if not future.done():
+                                            future.set_result(True)
+                                    else:
+                                        logger.error(f"Cannot find heartbeat with sequence {sequence_res}")
                         except WebSocketDisconnect:
                             logger.error("Client disconnected during main game process")
+                        except Exception as e:
+                            logger.error(f"Main game process failed due to {e}")
+                        finally:
+                            game_finished.set()
 
                     # Tasks
                     heartbeat_task = asyncio.create_task(send_heartbeat())

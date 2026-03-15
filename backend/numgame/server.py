@@ -15,6 +15,7 @@ from numgame.redis_manager import create_redis_client
 from numgame.server_user_management import user_router
 from numgame.server_utils import utils_router
 from numgame.utils import limiter, generate_uuid
+from numgame.server_game import game_router
 # Slowapi Dependencies
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -85,6 +86,10 @@ tags = [
     {
         "name": "generateUserName",
         "description": "The api for generating random user name"
+    },
+    {
+        "name": "test",
+        "description": "The test endpoint for game server"
     }
 ]
 # APP
@@ -101,6 +106,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Add router
 app.include_router(user_router)
 app.include_router(utils_router)
+app.include_router(game_router)
 
 
 # run server
