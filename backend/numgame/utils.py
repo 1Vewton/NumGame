@@ -6,6 +6,7 @@ from pathlib import Path
 from numgame.config import settings
 import pandas as pd
 import numpy as np
+import random
 
 # Limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -23,7 +24,7 @@ def generate_uuid():
 
 # Generate random name
 def generate_random_name():
-    # Read from fi;e
+    # Read from file
     names_table = pd.read_csv(NAMES_FILE_PATH)
     names = names_table["name"]
     names_list = names.tolist()
@@ -34,5 +35,14 @@ def generate_random_name():
     return name[0] + " " + name[1]
 
 
+# Decide first move in bot play
+def decide_is_user_first():
+    result = random.randint(0, 1)
+    if result == 0:
+        return True
+    else:
+        return False
+
+
 if __name__ == "__main__":
-    print(generate_random_name())
+    print(decide_is_user_first())
