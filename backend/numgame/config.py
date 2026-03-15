@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     server_port: int = 8080
     # Websocket Connection
     heartbeat_interval: int = 30
+    heartbeat_timeout: int = 10
+    total_timeout_cnt: int = 3
     # Redis Server
     redis_host: str = ""
     redis_port: int = 6379
