@@ -17,10 +17,7 @@ from numgame.utils import (
     decide_is_user_first
 )
 from numgame.redis_manager import get_redis
-from numgame.game_process import (
-    initializeBotPlay,
-    deleteData
-)
+from numgame.game_process import GameProcess
 from numgame.bot_controller import BotStateMachine
 from numgame.token_management import (
     search_user_token
@@ -55,12 +52,18 @@ async def test():
 async def botPlay(websocket: WebSocket,
                   session: Annotated[AsyncSession, Depends(get_db)],
                   redis: aioredis.Redis = Depends(get_redis)):
+    # Get info from the connection
+    target = websocket.get("target")
     # Accept connection
     await websocket.accept()
     # Basic game settings
     game_id = generate_uuid()
     redis_storage_id = f"bot_game:{game_id}"
     is_game_initialized = False
+    game = GameProcess(
+        client=redis,
+        game_id=redis_storage_id
+    )
     try:
         # Check user info
         logger.info("Checking user info")
@@ -82,10 +85,21 @@ async def botPlay(websocket: WebSocket,
                 # Check whether the user exists
                 if result:
                     # Initialize the game
-                    await initializeBotPlay(client=redis, game_id=redis_storage_id)
+                    await game.initializeBotPlay(target=target)
                     is_game_initialized = True
                     # Decide first move
                     is_user_first = decide_is_user_first()
+                    if is_user_first:
+                        move_info = {
+                            "type": "move_division",
+                            "first_move": True
+                        }
+                    else:
+                        move_info = {
+                            "type": "move_division",
+                            "first_move": True
+                        }
+                    await websocket.send_json(move_info)
                     # initialize bot
                     bot = BotStateMachine()
                     # Track whether the game is finished
@@ -203,4 +217,4 @@ async def botPlay(websocket: WebSocket,
     finally:
         # Handle the game info deleting at the end
         if is_game_initialized:
-            await deleteData(client=redis, game_id=redis_storage_id)
+            await game.deleteData()
