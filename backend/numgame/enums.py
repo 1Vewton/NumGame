@@ -17,3 +17,8 @@ class StateMachine(Enum):
     DISADVANTAGE = 4
     BALANCE = 5
     RUSH_STAGE = 6
+
+
+# Operation Fail Reason
+class FailReason(Enum):
+    NO_ENOUGH_ACTION_POINT = 1
