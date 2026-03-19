@@ -191,10 +191,10 @@ class BotGameProcess:
             }
         else:
             # Set the action point
-            await self.client.hset(
+            await self.client.hincrby(
                 self.game_id,
                 "player_action_point",
-                result
+                -(operation_cost)
             )
             return {
                 "success": True
@@ -206,13 +206,12 @@ class BotGameProcess:
         # Check whether action point is enough
         result = await self.usePlayerActionPoint()
         if result["success"]:
-            player_score = int(await self.getPlayerScore())
             player_productivity = int(await self.getPlayerProductivity())
-            result_score = player_score + player_productivity
-            await self.client.hset(
+            # The adding process
+            await self.client.hincrby(
                 self.game_id,
                 "player_score",
-                result_score
+                player_productivity
             )
             return {
                 "success": True
@@ -230,12 +229,27 @@ class BotGameProcess:
         # Use action point
         result = await self.usePlayerActionPoint()
         if result["success"]:
-            pass
+            player_destructivity = int(await self.getPlayerDestructivity())
+            # The minus process
+            await self.client.hincrby(
+                self.game_id,
+                "player_destructivity",
+                -(player_destructivity)
+            )
+            return {
+                "success": True
+            }
         else:
             return {
                 "success": False,
                 "reason": result["reason"]
             }
+
+    # Player Enhance Productivity
+    async def playerEnhanceProductivity(self):
+        logger.info("Player trying to enhance productivity")
+        # Use action point
+        result = await self.usePlayerActionPoint()
 
     # Delete game data
     async def deleteData(self):
