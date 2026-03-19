@@ -8,8 +8,8 @@ from numgame.enums import FailReason
 logger = getLogger("Game Process")
 
 
-# Game process class
-class GameProcess:
+# Bot Game process class
+class BotGameProcess:
     def __init__(self, client: aioredis.Redis, game_id: str):
         self.client = client
         self.game_id = game_id
@@ -166,6 +166,12 @@ class GameProcess:
         )
         return operation_cost
 
+    # Game info fetching
+    async def getGameData(self):
+        logger.info("Trying to get the game data")
+        game_data = await self.client.hgetall(self.game_id)
+        return game_data
+
     '''
     Operations
     '''
@@ -196,13 +202,36 @@ class GameProcess:
 
     # Increase the point
     async def playerProduce(self):
-        logger.info("Trying to produce")
+        logger.info("Player trying to produce")
         # Check whether action point is enough
+        result = await self.usePlayerActionPoint()
+        if result["success"]:
+            player_score = int(await self.getPlayerScore())
+            player_productivity = int(await self.getPlayerProductivity())
+            result_score = player_score + player_productivity
+            await self.client.hset(
+                self.game_id,
+                "player_score",
+                result_score
+            )
+            return {
+                "success": True
+            }
+        else:
+            # Return operation failed reason
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Decrease the point of the opponent
+    async def playerDestruct(self):
+        logger.info("Player trying to destruct")
+        # Use action point
         result = await self.usePlayerActionPoint()
         if result["success"]:
             pass
         else:
-            # Return operation failed reason
             return {
                 "success": False,
                 "reason": result["reason"]
