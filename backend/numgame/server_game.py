@@ -17,7 +17,7 @@ from numgame.utils import (
     decide_is_user_first
 )
 from numgame.redis_manager import get_redis
-from numgame.game_process import GameProcess
+from numgame.game_process import BotGameProcess
 from numgame.bot_controller import BotStateMachine
 from numgame.token_management import (
     search_user_token
@@ -60,7 +60,7 @@ async def botPlay(websocket: WebSocket,
     game_id = generate_uuid()
     redis_storage_id = f"bot_game:{game_id}"
     is_game_initialized = False
-    game = GameProcess(
+    game = BotGameProcess(
         client=redis,
         game_id=redis_storage_id
     )
