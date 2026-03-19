@@ -144,7 +144,10 @@ async def botPlay(websocket: WebSocket,
                                     # Timeout count exceed the total timeout allowed
                                     if timeout_count >= settings.total_timeout_cnt:
                                         await websocket.close(code=1008,
-                                                              reason=f"Heartbeat timeout exceeded maximum timeout count allowed {settings.total_timeout_cnt}")
+                                                              reason=(
+                                                                  "Heartbeat timeout exceeded "
+                                                                  f"Maximum timeout count {settings.total_timeout_cnt}"
+                                                              ))
                                         game_finished.set()
                                         return
                                 except asyncio.CancelledError:

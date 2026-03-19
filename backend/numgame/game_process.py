@@ -1,6 +1,8 @@
 from logging import getLogger
 # Redis
 import redis.asyncio as aioredis
+# Project dependencies
+from numgame.enums import FailReason
 
 # logger
 logger = getLogger("Game Process")
@@ -14,7 +16,8 @@ class GameProcess:
 
     # Initialize a bot play game
     async def initializeBotPlay(self,
-                                target: int = 10):
+                                target: int = 10,
+                                operation_cost: int = 10):
         logger.info("New Bot Game set")
         # Data info
         score_info = {
@@ -29,7 +32,8 @@ class GameProcess:
             "bot_action_point": 0,
             "bot_action_point_per_turn": 10,
             "turn": 0,
-            "target": target
+            "target": target,
+            "operation_cost": operation_cost
         }
         # Store it to hash table
         await self.client.hset(self.game_id, mapping=score_info)
@@ -139,6 +143,70 @@ class GameProcess:
             "bot_destructivity"
         )
         return bot_destructivity
+
+    '''
+    Game info fetching
+    '''
+
+    # Get Target Score
+    async def getTarget(self):
+        logger.info("Trying to get the target for the game")
+        game_target = await self.client.hget(
+            self.game_id,
+            "target"
+        )
+        return game_target
+
+    # Get action point cost
+    async def getOperationCost(self):
+        logger.info("Trying to get the cost for operations")
+        operation_cost = await self.client.hget(
+            self.game_id,
+            "operation_cost"
+        )
+        return operation_cost
+
+    '''
+    Operations
+    '''
+
+    # Use action point
+    async def usePlayerActionPoint(self):
+        logger.info("Trying to use the action point for player")
+        # AP-OC: Get final action point
+        action_point = int(await self.getPlayerActionPoint())
+        operation_cost = int(await self.getOperationCost())
+        result = action_point - operation_cost
+        # Process result
+        if result < 0:
+            return {
+                "success": False,
+                "reason": FailReason.NO_ENOUGH_ACTION_POINT
+            }
+        else:
+            # Set the action point
+            await self.client.hset(
+                self.game_id,
+                "player_action_point",
+                result
+            )
+            return {
+                "success": True
+            }
+
+    # Increase the point
+    async def playerProduce(self):
+        logger.info("Trying to produce")
+        # Check whether action point is enough
+        result = await self.usePlayerActionPoint()
+        if result["success"]:
+            pass
+        else:
+            # Return operation failed reason
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
 
     # Delete game data
     async def deleteData(self):
