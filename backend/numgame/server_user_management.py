@@ -32,6 +32,7 @@ user_router = APIRouter(prefix="/user")
 
 
 # User management APIs.
+# I ought to design a module for error handling to make the code easier for me to read. :(
 # Register API
 @user_router.post(path="/userRegister", tags=["userRegister"])
 @limiter.limit("5/minute")

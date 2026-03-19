@@ -250,6 +250,60 @@ class BotGameProcess:
         logger.info("Player trying to enhance productivity")
         # Use action point
         result = await self.usePlayerActionPoint()
+        if result["success"]:
+            await self.client.hincrby(
+                self.game_id,
+                "player_productivity",
+                1
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Player Enhance Destructivity
+    async def playerEnhanceDestructivity(self):
+        logger.info("Player trying to enhance destructivity")
+        # Use action point
+        result = await self.usePlayerActionPoint()
+        if result["success"]:
+            await self.client.hincrby(
+                self.game_id,
+                "player_destructivity",
+                1
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Player enhance the action point per turn
+    async def playerEnhanceActionPointPT(self):
+        logger.info("Player trying to enhance action point production per turn")
+        # Use action point
+        result = await self.usePlayerActionPoint()
+        if result["success"]:
+            await self.client.hincrby(
+                self.game_id,
+                "player_action_point_per_turn",
+                1
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
 
     # Delete game data
     async def deleteData(self):
