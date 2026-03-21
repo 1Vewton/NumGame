@@ -2,7 +2,7 @@ from logging import getLogger
 # Redis
 import redis.asyncio as aioredis
 # Project dependencies
-from numgame.enums import FailReason
+from data_management.enums import FailReason
 
 # logger
 logger = getLogger("Game Process")
@@ -200,6 +200,30 @@ class BotGameProcess:
                 "success": True
             }
 
+    # Bot action point using
+    async def useBotActionPoint(self):
+        logger.info("Trying to use the action point for player")
+        # AP-OC: Get final action point
+        action_point = int(await self.getBotActionPoint())
+        operation_cost = int(await self.getOperationCost())
+        result = action_point - operation_cost
+        # Process result
+        if result < 0:
+            return {
+                "success": False,
+                "reason": FailReason.NO_ENOUGH_ACTION_POINT
+            }
+        else:
+            # Set the action point
+            await self.client.hincrby(
+                self.game_id,
+                "bot_action_point",
+                -(operation_cost)
+            )
+            return {
+                "success": True
+            }
+
     # Increase the point
     async def playerProduce(self):
         logger.info("Player trying to produce")
@@ -233,7 +257,7 @@ class BotGameProcess:
             # The minus process
             await self.client.hincrby(
                 self.game_id,
-                "player_destructivity",
+                "bot_score",
                 -(player_destructivity)
             )
             return {
@@ -295,6 +319,48 @@ class BotGameProcess:
                 self.game_id,
                 "player_action_point_per_turn",
                 1
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Bot produce
+    async def botProduce(self):
+        logger.info("Bot trying to produce scores")
+        # Use Action point
+        result = await self.useBotActionPoint()
+        if result["success"]:
+            bot_productivity = int(await self.getBotProductivity())
+            await self.client.hincrby(
+                self.game_id,
+                "bot_score",
+                bot_productivity
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Bot Destruct
+    async def botDestruct(self):
+        logger.info("Bot trying to destruct score of opponent")
+        # Use action point
+        result = await self.useBotActionPoint()
+        if result["success"]:
+            bot_destructivity = int(await self.getBotDestructivity())
+            await self.client.hincrby(
+                self.game_id,
+                "player_score",
+                bot_destructivity
             )
             return {
                 "success": True

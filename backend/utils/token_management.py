@@ -2,7 +2,7 @@ from logging import getLogger
 # Redis Management
 import redis.asyncio as aioredis
 # Project dependencies
-from numgame.utils import generate_uuid
+from utils.utils import generate_uuid
 
 # logger
 logger = getLogger("Token Manager")

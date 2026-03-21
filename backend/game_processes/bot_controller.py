@@ -1,5 +1,5 @@
-from enums import Operations, StateMachine
-from numgame.config import settings
+from data_management.enums import Operations, StateMachine
+from utils.config import settings
 import numpy as np
 
 

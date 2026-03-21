@@ -1,6 +1,6 @@
 # Project dependencies
 from numgame.server import app
-from numgame.config import settings
+from utils.config import settings
 # Test dependencies
 from fastapi.testclient import TestClient
 import pytest

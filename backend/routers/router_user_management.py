@@ -4,20 +4,20 @@ from typing import Annotated
 from fastapi import Depends, Request, APIRouter
 from fastapi.responses import JSONResponse
 # Project dependencies
-from numgame.data_management import get_db
-from numgame.data_models import players
-from numgame.request_body import (
+from data_management.data_management import get_db
+from data_management.data_models import players
+from data_management.request_body import (
     PlayerData,
     NewPlayerData,
     LoginPlayerData
 )
-from numgame.utils import generate_uuid, limiter
-from numgame.config import settings
-from numgame.token_management import (
+from utils.utils import generate_uuid, limiter
+from utils.config import settings
+from utils.token_management import (
     generate_login_token,
     search_user_token
 )
-from numgame.redis_manager import get_redis
+from game_processes.redis_manager import get_redis
 # ORM Dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
