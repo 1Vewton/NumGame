@@ -360,7 +360,67 @@ class BotGameProcess:
             await self.client.hincrby(
                 self.game_id,
                 "player_score",
-                bot_destructivity
+                -(bot_destructivity)
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Bot trying to enhance its productivity
+    async def botEnhanceProductivity(self):
+        logger.info("Bot trying to enhance productivity")
+        # Use bot action point
+        result = await self.useBotActionPoint()
+        if result["success"]:
+            await self.client.hincrby(
+                self.game_id,
+                "bot_productivity",
+                1
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Bot trying to enhance its destructivity
+    async def botEnhanceDestructivity(self):
+        logger.info("Bot trying to enhance destructivity")
+        # Use bot action point
+        result = await self.useBotActionPoint()
+        if result["success"]:
+            await self.client.hincrby(
+                self.game_id,
+                "bot_destructivity",
+                1
+            )
+            return {
+                "success": True
+            }
+        else:
+            return {
+                "success": False,
+                "reason": result["reason"]
+            }
+
+    # Bot trying to increase action point per turn
+    async def botEnhanceActionPointPT(self):
+        logger.info("Bot trying to enhance action point production per turn")
+        # Use bot action point
+        result = await self.useBotActionPoint()
+        if result["success"]:
+            await self.client.hincrby(
+                self.game_id,
+                "bot_action_point_per_turn",
+                1
             )
             return {
                 "success": True
