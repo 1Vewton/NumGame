@@ -10,8 +10,8 @@ import sys
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from numgame.config import settings
-from numgame.data_models import Base
+from utils.config import settings
+from data_management.data_models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -3,7 +3,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 import logging
 from pathlib import Path
-from numgame.config import settings
+from utils.config import settings
 import pandas as pd
 import numpy as np
 import random

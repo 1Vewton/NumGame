@@ -1,5 +1,5 @@
-from numgame.config import settings
-from numgame.data_models import Base
+from utils.config import settings
+from data_management.data_models import Base
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncSession,

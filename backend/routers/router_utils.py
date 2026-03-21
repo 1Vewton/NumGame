@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 # logging
 import logging
 # Project dependencies
-from numgame.utils import generate_random_name
+from utils.utils import generate_random_name
 
 # Logger
 logger = logging.getLogger("Utility Server")

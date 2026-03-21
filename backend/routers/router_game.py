@@ -10,19 +10,19 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 # Project Dependencies
-from numgame.data_management import get_db
-from numgame.data_models import players
-from numgame.utils import (
+from data_management.data_management import get_db
+from data_management.data_models import players
+from utils.utils import (
     generate_uuid,
     decide_is_user_first
 )
-from numgame.redis_manager import get_redis
-from numgame.game_process import BotGameProcess
-from numgame.bot_controller import BotStateMachine
-from numgame.token_management import (
+from utils.token_management import (
     search_user_token
 )
-from numgame.config import settings
+from utils.config import settings
+from game_processes.redis_manager import get_redis
+from game_processes.bot_game_process import BotGameProcess
+from game_processes.bot_controller import BotStateMachine
 # ORM dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select

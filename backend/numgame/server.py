@@ -7,15 +7,15 @@ from contextlib import asynccontextmanager
 # FastAPI dependencies
 from fastapi import FastAPI
 # Project Dependencies
-from numgame.config import settings
-from numgame.data_management import init_models, get_db
-from numgame.data_models import players
-import numgame.logger_config as logger_config
-from numgame.redis_manager import create_redis_client
-from numgame.server_user_management import user_router
-from numgame.server_utils import utils_router
-from numgame.utils import limiter, generate_uuid
-from numgame.server_game import game_router
+from utils.config import settings
+import utils.logger_config as logger_config
+from utils.utils import limiter, generate_uuid
+from data_management.data_management import init_models, get_db
+from data_management.data_models import players
+from game_processes.redis_manager import create_redis_client
+from routers.router_user_management import user_router
+from routers.router_utils import utils_router
+from routers.router_game import game_router
 # Slowapi Dependencies
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded

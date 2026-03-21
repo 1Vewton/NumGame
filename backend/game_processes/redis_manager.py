@@ -1,6 +1,6 @@
 import redis.asyncio as aioredis
 import logging
-from numgame.config import settings
+from utils.config import settings
 from fastapi import Request
 
 logger = logging.getLogger("Redis Manager")
