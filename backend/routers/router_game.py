@@ -53,7 +53,7 @@ async def botPlay(websocket: WebSocket,
                   session: Annotated[AsyncSession, Depends(get_db)],
                   redis: aioredis.Redis = Depends(get_redis)):
     # Get info from the connection
-    target = websocket.get("target")
+    target = websocket.query_params.get("target")
     # Accept connection
     await websocket.accept()
     # Basic game settings
@@ -189,15 +189,19 @@ async def botPlay(websocket: WebSocket,
 
                     # Tasks
                     heartbeat_task = asyncio.create_task(send_heartbeat())
+                    receive_message_task = asyncio.create_task(receive_message())
                     # Wait for the task to get complete
                     await asyncio.wait(
-                        [heartbeat_task],
+                        [heartbeat_task,
+                         receive_message_task],
                         return_when=asyncio.FIRST_COMPLETED
                     )
                     # Cancel tasks
                     heartbeat_task.cancel()
+                    receive_message_task.cancel()
                     try:
                         await heartbeat_task
+                        await receive_message_task
                     except asyncio.CancelledError:
                         pass
                 else:

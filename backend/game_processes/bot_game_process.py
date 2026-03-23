@@ -2,7 +2,10 @@ from logging import getLogger
 # Redis
 import redis.asyncio as aioredis
 # Project dependencies
-from data_management.enums import FailReason
+from data_management.enums import (
+    FailReason,
+    Operations
+)
 
 # logger
 logger = getLogger("Game Process")
@@ -430,6 +433,27 @@ class BotGameProcess:
                 "success": False,
                 "reason": result["reason"]
             }
+
+    # Bot operation execution
+    async def botOperationExecution(self, operation: Operations):
+        logger.info("Executing operation of bot")
+        # Give result to the executor
+        result = {
+            "success": False,
+            "reason": "Undefined operation"
+        }
+        # Execute operations
+        if operation == Operations.PRODUCE:
+            result = await self.botProduce()
+        elif operation == Operations.DESTRUCT:
+            result = await self.botDestruct()
+        elif operation == Operations.ENHANCE_PRODUCTIVITY:
+            result = await self.botEnhanceProductivity()
+        elif operation == Operations.ENHANCE_DESTRUCTIBILITY:
+            result = await self.botEnhanceDestructivity()
+        elif result == Operations.ENHANCE_ACTION_POINT:
+            result = await self.botEnhanceActionPointPT()
+        return result
 
     # Delete game data
     async def deleteData(self):
