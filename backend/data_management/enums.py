@@ -22,3 +22,9 @@ class StateMachine(Enum):
 # Operation Fail Reason
 class FailReason(Enum):
     NO_ENOUGH_ACTION_POINT = 1
+
+
+# Bot game player enum
+class BotGamePlayer(Enum):
+    PLAYER = 1
+    BOT = 2

@@ -4,7 +4,8 @@ import redis.asyncio as aioredis
 # Project dependencies
 from data_management.enums import (
     FailReason,
-    Operations
+    Operations,
+    BotGamePlayer
 )
 
 # logger
@@ -19,25 +20,45 @@ class BotGameProcess:
 
     # Initialize a bot play game
     async def initializeBotPlay(self,
+                                is_user_first: bool,
                                 target: int = 10,
                                 operation_cost: int = 10):
         logger.info("New Bot Game set")
         # Data info
-        score_info = {
-            "player_score": 0,
-            "player_productivity": 1,
-            "player_destructivity": 1,
-            "player_action_point": 0,
-            "player_action_point_per_turn": 10,
-            "bot_score": 0,
-            "bot_productivity": 1,
-            "bot_destructivity": 1,
-            "bot_action_point": 0,
-            "bot_action_point_per_turn": 10,
-            "turn": 0,
-            "target": target,
-            "operation_cost": operation_cost
-        }
+        if is_user_first:
+            score_info = {
+                "player_score": 0,
+                "player_productivity": 1,
+                "player_destructivity": 1,
+                "player_action_point": 0,
+                "player_action_point_per_turn": 10,
+                "bot_score": 0,
+                "bot_productivity": 1,
+                "bot_destructivity": 1,
+                "bot_action_point": 0,
+                "bot_action_point_per_turn": 10,
+                "turn": 0,
+                "target": target,
+                "operation_cost": operation_cost,
+                "current_player": "player"
+            }
+        else:
+            score_info = {
+                "player_score": 0,
+                "player_productivity": 1,
+                "player_destructivity": 1,
+                "player_action_point": 0,
+                "player_action_point_per_turn": 10,
+                "bot_score": 0,
+                "bot_productivity": 1,
+                "bot_destructivity": 1,
+                "bot_action_point": 0,
+                "bot_action_point_per_turn": 10,
+                "turn": 0,
+                "target": target,
+                "operation_cost": operation_cost,
+                "current_player": "bot"
+            }
         # Store it to hash table
         await self.client.hset(self.game_id, mapping=score_info)
 
@@ -174,6 +195,18 @@ class BotGameProcess:
         logger.info("Trying to get the game data")
         game_data = await self.client.hgetall(self.game_id)
         return game_data
+
+    # Get current player info
+    async def getCurrentPlayer(self):
+        logger.info("Trying to get the current player")
+        current_player = await self.client.hget(
+            self.game_id,
+            "current_player"
+        )
+        if current_player == "player":
+            return BotGamePlayer.PLAYER
+        else:
+            return BotGamePlayer.BOT
 
     '''
     Operations

@@ -12,6 +12,9 @@ from fastapi.responses import JSONResponse
 # Project Dependencies
 from data_management.data_management import get_db
 from data_management.data_models import players
+from data_management.enums import (
+    BotGamePlayer
+)
 from utils.utils import (
     generate_uuid,
     decide_is_user_first
@@ -27,6 +30,7 @@ from game_processes.bot_controller import BotStateMachine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Annotated
+from datetime import datetime
 # Redis
 import redis.asyncio as aioredis
 
@@ -84,9 +88,6 @@ async def botPlay(websocket: WebSocket,
                 result = user_info.first()
                 # Check whether the user exists
                 if result:
-                    # Initialize the game
-                    await game.initializeBotPlay(target=target)
-                    is_game_initialized = True
                     # Decide first move
                     is_user_first = decide_is_user_first()
                     if is_user_first:
@@ -100,6 +101,13 @@ async def botPlay(websocket: WebSocket,
                             "first_move": True
                         }
                     await websocket.send_json(move_info)
+                    # Initialize the game
+                    await game.initializeBotPlay(
+                        target=int(target),
+                        is_user_first=is_user_first
+                    )
+                    game_start_time = datetime.now()
+                    is_game_initialized = True
                     # initialize bot
                     bot = BotStateMachine()
                     # Track whether the game is finished
@@ -131,7 +139,6 @@ async def botPlay(websocket: WebSocket,
                                 }
                                 # Send heartbeat
                                 await websocket.send_json(heartbeat_content)
-                                send_time = asyncio.get_running_loop().time()
                                 # Waiting for receiving
                                 try:
                                     await asyncio.wait_for(hb, timeout=settings.heartbeat_timeout)
@@ -180,6 +187,21 @@ async def botPlay(websocket: WebSocket,
                                             future.set_result(True)
                                     else:
                                         logger.error(f"Cannot find heartbeat with sequence {sequence_res}")
+                                elif msg_type == "player_operation":
+                                    # Get operation id
+                                    operation_id = message.get("operation_id")
+                                    current_player = game.getCurrentPlayer()
+                                    # Check whether this is the turn for the player
+                                    if current_player == BotGamePlayer.PLAYER:
+                                        pass
+                                    else:
+                                        content = {
+                                            "type": "execution_result",
+                                            "operation_id": operation_id,
+                                            "success": False,
+                                            "reason": "This is not your turn"
+                                        }
+                                        await websocket.send_json(content)
                         except WebSocketDisconnect:
                             logger.error("Client disconnected during main game process")
                         except Exception as e:
