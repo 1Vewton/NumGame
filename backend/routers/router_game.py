@@ -112,6 +112,8 @@ async def botPlay(websocket: WebSocket,
                     bot = BotStateMachine()
                     # Track whether the game is finished
                     game_finished = asyncio.Event()
+                    # Bot turn
+                    is_bot_turn = asyncio.Event()
                     # Heartbeat Sequence Number
                     next_sequence = 0
                     timeout_count = 0
@@ -170,6 +172,28 @@ async def botPlay(websocket: WebSocket,
                             # Finish the game
                             game_finished.set()
 
+                    # Bot operating
+                    async def bot_operating():
+                        while not game_finished.is_set():
+                            await is_bot_turn.wait()
+                            # Update the state of the bot
+                            game_state = await game.getBotStatus()
+                            bot.update_state(
+                                point=game_state.point,
+                                opponent_point=game_state.opponent_point,
+                                target=game_state.target,
+                                destructivity=game_state.destructivity,
+                                productivity=game_state.productivity
+                            )
+                            # Start executing
+                            bot_action_point = await game.getBotActionPoint()
+                            cost = await game.getOperationCost()
+                            while bot_action_point >= cost:
+                                operation = bot.choose_action()
+                                await game.botOperationExecution(operation)
+                                cost = await game.getOperationCost()
+                            is_bot_turn.clear()
+
                     # Message receiving
                     async def receive_message():
                         try:
@@ -190,7 +214,8 @@ async def botPlay(websocket: WebSocket,
                                 elif msg_type == "player_operation":
                                     # Get operation id
                                     operation_id = message.get("operation_id")
-                                    current_player = game.getCurrentPlayer()
+                                    operation = message.get("operation")
+                                    current_player = await game.getCurrentPlayer()
                                     # Check whether this is the turn for the player
                                     if current_player == BotGamePlayer.PLAYER:
                                         pass

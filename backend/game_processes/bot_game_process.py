@@ -7,6 +7,7 @@ from data_management.enums import (
     Operations,
     BotGamePlayer
 )
+from data_management.data_classes import BotStateMachineStatus
 
 # logger
 logger = getLogger("Game Process")
@@ -40,6 +41,8 @@ class BotGameProcess:
                 "turn": 0,
                 "target": target,
                 "operation_cost": operation_cost,
+                "player_executed": False,
+                "bot_executed": False,
                 "current_player": "player"
             }
         else:
@@ -57,6 +60,8 @@ class BotGameProcess:
                 "turn": 0,
                 "target": target,
                 "operation_cost": operation_cost,
+                "player_executed": False,
+                "bot_executed": False,
                 "current_player": "bot"
             }
         # Store it to hash table
@@ -486,6 +491,18 @@ class BotGameProcess:
             result = await self.botEnhanceDestructivity()
         elif result == Operations.ENHANCE_ACTION_POINT:
             result = await self.botEnhanceActionPointPT()
+        return result
+
+    # Bot status update
+    async def getBotStatus(self) -> BotStateMachineStatus:
+        logger.info("Getting bot status")
+        # Get the result
+        result = BotStateMachineStatus()
+        result.point = int(await self.getBotScore())
+        result.opponent_point = int(await self.getPlayerScore())
+        result.target = int(await self.getTarget())
+        result.productivity = int(await self.getBotProductivity())
+        result.destructivity = int(await self.getBotDestructivity())
         return result
 
     # Delete game data
