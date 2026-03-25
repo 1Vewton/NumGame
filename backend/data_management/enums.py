@@ -8,6 +8,7 @@ class Operations(Enum):
     ENHANCE_PRODUCTIVITY = 3
     ENHANCE_DESTRUCTIBILITY = 4
     ENHANCE_ACTION_POINT = 5
+    SKIP = 6
 
 
 # Robot Status
@@ -22,6 +23,15 @@ class StateMachine(Enum):
 # Operation Fail Reason
 class FailReason(Enum):
     NO_ENOUGH_ACTION_POINT = 1
+    NO_SUCH_OPERATION = 2
+
+
+# Response Type
+class WSResponseType(Enum):
+    HEARTBEAT = 1
+    PLAYER_OPERATION = 2
+    OPERATION_EXECUTION_RESULT = 3
+    MOVE_DIVISION = 4
 
 
 # Bot game player enum

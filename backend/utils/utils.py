@@ -52,6 +52,10 @@ def decide_is_user_first():
 def fail_reason2user(fail_reason: FailReason):
     if fail_reason == FailReason.NO_ENOUGH_ACTION_POINT:
         return "No enough action point to execute the process"
+    elif fail_reason == FailReason.NO_SUCH_OPERATION:
+        return "This operation does not exists"
+    else:
+        return "Unknown game process error"
 
 
 if __name__ == "__main__":
