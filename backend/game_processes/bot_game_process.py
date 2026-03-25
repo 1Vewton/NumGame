@@ -213,6 +213,28 @@ class BotGameProcess:
         else:
             return BotGamePlayer.BOT
 
+    # Next player
+    async def turnToNextPlayer(self):
+        logger.info("Trying to turn to the next player")
+        # Get current player
+        current_player = await self.client.hget(
+            self.game_id,
+            "current_player"
+        )
+        # Switching player
+        if current_player == "player":
+            await self.client.hset(
+                self.game_id,
+                "current_player",
+                "bot"
+            )
+        else:
+            await self.client.hset(
+                self.game_id,
+                "current_player",
+                "player"
+            )
+
     '''
     Operations
     '''
@@ -369,6 +391,27 @@ class BotGameProcess:
                 "success": False,
                 "reason": result["reason"]
             }
+
+    # Player operation execution
+    async def playerOperationExecution(self, operation: Operations):
+        logger.info("Player trying to execute operation")
+        if operation == Operations.PRODUCE:
+            return await self.playerProduce()
+        elif operation == Operations.DESTRUCT:
+            return await self.playerDestruct()
+        elif operation == Operations.ENHANCE_PRODUCTIVITY:
+            return await self.playerEnhanceProductivity()
+        else:
+            # If the operation does not exist
+            content = {
+                "success": False,
+                "reason": FailReason.NO_SUCH_OPERATION
+            }
+            return content
+
+    '''
+    Bot operations
+    '''
 
     # Bot produce
     async def botProduce(self):

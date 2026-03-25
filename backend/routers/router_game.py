@@ -13,7 +13,9 @@ from fastapi.responses import JSONResponse
 from data_management.data_management import get_db
 from data_management.data_models import players
 from data_management.enums import (
-    BotGamePlayer
+    BotGamePlayer,
+    Operations,
+    WSResponseType
 )
 from utils.utils import (
     generate_uuid,
@@ -92,12 +94,12 @@ async def botPlay(websocket: WebSocket,
                     is_user_first = decide_is_user_first()
                     if is_user_first:
                         move_info = {
-                            "type": "move_division",
+                            "type": WSResponseType.MOVE_DIVISION.value,
                             "first_move": True
                         }
                     else:
                         move_info = {
-                            "type": "move_division",
+                            "type": WSResponseType.MOVE_DIVISION.value,
                             "first_move": True
                         }
                     await websocket.send_json(move_info)
@@ -135,7 +137,7 @@ async def botPlay(websocket: WebSocket,
                                 pending_hb[sequence] = hb
                                 # heartbeat content
                                 heartbeat_content = {
-                                    "type": "heartbeat",
+                                    "type": WSResponseType.HEARTBEAT.value,
                                     "time_stamp": asyncio.get_running_loop().time(),
                                     "sequence": sequence
                                 }
@@ -200,9 +202,9 @@ async def botPlay(websocket: WebSocket,
                             while not game_finished.is_set():
                                 # Receive message
                                 message = await websocket.receive_json()
-                                msg_type = message.get("type")
+                                msg_type = WSResponseType(message.get("type"))
                                 # If it is a response for the heartbeat
-                                if msg_type == "heartbeat":
+                                if msg_type == WSResponseType.HEARTBEAT:
                                     sequence_res = message.get("sequence")
                                     # Finish the heartbeat
                                     if sequence_res is not None and sequence_res in pending_hb.keys():
@@ -211,20 +213,30 @@ async def botPlay(websocket: WebSocket,
                                             future.set_result(True)
                                     else:
                                         logger.error(f"Cannot find heartbeat with sequence {sequence_res}")
-                                elif msg_type == "player_operation":
+                                elif msg_type == WSResponseType.PLAYER_OPERATION:
                                     # Get operation id
                                     operation_id = message.get("operation_id")
                                     operation = message.get("operation")
-                                    current_player = await game.getCurrentPlayer()
-                                    # Check whether this is the turn for the player
-                                    if current_player == BotGamePlayer.PLAYER:
-                                        pass
+                                    if operation_id is not None and operation is not None:
+                                        current_player = await game.getCurrentPlayer()
+                                        # Check whether this is the turn for the player
+                                        if current_player == BotGamePlayer.PLAYER and not is_bot_turn.is_set():
+                                            player_operation = Operations(operation)
+                                            if player_operation == Operations.SKIP:
+                                                is_bot_turn.set()
+                                        else:
+                                            content = {
+                                                "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
+                                                "operation_id": operation_id,
+                                                "success": False,
+                                                "reason": "This is not your turn"
+                                            }
+                                            await websocket.send_json(content)
                                     else:
                                         content = {
-                                            "type": "execution_result",
-                                            "operation_id": operation_id,
+                                            "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
                                             "success": False,
-                                            "reason": "This is not your turn"
+                                            "reason": "Operation invalid"
                                         }
                                         await websocket.send_json(content)
                         except WebSocketDisconnect:
@@ -237,18 +249,24 @@ async def botPlay(websocket: WebSocket,
                     # Tasks
                     heartbeat_task = asyncio.create_task(send_heartbeat())
                     receive_message_task = asyncio.create_task(receive_message())
+                    bot_operation_task = asyncio.create_task(bot_operating())
                     # Wait for the task to get complete
                     await asyncio.wait(
-                        [heartbeat_task,
-                         receive_message_task],
+                        [
+                            heartbeat_task,
+                            receive_message_task,
+                            bot_operation_task
+                        ],
                         return_when=asyncio.FIRST_COMPLETED
                     )
                     # Cancel tasks
                     heartbeat_task.cancel()
                     receive_message_task.cancel()
+                    bot_operation_task.cancel()
                     try:
                         await heartbeat_task
                         await receive_message_task
+                        await bot_operation_task
                     except asyncio.CancelledError:
                         pass
                 else:
