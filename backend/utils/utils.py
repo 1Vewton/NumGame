@@ -1,9 +1,13 @@
 import uuid
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 import logging
 from pathlib import Path
+# slowapi
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+# Project dependencies
 from utils.config import settings
+from data_management.enums import FailReason
+# Important tools
 import pandas as pd
 import numpy as np
 import random
@@ -42,6 +46,12 @@ def decide_is_user_first():
         return True
     else:
         return False
+
+
+# Show fail reason to user
+def fail_reason2user(fail_reason: FailReason):
+    if fail_reason == FailReason.NO_ENOUGH_ACTION_POINT:
+        return "No enough action point to execute the process"
 
 
 if __name__ == "__main__":
