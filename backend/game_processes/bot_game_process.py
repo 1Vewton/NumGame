@@ -12,6 +12,10 @@ from data_management.data_classes import BotStateMachineStatus
 # logger
 logger = getLogger("Game Process")
 
+'''
+Even though current player is quite useless,
+I still want to keep it to prevent problems
+'''
 
 # Bot Game process class
 class BotGameProcess:
@@ -395,12 +399,17 @@ class BotGameProcess:
     # Player operation execution
     async def playerOperationExecution(self, operation: Operations):
         logger.info("Player trying to execute operation")
+        # Start execution
         if operation == Operations.PRODUCE:
             return await self.playerProduce()
         elif operation == Operations.DESTRUCT:
             return await self.playerDestruct()
         elif operation == Operations.ENHANCE_PRODUCTIVITY:
             return await self.playerEnhanceProductivity()
+        elif operation == Operations.ENHANCE_DESTRUCTIBILITY:
+            return await self.playerEnhanceDestructivity()
+        elif operation == Operations.ENHANCE_ACTION_POINT:
+            return await self.playerEnhanceActionPointPT()
         else:
             # If the operation does not exist
             content = {
@@ -536,6 +545,10 @@ class BotGameProcess:
             result = await self.botEnhanceActionPointPT()
         return result
 
+    '''
+    Information showing
+    '''
+
     # Bot status update
     async def getBotStatus(self) -> BotStateMachineStatus:
         logger.info("Getting bot status")
@@ -547,6 +560,23 @@ class BotGameProcess:
         result.productivity = int(await self.getBotProductivity())
         result.destructivity = int(await self.getBotDestructivity())
         return result
+
+    # Update user data
+    async def updateUserStatus(self):
+        logger.info("Fetching user data and give it to the front end")
+        result = {
+            "point": await self.getPlayerScore(),
+            "opponent_point": await self.getBotScore(),
+            "destructivity": await self.getPlayerDestructivity(),
+            "productivity": await self.getPlayerProductivity(),
+            "action_point": await self.getPlayerActionPoint(),
+            "action_point_per_turn": await self.getPlayerActionPointPT()
+        }
+        return result
+
+    '''
+    Utilities
+    '''
 
     # Delete game data
     async def deleteData(self):

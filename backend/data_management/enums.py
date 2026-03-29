@@ -32,6 +32,7 @@ class WSResponseType(Enum):
     PLAYER_OPERATION = 2
     OPERATION_EXECUTION_RESULT = 3
     MOVE_DIVISION = 4
+    DATA_UPDATE = 5
 
 
 # Bot game player enum

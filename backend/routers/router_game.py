@@ -19,7 +19,8 @@ from data_management.enums import (
 )
 from utils.utils import (
     generate_uuid,
-    decide_is_user_first
+    decide_is_user_first,
+    fail_reason2user
 )
 from utils.token_management import (
     search_user_token
@@ -116,6 +117,9 @@ async def botPlay(websocket: WebSocket,
                     game_finished = asyncio.Event()
                     # Bot turn
                     is_bot_turn = asyncio.Event()
+                    # Turn record
+                    bot_played = asyncio.Event()
+                    player_played = asyncio.Event()
                     # Heartbeat Sequence Number
                     next_sequence = 0
                     timeout_count = 0
@@ -195,6 +199,7 @@ async def botPlay(websocket: WebSocket,
                                 await game.botOperationExecution(operation)
                                 cost = await game.getOperationCost()
                             is_bot_turn.clear()
+                            bot_played.set()
 
                     # Message receiving
                     async def receive_message():
@@ -218,12 +223,37 @@ async def botPlay(websocket: WebSocket,
                                     operation_id = message.get("operation_id")
                                     operation = message.get("operation")
                                     if operation_id is not None and operation is not None:
-                                        current_player = await game.getCurrentPlayer()
                                         # Check whether this is the turn for the player
-                                        if current_player == BotGamePlayer.PLAYER and not is_bot_turn.is_set():
+                                        if not is_bot_turn.is_set():
                                             player_operation = Operations(operation)
                                             if player_operation == Operations.SKIP:
                                                 is_bot_turn.set()
+                                            else:
+                                                operation_result = game.playerOperationExecution(player_operation)
+                                                if operation_result["success"]:
+                                                    # Operation unsuccessful
+                                                    content = {
+                                                        "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
+                                                        "success": True
+                                                    }
+                                                    await websocket.send_json(content)
+                                                else:
+                                                    # Send error reason to front-end
+                                                    content = {
+                                                        "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
+                                                        "success": False,
+                                                        "reason": fail_reason2user(operation_result["reason"])
+                                                    }
+                                                    await websocket.send_json(content)
+                                                    # Instruct the frontend to update user data
+                                                    user_data = await game.updateUserStatus()
+                                                    content = {
+                                                        "type": WSResponseType.DATA_UPDATE.value,
+                                                        "result": user_data
+                                                    }
+                                                    await websocket.send_json(content)
+                                                    # Record that the player has played
+                                                    player_played.set()
                                         else:
                                             content = {
                                                 "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
