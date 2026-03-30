@@ -5,3 +5,9 @@ class BotStateMachineStatus:
     productivity: int
     destructivity: int
     target: int
+
+
+# Game operation result
+class OperationResult:
+    success: bool
+    end_turn: bool

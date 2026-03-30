@@ -39,3 +39,12 @@ class WSResponseType(Enum):
 class BotGamePlayer(Enum):
     PLAYER = 1
     BOT = 2
+
+
+# Game state
+class GameState(Enum):
+    INIT = 0
+    PLAYER_TURN = 1
+    BOT_TURN = 2
+    SETTLEMENT = 3
+    FINISH = 4
