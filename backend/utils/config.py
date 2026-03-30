@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     names_csv: str = "names_and_connotations.csv"
     # Bot config
     simple_bot_name: str = "<bot>"
+    maximum_bot_operation_times: int = 5
+
     # Load .env
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
