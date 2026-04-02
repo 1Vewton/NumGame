@@ -21,6 +21,7 @@ class GameStateMachine:
     def __init__(self,
                  client: WebSocket,
                  redis_client: aioredis.Redis,
+                 target = 10
                  ):
         self.ws_client = client
         # async lock
@@ -34,9 +35,16 @@ class GameStateMachine:
         )
         self.is_user_first = False
         self.bot_state_machine = BotStateMachine()
+        self.target = target
+
+    # Start
+    async def start(self):
+        logger.info("Game starting")
+        await self.state_transition(GameState.INIT)
 
     # game initialize
     async def game_initialize(self, target: int):
+        logger.info("Game initialize")
         self.is_user_first = decide_is_user_first()
         await self.game.initializeBotPlay(
             is_user_first=self.is_user_first,
@@ -55,6 +63,7 @@ class GameStateMachine:
 
     # Bot actions
     async def bot_turn(self):
+        logger.info("Bot turn start")
         content = {
             "type": WSResponseType.BOT_TURN_START.value,
         }
@@ -86,9 +95,19 @@ class GameStateMachine:
         else:
             await self.state_transition(GameState.PLAYER_TURN)
 
+    # Bot state
+    async def user_turn_start(self):
+        logger.info("New user turn start")
+        content = {
+
+        }
+
     # State process
     async def on_enter_state(self, new_state: GameState):
-        pass
+        if new_state == GameState.INIT:
+            await self.game_initialize(self.target)
+        elif new_state == GameState.BOT_TURN:
+            await self.bot_turn()
 
     # State Transition
     async def state_transition(self, new_state: GameState):
