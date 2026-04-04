@@ -24,6 +24,7 @@ class StateMachine(Enum):
 class FailReason(Enum):
     NO_ENOUGH_ACTION_POINT = 1
     NO_SUCH_OPERATION = 2
+    NOT_YOUR_TURN = 3
 
 
 # Response Type
