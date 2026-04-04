@@ -5,7 +5,12 @@ import redis.asyncio as aioredis
 # FastAPI
 from fastapi import WebSocket
 # project dependencies
-from data_management.enums import GameState, WSResponseType
+from data_management.enums import (
+    GameState,
+    WSResponseType,
+    Operations,
+    FailReason
+)
 from game_processes.bot_game_process import BotGameProcess
 from utils.utils import (
     generate_uuid,
@@ -95,12 +100,49 @@ class GameStateMachine:
         else:
             await self.state_transition(GameState.PLAYER_TURN)
 
-    # Bot state
+    # User state
     async def user_turn_start(self):
         logger.info("New user turn start")
         content = {
-
+            "type": WSResponseType.PLAYER_TURN_START.value
         }
+        await self.ws_client.send_json(content)
+
+    # User operation execution
+    async def user_operation(self, operation: Operations):
+        logger.info("New user operation")
+        if self.state == GameState.PLAYER_TURN:
+            # Skip turn
+            if operation == Operations.SKIP:
+                # Change game state
+                if self.is_user_first:
+                    await self.state_transition(GameState.BOT_TURN)
+                else:
+                    await self.state_transition(GameState.PLAYER_TURN)
+            else:
+                # Execution turn
+                logger.info("Start executing user operation")
+                result = await self.game.playerOperationExecution(operation)
+                if result["success"]:
+                    content = {
+                        "type": WSResponseType.PLAYER_OPERATION.value,
+                        "success": True,
+                    }
+                    await self.ws_client.send_json(content)
+                else:
+                    content = {
+                        "type": WSResponseType.PLAYER_OPERATION.value,
+                        "success": False,
+                        "reason": result["reason"].value
+                    }
+                    await self.ws_client.send_json(content)
+        else:
+            content = {
+                "type": WSResponseType.PLAYER_OPERATION.value,
+                "success": False,
+                "reason": FailReason.NOT_YOUR_TURN.value
+            }
+            await self.ws_client.send_json(content)
 
     # State process
     async def on_enter_state(self, new_state: GameState):
@@ -108,6 +150,8 @@ class GameStateMachine:
             await self.game_initialize(self.target)
         elif new_state == GameState.BOT_TURN:
             await self.bot_turn()
+        elif new_state == GameState.PLAYER_TURN:
+            await self.user_turn_start()
 
     # State Transition
     async def state_transition(self, new_state: GameState):

@@ -1,3 +1,6 @@
+from data_management.enums import FailReason
+
+
 # Data model for updating the status of Bot state machine
 class BotStateMachineStatus:
     point: int
@@ -11,3 +14,10 @@ class BotStateMachineStatus:
 class OperationResult:
     success: bool
     end_turn: bool
+
+
+# Player Operation Result
+class PlayerOperationResult:
+    success: bool
+    end_turn: bool
+    reason: FailReason
