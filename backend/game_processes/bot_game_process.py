@@ -199,6 +199,15 @@ class BotGameProcess:
         )
         return operation_cost
 
+    # Get turn
+    async def getTurn(self):
+        logger.info("Trying to get the turn number for the game")
+        turn_number = await self.client.hget(
+            self.game_id,
+            "turn"
+        )
+        return turn_number
+
     # Game info fetching
     async def getGameData(self):
         logger.info("Trying to get the game data")
@@ -582,3 +591,12 @@ class BotGameProcess:
     async def deleteData(self):
         logger.info(f"Delete Data of key {self.game_id}")
         await self.client.delete(self.game_id)
+
+    # Next turn
+    async def nextTurn(self):
+        logger.info("Turn to next turn")
+        await self.client.hincrby(
+            self.game_id,
+            "turn",
+            1
+        )

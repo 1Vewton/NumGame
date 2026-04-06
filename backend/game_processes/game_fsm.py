@@ -1,9 +1,12 @@
 from logging import getLogger
 import asyncio
+from typing import Annotated
 # Redis
 import redis.asyncio as aioredis
 # FastAPI
-from fastapi import WebSocket
+from fastapi import WebSocket, Depends
+# sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession
 # project dependencies
 from data_management.enums import (
     GameState,
@@ -17,6 +20,7 @@ from utils.utils import (
     decide_is_user_first
 )
 from game_processes.bot_controller import BotStateMachine
+from data_management.data_management import get_db
 
 logger = getLogger("game_fsm")
 
@@ -24,10 +28,15 @@ logger = getLogger("game_fsm")
 # Game state machine
 class GameStateMachine:
     def __init__(self,
+                 session: Annotated[AsyncSession, Depends(get_db)],
+                 game_finished_event: asyncio.Event,
                  client: WebSocket,
                  redis_client: aioredis.Redis,
-                 target = 10
+                 target = 10,
                  ):
+        # Database session
+        self.session = session
+        # websocket client
         self.ws_client = client
         # async lock
         self.lock = asyncio.Lock()
@@ -41,6 +50,8 @@ class GameStateMachine:
         self.is_user_first = False
         self.bot_state_machine = BotStateMachine()
         self.target = target
+        # Game finished asyncio event: Stop the game
+        self.game_finished_event = game_finished_event
 
     # Start
     async def start(self):
@@ -143,6 +154,34 @@ class GameStateMachine:
                 "reason": FailReason.NOT_YOUR_TURN.value
             }
             await self.ws_client.send_json(content)
+
+    # Settlement
+    async def game_settlement(self):
+        logger.info("Start game settlement")
+        await self.game.nextTurn()
+        player_score = await self.game.getPlayerScore()
+        bot_score = await self.game.getBotScore()
+        target = await self.game.getTarget()
+        # update user status
+        user_status = await self.game.updateUserStatus()
+        content = {
+            "type": WSResponseType.DATA_UPDATE.value,
+            "data": user_status
+        }
+        await self.ws_client.send_json(content)
+        if (player_score > target
+            and bot_score > target
+        ):
+            if player_score > bot_score:
+                logger.info("Player wins")
+            else:
+                logger.info("Bot wins")
+        else:
+            # Turn to other states
+            if self.is_user_first:
+                await self.state_transition(GameState.PLAYER_TURN)
+            else:
+                await self.state_transition(GameState.BOT_TURN)
 
     # State process
     async def on_enter_state(self, new_state: GameState):
