@@ -162,7 +162,7 @@ async def autoLogin(request: Request,
                 if result:
                     # Successfully logged in
                     processed_result = result[0]
-                    if processed_result != settings.simple_bot_name:
+                    if processed_result.user_name != settings.simple_bot_name:
                         content = {
                             "success": True,
                             "user_name": processed_result.user_name,

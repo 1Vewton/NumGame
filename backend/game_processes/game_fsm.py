@@ -7,6 +7,11 @@ import redis.asyncio as aioredis
 from fastapi import WebSocket, Depends
 # sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import (
+    select,
+    update
+)
+from datetime import datetime
 # project dependencies
 from data_management.enums import (
     GameState,
@@ -14,6 +19,7 @@ from data_management.enums import (
     Operations,
     FailReason
 )
+from data_management.data_models import players
 from game_processes.bot_game_process import BotGameProcess
 from utils.utils import (
     generate_uuid,
@@ -21,6 +27,7 @@ from utils.utils import (
 )
 from game_processes.bot_controller import BotStateMachine
 from data_management.data_management import get_db
+from utils.config import settings
 
 logger = getLogger("game_fsm")
 
@@ -29,6 +36,7 @@ logger = getLogger("game_fsm")
 class GameStateMachine:
     def __init__(self,
                  session: Annotated[AsyncSession, Depends(get_db)],
+                 player_id: str,
                  game_finished_event: asyncio.Event,
                  client: WebSocket,
                  redis_client: aioredis.Redis,
@@ -50,11 +58,14 @@ class GameStateMachine:
         self.is_user_first = False
         self.bot_state_machine = BotStateMachine()
         self.target = target
+        self.player_id = player_id
+        self.start_time = None
         # Game finished asyncio event: Stop the game
         self.game_finished_event = game_finished_event
 
     # Start
     async def start(self):
+        self.start_time = datetime.now()
         logger.info("Game starting")
         await self.state_transition(GameState.INIT)
 
@@ -155,6 +166,45 @@ class GameStateMachine:
             }
             await self.ws_client.send_json(content)
 
+    # Winner process
+    async def game_finished_set(self, is_player_win: bool):
+        # log
+        if is_player_win:
+            logger.info("Player win")
+        else:
+            logger.info("Bot win")
+        # Update user info
+        user_info = await self.session.execute(
+            select(players).where(
+                players.id == self.player_id
+            )
+        )
+        result = user_info.first()
+        if result:
+            processed_result = result[0]
+            new_total_games = processed_result.total_games + 1
+            await self.session.execute(
+                update(players).
+                where(players.id == self.player_id).
+                values(total_games=new_total_games)
+            )
+            logger.info("User info update complete")
+        # update bot info
+        bot_info = await self.session.execute(
+            select(players).where(
+                players.user_name == settings.simple_bot_name
+            )
+        )
+        result = bot_info.first()
+        if result:
+            processed_result = result[0]
+            new_total_games = processed_result.total_games + 1
+            await self.session.execute(
+                update(players).
+                where(players.user_name == settings.simple_bot_name).
+                values(total_games=new_total_games)
+            )
+
     # Settlement
     async def game_settlement(self):
         logger.info("Start game settlement")
@@ -173,9 +223,9 @@ class GameStateMachine:
             and bot_score > target
         ):
             if player_score > bot_score:
-                logger.info("Player wins")
-            else:
-                logger.info("Bot wins")
+                await self.game_finished_set(is_player_win=True)
+            elif bot_score > player_score:
+                await self.game_finished_set(is_player_win=False)
         else:
             # Turn to other states
             if self.is_user_first:
