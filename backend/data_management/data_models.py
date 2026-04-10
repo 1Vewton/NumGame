@@ -54,10 +54,10 @@ class games(Base):
     id = Column(String(100), primary_key=True)
     first_move = Column(String(100),
                         ForeignKey("players.id", ondelete="CASCADE"),
-                        nullable=False)
+                        nullable=True)
     second_move = Column(String(100),
                          ForeignKey("players.id", ondelete="CASCADE"),
-                         nullable=False)
+                         nullable=True)
     winner = Column(String(100),
                     ForeignKey("players.id", ondelete="CASCADE"),
                     nullable=True)

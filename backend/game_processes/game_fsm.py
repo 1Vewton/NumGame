@@ -19,7 +19,7 @@ from data_management.enums import (
     Operations,
     FailReason
 )
-from data_management.data_models import players
+from data_management.data_models import players, games
 from game_processes.bot_game_process import BotGameProcess
 from utils.utils import (
     generate_uuid,
@@ -40,7 +40,7 @@ class GameStateMachine:
                  game_finished_event: asyncio.Event,
                  client: WebSocket,
                  redis_client: aioredis.Redis,
-                 target = 10,
+                 target=10,
                  ):
         # Database session
         self.session = session
@@ -60,6 +60,8 @@ class GameStateMachine:
         self.target = target
         self.player_id = player_id
         self.start_time = None
+        self.end_time = None
+        self.round = 0
         # Game finished asyncio event: Stop the game
         self.game_finished_event = game_finished_event
 
@@ -168,6 +170,10 @@ class GameStateMachine:
 
     # Winner process
     async def game_finished_set(self, is_player_win: bool):
+        # Users info
+        first_move_user_id = None
+        second_move_user_id = None
+        bot_id = None
         # log
         if is_player_win:
             logger.info("Player win")
@@ -189,6 +195,19 @@ class GameStateMachine:
                 values(total_games=new_total_games)
             )
             logger.info("User info update complete")
+            # Record the user id to get stored in the games table
+            if self.is_user_first:
+                first_move_user_id = self.player_id
+            else:
+                second_move_user_id = self.player_id
+            # User win process
+            if is_player_win:
+                new_wins = processed_result.wins + 1
+                await self.session.execute(
+                    update(players).
+                    where(players.id == self.player_id).
+                    values(wins=new_wins)
+                )
         # update bot info
         bot_info = await self.session.execute(
             select(players).where(
@@ -204,10 +223,49 @@ class GameStateMachine:
                 where(players.user_name == settings.simple_bot_name).
                 values(total_games=new_total_games)
             )
+            logger.info("Bot profile update successful")
+            # Record bot info for games record
+            bot_id = processed_result.id
+            if self.is_user_first:
+                second_move_user_id = bot_id
+            else:
+                first_move_user_id = bot_id
+            # Update bot winning
+            if not is_player_win:
+                new_wins = processed_result.wins + 1
+                await self.session.execute(
+                    update(players).
+                    where(players.id == bot_id).
+                    values(wins=new_wins)
+                )
+        self.end_time = datetime.now()
+        # Data for the game to get stored
+        if is_player_win:
+            new_game_data = games(
+                id=self.game_id,
+                first_move=first_move_user_id,
+                second_move=second_move_user_id,
+                winner=self.player_id,
+                rounds=self.round,
+                started_time=self.start_time,
+                ended_time=self.end_time
+            )
+        else:
+            new_game_data = games(
+                id=self.game_id,
+                first_move=first_move_user_id,
+                second_move=second_move_user_id,
+                winner=bot_id,
+                rounds=self.round,
+                started_time=self.start_time,
+                ended_time=self.end_time
+            )
+        self.session.add(new_game_data)
 
     # Settlement
     async def game_settlement(self):
         logger.info("Start game settlement")
+        self.round += 1
         await self.game.nextTurn()
         player_score = await self.game.getPlayerScore()
         bot_score = await self.game.getBotScore()
@@ -220,8 +278,9 @@ class GameStateMachine:
         }
         await self.ws_client.send_json(content)
         if (player_score > target
-            and bot_score > target
+                and bot_score > target
         ):
+            self.end_time = datetime.now()
             if player_score > bot_score:
                 await self.game_finished_set(is_player_win=True)
             elif bot_score > player_score:
@@ -248,3 +307,7 @@ class GameStateMachine:
             logger.info(f"State transition: {self.state} -> {new_state}")
             self.state = new_state
             await self.on_enter_state(new_state)
+
+    # End game
+    async def end_game(self):
+        await self.game.deleteData()
