@@ -62,6 +62,8 @@ class GameStateMachine:
         self.start_time = None
         self.end_time = None
         self.round = 0
+        self.is_player_win = True
+        self.user_executing = asyncio.Event()
         # Game finished asyncio event: Stop the game
         self.game_finished_event = game_finished_event
 
@@ -97,8 +99,11 @@ class GameStateMachine:
             "type": WSResponseType.BOT_TURN_START.value,
         }
         await self.ws_client.send_json(content)
+        # Limit the maximum execution turns
+        execution_turns = 0
         # Execution of operations
-        while await self.game.getBotActionPoint() >= await self.game.getOperationCost():
+        while await self.game.getBotActionPoint() >= await self.game.getOperationCost()\
+                and execution_turns < settings.maximum_bot_operation_times:
             bot_status = await self.game.getBotStatus()
             self.bot_state_machine.update_state(
                 point=bot_status.point,
@@ -118,6 +123,7 @@ class GameStateMachine:
                 await self.ws_client.send_json(content)
             else:
                 break
+            execution_turns += 1
         # Turn to next
         if self.is_user_first:
             await self.state_transition(GameState.SETTLEMENT)
@@ -142,7 +148,8 @@ class GameStateMachine:
                 if self.is_user_first:
                     await self.state_transition(GameState.BOT_TURN)
                 else:
-                    await self.state_transition(GameState.PLAYER_TURN)
+                    await self.state_transition(GameState.SETTLEMENT)
+                self.user_executing.set()
             else:
                 # Execution turn
                 logger.info("Start executing user operation")
@@ -168,14 +175,14 @@ class GameStateMachine:
             }
             await self.ws_client.send_json(content)
 
-    # Winner process
-    async def game_finished_set(self, is_player_win: bool):
+    # Game finished
+    async def game_finished(self):
         # Users info
         first_move_user_id = None
         second_move_user_id = None
         bot_id = None
         # log
-        if is_player_win:
+        if self.is_player_win:
             logger.info("Player win")
         else:
             logger.info("Bot win")
@@ -201,7 +208,7 @@ class GameStateMachine:
             else:
                 second_move_user_id = self.player_id
             # User win process
-            if is_player_win:
+            if self.is_player_win:
                 new_wins = processed_result.wins + 1
                 await self.session.execute(
                     update(players).
@@ -231,7 +238,7 @@ class GameStateMachine:
             else:
                 first_move_user_id = bot_id
             # Update bot winning
-            if not is_player_win:
+            if not self.is_player_win:
                 new_wins = processed_result.wins + 1
                 await self.session.execute(
                     update(players).
@@ -240,7 +247,7 @@ class GameStateMachine:
                 )
         self.end_time = datetime.now()
         # Data for the game to get stored
-        if is_player_win:
+        if self.is_player_win:
             new_game_data = games(
                 id=self.game_id,
                 first_move=first_move_user_id,
@@ -261,6 +268,8 @@ class GameStateMachine:
                 ended_time=self.end_time
             )
         self.session.add(new_game_data)
+        # Game finished
+        self.game_finished_event.set()
 
     # Settlement
     async def game_settlement(self):
@@ -282,9 +291,10 @@ class GameStateMachine:
         ):
             self.end_time = datetime.now()
             if player_score > bot_score:
-                await self.game_finished_set(is_player_win=True)
+                self.is_player_win = True
             elif bot_score > player_score:
-                await self.game_finished_set(is_player_win=False)
+                self.is_player_win = False
+            await self.state_transition(GameState.FINISH)
         else:
             # Turn to other states
             if self.is_user_first:
@@ -300,13 +310,28 @@ class GameStateMachine:
             await self.bot_turn()
         elif new_state == GameState.PLAYER_TURN:
             await self.user_turn_start()
+            await self.user_executing.wait()
+            self.user_executing.clear()
+        elif new_state == GameState.SETTLEMENT:
+            await self.game_settlement()
+        elif new_state == GameState.FINISH:
+            await self.game_finished()
 
     # State Transition
     async def state_transition(self, new_state: GameState):
         async with self.lock:
             logger.info(f"State transition: {self.state} -> {new_state}")
             self.state = new_state
-            await self.on_enter_state(new_state)
+
+    # Run loop
+    async def run_game_loop(self):
+        logger.info("Start executing game loop")
+        # Execution loop
+        while not self.game_finished_event.is_set():
+            state = self.state
+            await self.on_enter_state(state)
+            if self.state == GameState.FINISH:
+                break
 
     # End game
     async def end_game(self):
