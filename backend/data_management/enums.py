@@ -36,6 +36,14 @@ class WSResponseType(Enum):
     DATA_UPDATE = 5
     BOT_TURN_START = 6
     PLAYER_TURN_START = 7
+    TURN_FINISH = 8
+    BOT_TURN_FINISH = 9
+
+
+# Turn finish reason
+class TurnFinishReason(Enum):
+    FRONTEND_OPERATION = 1
+    TIMEOUT = 2
 
 
 # Bot game player enum
