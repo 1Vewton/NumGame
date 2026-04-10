@@ -17,7 +17,8 @@ from data_management.enums import (
     GameState,
     WSResponseType,
     Operations,
-    FailReason
+    FailReason,
+    TurnFinishReason
 )
 from data_management.data_models import players, games
 from game_processes.bot_game_process import BotGameProcess
@@ -37,6 +38,7 @@ class GameStateMachine:
     def __init__(self,
                  session: Annotated[AsyncSession, Depends(get_db)],
                  player_id: str,
+                 player_timeout: int,
                  game_finished_event: asyncio.Event,
                  client: WebSocket,
                  redis_client: aioredis.Redis,
@@ -64,6 +66,7 @@ class GameStateMachine:
         self.round = 0
         self.is_player_win = True
         self.user_executing = asyncio.Event()
+        self.player_timeout = player_timeout
         # Game finished asyncio event: Stop the game
         self.game_finished_event = game_finished_event
 
@@ -144,6 +147,11 @@ class GameStateMachine:
         if self.state == GameState.PLAYER_TURN:
             # Skip turn
             if operation == Operations.SKIP:
+                content = {
+                    "type": WSResponseType.TURN_FINISH.value,
+                    "reason": TurnFinishReason.FRONTEND_OPERATION.value
+                }
+                await self.ws_client.send_json(content)
                 # Change game state
                 if self.is_user_first:
                     await self.state_transition(GameState.BOT_TURN)
@@ -301,6 +309,11 @@ class GameStateMachine:
                 await self.state_transition(GameState.PLAYER_TURN)
             else:
                 await self.state_transition(GameState.BOT_TURN)
+        # Send content
+        content = {
+            "type": WSResponseType.BOT_TURN_FINISH.value
+        }
+        await self.ws_client.send_json(content)
 
     # State process
     async def on_enter_state(self, new_state: GameState):
@@ -310,7 +323,19 @@ class GameStateMachine:
             await self.bot_turn()
         elif new_state == GameState.PLAYER_TURN:
             await self.user_turn_start()
-            await self.user_executing.wait()
+            # Wait til user finished or timeout
+            try:
+                await asyncio.wait_for(
+                    self.user_executing.wait(),
+                    timeout=self.player_timeout
+                )
+            except asyncio.TimeoutError:
+                logger.info("Timeout, force state switching")
+                content = {
+                    "type": WSResponseType.TURN_FINISH.value,
+                    "reason": TurnFinishReason.TIMEOUT.value
+                }
+                await self.ws_client.send_json(content)
             self.user_executing.clear()
         elif new_state == GameState.SETTLEMENT:
             await self.game_settlement()
