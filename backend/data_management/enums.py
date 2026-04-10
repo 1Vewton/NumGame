@@ -38,6 +38,8 @@ class WSResponseType(Enum):
     PLAYER_TURN_START = 7
     TURN_FINISH = 8
     BOT_TURN_FINISH = 9
+    PLAYER_WIN = 10
+    BOT_WIN = 11
 
 
 # Turn finish reason
