@@ -27,7 +27,7 @@ from utils.token_management import (
 from utils.config import settings
 from game_processes.redis_manager import get_redis
 from game_processes.bot_game_process import BotGameProcess
-from game_processes.bot_controller import BotStateMachine
+from game_processes.game_fsm import BotGameStateMachine
 # ORM dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -59,17 +59,15 @@ async def botPlay(websocket: WebSocket,
                   session: Annotated[AsyncSession, Depends(get_db)],
                   redis: aioredis.Redis = Depends(get_redis)):
     # Get info from the connection
-    target = websocket.query_params.get("target")
+    target = int(websocket.query_params.get("target"))
+    player_timeout = int(websocket.query_params.get("player_timeout"))
     # Accept connection
     await websocket.accept()
     # Basic game settings
     game_id = generate_uuid()
     redis_storage_id = f"bot_game:{game_id}"
     is_game_initialized = False
-    game = BotGameProcess(
-        client=redis,
-        game_id=redis_storage_id
-    )
+    game = None
     try:
         # Check user info
         logger.info("Checking user info")
@@ -97,29 +95,30 @@ async def botPlay(websocket: WebSocket,
                         "first_move": is_user_first
                     }
                     await websocket.send_json(move_info)
-                    # Initialize the game
-                    await game.initializeBotPlay(
-                        target=int(target),
-                        is_user_first=is_user_first
-                    )
-                    game_start_time = datetime.now()
-                    is_game_initialized = True
                     # Track whether the game is finished
                     game_finished = asyncio.Event()
-                    # Bot turn
-                    is_bot_turn = asyncio.Event()
-                    # Bot first
-                    if not is_user_first:
-                        is_bot_turn.set()
-                    # Turn record
-                    player_played = asyncio.Event()
-                    # Turn calc
-                    turn_settlement_finished = asyncio.Event()
+                    # Initialize the game
+                    is_game_initialized = True
+                    game = BotGameStateMachine(
+                        session=session,
+                        player_id=user_id,
+                        player_timeout=player_timeout,
+                        game_finished_event=game_finished,
+                        client=websocket,
+                        redis_client=redis,
+                        target=target
+                    )
+                    await game.start()
                     # Heartbeat Sequence Number
                     next_sequence = 0
                     timeout_count = 0
                     # Pending
                     pending_hb = {}
+
+                    # Game loop
+                    async def game_loop():
+                        logger.info("Game loop executed")
+                        await game.run_game_loop()
 
                     # Heart Beat
                     async def send_heartbeat():
@@ -191,56 +190,12 @@ async def botPlay(websocket: WebSocket,
                                     else:
                                         logger.error(f"Cannot find heartbeat with sequence {sequence_res}")
                                 elif msg_type == WSResponseType.PLAYER_OPERATION:
-                                    # Get operation id
-                                    operation_id = message.get("operation_id")
+                                    # operation execution
                                     operation = message.get("operation")
-                                    if operation_id is not None and operation is not None:
-                                        # Check whether this is the turn for the player
-                                        if not is_bot_turn.is_set() and turn_settlement_finished.is_set():
-                                            player_operation = Operations(operation)
-                                            if player_operation == Operations.SKIP:
-                                                is_bot_turn.set()
-                                                # Record that the player has played
-                                                player_played.set()
-                                            else:
-                                                operation_result = await game.playerOperationExecution(player_operation)
-                                                if operation_result["success"]:
-                                                    # Operation unsuccessful
-                                                    content = {
-                                                        "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
-                                                        "success": True
-                                                    }
-                                                    await websocket.send_json(content)
-                                                else:
-                                                    # Send error reason to front-end
-                                                    content = {
-                                                        "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
-                                                        "success": False,
-                                                        "reason": fail_reason2user(operation_result["reason"])
-                                                    }
-                                                    await websocket.send_json(content)
-                                                    # Instruct the frontend to update user data
-                                                    user_data = await game.updateUserStatus()
-                                                    content = {
-                                                        "type": WSResponseType.DATA_UPDATE.value,
-                                                        "result": user_data
-                                                    }
-                                                    await websocket.send_json(content)
-                                        else:
-                                            content = {
-                                                "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
-                                                "operation_id": operation_id,
-                                                "success": False,
-                                                "reason": "This is not your turn"
-                                            }
-                                            await websocket.send_json(content)
+                                    if operation is not None:
+                                        await game.user_operation(Operations(operation))
                                     else:
-                                        content = {
-                                            "type": WSResponseType.OPERATION_EXECUTION_RESULT.value,
-                                            "success": False,
-                                            "reason": "Operation invalid"
-                                        }
-                                        await websocket.send_json(content)
+                                        logger.error("No operation found")
                         except WebSocketDisconnect:
                             logger.error("Client disconnected during main game process")
                         except Exception as e:
@@ -249,6 +204,7 @@ async def botPlay(websocket: WebSocket,
                             game_finished.set()
 
                     # Tasks
+                    game_loop_task = asyncio.create_task(game_loop())
                     heartbeat_task = asyncio.create_task(send_heartbeat())
                     receive_message_task = asyncio.create_task(receive_message())
                     # Wait for the task to get complete
@@ -256,15 +212,18 @@ async def botPlay(websocket: WebSocket,
                         [
                             heartbeat_task,
                             receive_message_task,
+                            game_loop_task
                         ],
                         return_when=asyncio.FIRST_COMPLETED
                     )
                     # Cancel tasks
                     heartbeat_task.cancel()
                     receive_message_task.cancel()
+                    game_loop_task.cancel()
                     try:
                         await heartbeat_task
                         await receive_message_task
+                        await game_loop_task
                     except asyncio.CancelledError:
                         pass
                 else:
@@ -287,4 +246,4 @@ async def botPlay(websocket: WebSocket,
     finally:
         # Handle the game info deleting at the end
         if is_game_initialized:
-            await game.deleteData()
+            await game.end_game()

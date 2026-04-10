@@ -34,7 +34,7 @@ logger = getLogger("game_fsm")
 
 
 # Game state machine
-class GameStateMachine:
+class BotGameStateMachine:
     def __init__(self,
                  session: Annotated[AsyncSession, Depends(get_db)],
                  player_id: str,
@@ -223,6 +223,11 @@ class GameStateMachine:
                     where(players.id == self.player_id).
                     values(wins=new_wins)
                 )
+                # Content to send to the front-end
+                content = {
+                    "type": WSResponseType.PLAYER_WIN.value,
+                }
+                await self.ws_client.send_json(content)
         # update bot info
         bot_info = await self.session.execute(
             select(players).where(
@@ -253,6 +258,10 @@ class GameStateMachine:
                     where(players.id == bot_id).
                     values(wins=new_wins)
                 )
+                content = {
+                    "type": WSResponseType.BOT_WIN.value
+                }
+                await self.ws_client.send_json(content)
         self.end_time = datetime.now()
         # Data for the game to get stored
         if self.is_player_win:
