@@ -17,6 +17,7 @@ Even though current player is quite useless,
 I still want to keep it to prevent problems
 '''
 
+
 # Bot Game process class
 class BotGameProcess:
     def __init__(self, client: aioredis.Redis, game_id: str):
