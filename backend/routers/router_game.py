@@ -17,7 +17,6 @@ from data_management.enums import (
     WSResponseType
 )
 from utils.utils import (
-    generate_uuid,
     decide_is_user_first
 )
 from utils.token_management import (
@@ -61,7 +60,6 @@ async def botPlay(websocket: WebSocket,
     # Accept connection
     await websocket.accept()
     # Basic game settings
-    game_id = generate_uuid()
     is_game_initialized = False
     game = None
     try:
