@@ -105,7 +105,7 @@ class BotGameStateMachine:
         # Limit the maximum execution turns
         execution_turns = 0
         # Execution of operations
-        while await self.game.getBotActionPoint() >= await self.game.getOperationCost()\
+        while await self.game.getBotActionPoint() >= await self.game.getOperationCost() \
                 and execution_turns < settings.maximum_bot_operation_times:
             bot_status = await self.game.getBotStatus()
             self.bot_state_machine.update_state(
@@ -304,8 +304,7 @@ class BotGameStateMachine:
         }
         await self.ws_client.send_json(content)
         if (player_score > target
-                and bot_score > target
-        ):
+                and bot_score > target):
             self.end_time = datetime.now()
             if player_score > bot_score:
                 self.is_player_win = True

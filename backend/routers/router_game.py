@@ -18,21 +18,18 @@ from data_management.enums import (
 )
 from utils.utils import (
     generate_uuid,
-    decide_is_user_first,
-    fail_reason2user
+    decide_is_user_first
 )
 from utils.token_management import (
     search_user_token
 )
 from utils.config import settings
 from game_processes.redis_manager import get_redis
-from game_processes.bot_game_process import BotGameProcess
 from game_processes.game_fsm import BotGameStateMachine
 # ORM dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Annotated
-from datetime import datetime
 # Redis
 import redis.asyncio as aioredis
 
@@ -65,7 +62,6 @@ async def botPlay(websocket: WebSocket,
     await websocket.accept()
     # Basic game settings
     game_id = generate_uuid()
-    redis_storage_id = f"bot_game:{game_id}"
     is_game_initialized = False
     game = None
     try:
