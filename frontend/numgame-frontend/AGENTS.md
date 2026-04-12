@@ -345,6 +345,20 @@ When deprecating functions or modules:
 
 **Integration**: Configures the Vue CLI build system.
 
+#### Configuration Module (`src/utils/config.js`)
+**Purpose**: Provides centralized access to environment variables from .env files.
+
+**Functions**:
+- `getBackendUrl()`: Retrieves the backend API base URL from VUE_APP_BACKEND_URL environment variable
+  - Returns: {string} The backend API base URL (default: 'http://localhost:7111')
+- `getAllConfig()`: Returns all configuration values as a plain object
+  - Returns: {Object} Object containing all configuration values
+- `validateConfig()`: Validates that required configuration values are present and valid
+  - Throws: {Error} If required configuration values are missing or invalid
+  - Returns: {boolean} True if all configuration values are valid
+
+**Integration**: Used by other modules to access configuration values like backend URL.
+
 ---
 
 *Last Updated: April 12, 2026*  
