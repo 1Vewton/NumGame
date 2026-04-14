@@ -328,6 +328,29 @@ When deprecating functions or modules:
 
 **Notes**: Placeholder for game-specific components.
 
+#### StartScreen Component (`src/components/StartScreen.vue`)
+**Purpose**: Displays the welcome screen for the NumGame application with red and black color theme.
+
+**Component Properties**:
+- `name` (string): 'StartScreen' - Component identifier
+- `mounted()`: Lifecycle hook that logs when component is mounted
+
+**Template Structure**: 
+- Main container with black background
+- Red X-mark icon using Font Awesome
+- Welcome title with red gradient text
+- Subtitle for game description
+- Responsive design for different screen sizes
+
+**Styling Features**:
+- Red and black color theme
+- Cascadia Code font family
+- Responsive layout with content positioned higher for future functionality
+- Red X-mark icon without background decoration
+- Gradient text effects for welcome message
+
+**Integration**: Used as the main welcome screen, mounted by the root App component.
+
 #### Babel Configuration (`babel.config.js`)
 **Purpose**: Configures Babel for JavaScript transpilation.
 
