@@ -374,16 +374,67 @@ When deprecating functions or modules:
 **Functions**:
 - `getBackendUrl()`: Retrieves the backend API base URL from VUE_APP_BACKEND_URL environment variable
   - Returns: {string} The backend API base URL (default: 'http://localhost:7111')
-- `getAllConfig()`: Returns all configuration values as a plain object
-  - Returns: {Object} Object containing all configuration values
-- `validateConfig()`: Validates that required configuration values are present and valid
+- `getRegisterEndpoint()`: Retrieves the user registration endpoint path from VUE_APP_REGISTER_ENDPOINT
+  - Returns: {string} The user registration endpoint path (default: '/api/user/userRegister')
+- `getLoginEndpoint()`: Retrieves the user login endpoint path from VUE_APP_LOGIN_ENDPOINT
+  - Returns: {string} The user login endpoint path (default: '/api/user/userLogin')
+- `getAutoLoginEndpoint()`: Retrieves the user auto-login endpoint path from VUE_APP_LOGOUT_ENDPOINT
+  - Returns: {string} The user auto-login endpoint path (default: '/api/user/autoLogin')
+  - Note: Despite environment variable name, used for auto-login functionality
+- `getUserEndpoint()`: Retrieves the user information endpoint path from VUE_APP_USER_ENDPOINT
+  - Returns: {string} The user information endpoint path (default: '/api/user/userInfo')
+- `getRegisterUrl()`: Returns complete URL for user registration (backend URL + endpoint path)
+  - Returns: {string} Complete URL for user registration
+- `getLoginUrl()`: Returns complete URL for user login (backend URL + endpoint path)
+  - Returns: {string} Complete URL for user login
+- `getAutoLoginUrl()`: Returns complete URL for user auto-login (backend URL + endpoint path)
+  - Returns: {string} Complete URL for user auto-login
+- `getUserUrl()`: Returns complete URL for user information (backend URL + endpoint path)
+  - Returns: {string} Complete URL for user information
+- `getAllConfig()`: Returns all configuration values as a plain object including endpoints and full URLs
+  - Returns: {Object} Object containing all configuration values (backendUrl, registerEndpoint, loginEndpoint, autoLoginEndpoint, userEndpoint, registerUrl, loginUrl, autoLoginUrl, userUrl)
+- `validateConfig()`: Validates that all required configuration values are present and valid, including backend URL format and endpoint path validation
   - Throws: {Error} If required configuration values are missing or invalid
   - Returns: {boolean} True if all configuration values are valid
 
-**Integration**: Used by other modules to access configuration values like backend URL.
+**Integration**: Used by other modules to access configuration values including backend URL and user authentication endpoints.
+
+#### API Client Module (`src/utils/api.js`)
+**Purpose**: Provides a generic API client for making HTTP requests to the backend server using axios.
+
+**Functions**:
+- `post(endpoint, body, headers)`: Sends a POST request with JSON body to the specified endpoint
+  - `endpoint` (string): The API endpoint path (relative to base URL)
+  - `body` (Object): The request body to send as JSON
+  - `headers` (Object, optional): Additional headers to include with the request
+  - Returns: {Promise<Object>} Parsed JSON response from the server
+  - Throws: {Error} If the request fails or returns a non-2xx status code
+- `get(endpoint, headers)`: Sends a GET request to retrieve data from the specified endpoint
+  - `endpoint` (string): The API endpoint path (relative to base URL)
+  - `headers` (Object, optional): Additional headers to include with the request
+  - Returns: {Promise<Object>} Parsed JSON response from the server
+  - Throws: {Error} If the request fails or returns a non-2xx status code
+- `put(endpoint, body, headers)`: Sends a PUT request to update a resource at the specified endpoint
+  - `endpoint` (string): The API endpoint path (relative to base URL)
+  - `body` (Object): The request body to send as JSON
+  - `headers` (Object, optional): Additional headers to include with the request
+  - Returns: {Promise<Object>} Parsed JSON response from the server
+  - Throws: {Error} If the request fails or returns a non-2xx status code
+- `delete(endpoint, body, headers)`: Sends a DELETE request to delete a resource at the specified endpoint
+  - `endpoint` (string): The API endpoint path (relative to base URL)
+  - `body` (Object, optional): Optional request body to send as JSON
+  - `headers` (Object, optional): Additional headers to include with the request
+  - Returns: {Promise<Object>} Parsed JSON response from the server
+  - Throws: {Error} If the request fails or returns a non-2xx status code
+
+**Internal Methods**:
+- `_handleAxiosError(error, endpoint, method)`: Handles axios errors and provides detailed error messages with context
+- Uses axios instance with pre-configured base URL, headers, and timeout settings
+
+**Integration**: Uses the Configuration Module to get the backend URL. Uses axios library for HTTP requests with automatic JSON parsing, request/response interceptors, and comprehensive error handling. Provides HTTP client functionality for other application modules to communicate with the backend API.
 
 ---
 
-*Last Updated: April 12, 2026*  
+*Last Updated: April 14, 2026*  
 *Version: 1.0.0*  
 *All documentation must be maintained in English as per project requirements.*
