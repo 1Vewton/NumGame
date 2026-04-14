@@ -8,16 +8,14 @@ the main layout with the game interface.
 <template>
   <!-- Main application container -->
   <div id="app">
-    <!-- Vue logo (placeholder for game logo) -->
-    <img alt="Vue logo" src="./assets/logo.png">
-    <!-- HelloWorld component - placeholder for actual game components -->
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <!-- StartScreen component - Welcome screen with red+black theme -->
+    <StartScreen />
   </div>
 </template>
 
 <script>
-// Import the HelloWorld component
-import HelloWorld from './components/HelloWorld.vue'
+// Import the StartScreen component
+import StartScreen from './components/StartScreen.vue'
 
 /**
  * App Component - Root component of the NumGame application
@@ -33,7 +31,7 @@ export default {
   
   // Child components registered in this component
   components: {
-    HelloWorld
+    StartScreen
   }
 }
 </script>
@@ -41,11 +39,9 @@ export default {
 <style>
 /* Global application styles */
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 </style>
