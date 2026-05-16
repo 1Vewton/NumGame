@@ -45,7 +45,8 @@ async def create_bot_account():
                 id=bot_id,
                 user_name=bot_name,
                 registered_at=registration_date,
-                is_bot=is_bot
+                is_bot=is_bot,
+                password="SimpleBot@114514",
             )
             session.add(bot)
 

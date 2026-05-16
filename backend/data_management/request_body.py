@@ -7,6 +7,10 @@ class NewPlayerData(BaseModel):
                              description="The name of the player",
                              min_length=3,
                              max_length=100)
+    player_password: str = Field(title="Player Password",
+                                 description="The password of the player",
+                                 min_length=8,
+                                 max_length=100)
 
 
 # User Login
@@ -15,6 +19,10 @@ class LoginPlayerData(BaseModel):
                              description="The name of the player",
                              min_length=3,
                              max_length=100)
+    player_password: str = Field(title="Player Password",
+                                 description="The password of the player",
+                                 min_length=8,
+                                 max_length=100)
 
 
 # User Info Query

@@ -94,6 +94,7 @@ class players(Base):
     # Columns
     id = Column(String(100), primary_key=True)
     user_name = Column(String(100), unique=True, nullable=False)
+    password = Column(String(100), nullable=False)
     registered_at = Column(DateTime, nullable=False)
     wins = Column(Integer, nullable=False, default=0)
     total_games = Column(Integer, nullable=False, default=0)
