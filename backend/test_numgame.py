@@ -49,7 +49,7 @@ def test_random_name(client):
 # Test simple bot management
 def test_simple_bot_name(client):
     response = client.post("/api/user/userLogin",
-                           json={"player_name": settings.simple_bot_name, "password": "SimpleBot@114514"})
+                           json={"player_name": settings.simple_bot_name, "player_password": "SimpleBot@114514"})
     assert response.status_code == 403
 
 
