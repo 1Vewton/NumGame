@@ -1,6 +1,7 @@
 import uuid
 import logging
 from pathlib import Path
+import re
 # slowapi
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -56,6 +57,12 @@ def fail_reason2user(fail_reason: FailReason):
         return "This operation does not exists"
     else:
         return "Unknown game process error"
+
+
+# Check password form using regex
+def check_password_regex(password):
+    pattern = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+    return bool(re.match(pattern, password))
 
 
 if __name__ == "__main__":

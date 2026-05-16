@@ -49,7 +49,7 @@ def test_random_name(client):
 # Test simple bot management
 def test_simple_bot_name(client):
     response = client.post("/api/user/userLogin",
-                           json={"player_name": settings.simple_bot_name})
+                           json={"player_name": settings.simple_bot_name, "password": "SimpleBot@114514"})
     assert response.status_code == 403
 
 
@@ -62,7 +62,8 @@ class TestUserManagement:
     @pytest.mark.order(1)
     def test_register(self, client):
         response = client.post("/api/user/userRegister",
-                               json={"player_name": self.test_name})
+                               json={"player_name": self.test_name,
+                                     "player_password": "SimpleTest@114514"})
         assert response.status_code == 201
         assert response.json()["user_name"] == self.test_name
 
@@ -70,7 +71,8 @@ class TestUserManagement:
     @pytest.mark.order(2)
     def test_login(self, client):
         response = client.post("/api/user/userLogin",
-                               json={"player_name": self.test_name})
+                               json={"player_name": self.test_name,
+                                     "player_password": "SimpleTest@114514"})
         print(response.json())
         assert response.status_code == 200
         # Test whether the info is correctly returned

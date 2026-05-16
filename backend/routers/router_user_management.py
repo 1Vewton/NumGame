@@ -11,7 +11,11 @@ from data_management.request_body import (
     NewPlayerData,
     LoginPlayerData
 )
-from utils.utils import generate_uuid, limiter
+from utils.utils import (
+    generate_uuid,
+    limiter,
+    check_password_regex
+)
 from utils.config import settings
 from utils.token_management import (
     generate_login_token,
@@ -40,6 +44,12 @@ async def userRegister(request: Request,
                        new_user: NewPlayerData,
                        session: Annotated[AsyncSession, Depends(get_db)]):
     logger.info("Creating new user")
+    if not check_password_regex(new_user.player_password):
+        content = {
+            "success": False,
+            "reason": "Password does not match the form"
+        }
+        return JSONResponse(content=content, status_code=400)
     try:
         # Set data
         registration_date = datetime.now()
@@ -55,9 +65,12 @@ async def userRegister(request: Request,
             }
             return JSONResponse(content=content, status_code=409)
         # New player instance
-        new_player_data = players(id=player_id,
-                                  user_name=user_name,
-                                  registered_at=registration_date)
+        new_player_data = players(
+            id=player_id,
+            user_name=user_name,
+            registered_at=registration_date,
+            password=new_user.player_password,
+        )
         # Add it to database
         session.add(new_player_data)
         # Response
@@ -94,21 +107,30 @@ async def userLogin(user: LoginPlayerData,
             result_processed = result[0]
             # Check whether the user attempts to log in to bot account
             if result_processed.user_name != settings.simple_bot_name:
-                # Response
-                content = {
-                    "success": True,
-                    "user_name": result_processed.user_name,
-                    "user_id": result_processed.id
-                }
-                login_token = await generate_login_token(
-                    user_id=result_processed.id,
-                    client=client
-                )
-                response = JSONResponse(content=content, status_code=200)
-                response.set_cookie(key="login_token",
-                                    value=login_token,
-                                    httponly=True)
-                return response
+                if result_processed.password == user.player_password:
+                    # Response
+                    content = {
+                        "success": True,
+                        "user_name": result_processed.user_name,
+                        "user_id": result_processed.id
+                    }
+                    login_token = await generate_login_token(
+                        user_id=result_processed.id,
+                        client=client
+                    )
+                    response = JSONResponse(content=content, status_code=200)
+                    response.set_cookie(key="login_token",
+                                        value=login_token,
+                                        httponly=True)
+                    return response
+                else:
+                    # If the password is not correct
+                    content = {
+                        "success": False,
+                        "reason": "Password is not correct"
+                    }
+                    response = JSONResponse(content=content, status_code=401)
+                    return response
             else:
                 # Response
                 content = {
