@@ -12,9 +12,18 @@ numgame-frontend/
 ├── src/                      # Source code
 │   ├── assets/              # Images and static resources
 │   ├── components/          # Vue components
-│   │   └── HelloWorld.vue   # Demo component (to be replaced)
+│   │   ├── HelloWorld.vue   # Demo component (to be replaced)
+│   │   ├── AppInput.vue     # Reusable white input field component
+│   │   ├── ErrorNotification.vue  # Reusable error toast notification component
+│   │   ├── SuccessNotification.vue  # Reusable success toast notification component
+│   │   └── StartScreen.vue  # Welcome screen with login functionality
+
 │   ├── App.vue              # Root application component
-│   └── main.js             # Application entry point
+│   ├── main.js             # Application entry point
+│   └── utils/              # Utility modules
+│       ├── api.js           # API client (axios)
+│       ├── config.js        # Environment configuration
+│       └── requestBodies.js # API request body templates
 ├── package.json             # Project configuration and dependencies
 ├── vue.config.js           # Vue CLI configuration
 ├── babel.config.js         # Babel configuration
@@ -22,6 +31,7 @@ numgame-frontend/
 ├── README.md               # Project setup instructions
 └── AGENTS.md              # Coding standards and documentation (this file)
 ```
+
 
 ## Coding Standards
 
@@ -328,28 +338,129 @@ When deprecating functions or modules:
 
 **Notes**: Placeholder for game-specific components.
 
+#### AppInput Component (`src/components/AppInput.vue`)
+**Purpose**: Reusable white-themed input field component with label support and v-model binding.
+
+**Component Properties**:
+- `name` (string): 'AppInput' - Component identifier
+- `props.modelValue` (String|Number): The current input value for v-model two-way binding
+- `props.type` (String, default: 'text'): HTML input type attribute (e.g., 'text', 'password')
+- `props.placeholder` (String): Placeholder text displayed inside the input when empty
+- `props.label` (String): Optional label text displayed above the input field
+- `props.inputId` (String): Unique identifier for the input element for label association
+
+**Events**:
+- `update:modelValue`: Emitted when the input value changes (for v-model binding)
+- `enter`: Emitted when the Enter key is pressed while the input is focused
+
+**Template Structure**: 
+- Optional label element above the input field
+- White-themed input field with dark text
+- Placeholder text for user guidance
+- Red focus border matching the app color theme
+
+**Styling Features**:
+- White background with dark (#333333) text for contrast
+- Red border focus state to match NumGame's color theme
+- Smooth transitions for focus and hover states
+- Hover effect with lighter red border
+
+**Integration**: Used by any Vue component that needs styled input fields, particularly the StartScreen login form.
+
+#### ErrorNotification Component (`src/components/ErrorNotification.vue`)
+**Purpose**: Reusable error toast notification component with warning icon and auto-dismiss.
+
+**Component Properties**:
+- `name` (string): 'ErrorNotification' - Component identifier
+- `props.visible` (Boolean, default: false): Controls whether the notification is shown
+- `props.message` (String, default: ''): The error message text to display
+
+**Events**:
+- `close`: Emitted after 1 second auto-dismiss timer expires
+
+**Template Structure**: 
+- Centered overlay notification at the top of the viewport
+- Left section with fa-solid fa-triangle-exclamation warning icon
+- Right section displaying error message text
+
+**Styling Features**:
+- Dark background (#1a1a1a) with red border and shadow for visibility
+- Red warning icon with glow effect
+- Slide-in animation for smooth appearance
+- Fixed positioning for global overlay display
+- Min/max width constraints for consistent sizing
+
+**Integration**: Used by any Vue component to display error messages. Currently used in StartScreen for login error feedback.
+
+#### SuccessNotification Component (`src/components/SuccessNotification.vue`)
+**Purpose**: Reusable success toast notification component with checkmark icon and slot-based customizable content.
+
+**Component Properties**:
+- `name` (string): 'SuccessNotification' - Component identifier
+- `props.visible` (Boolean, default: false): Controls whether the notification is shown
+
+**Events**:
+- `close`: Emitted after 1 second auto-dismiss timer expires
+
+**Slots**:
+- `default`: Customizable content area on the right side of the notification
+
+**Template Structure**: 
+- Centered overlay notification at the top of the viewport
+- Left section with fa-solid fa-check checkmark icon
+- Right section with customizable content via default slot
+
+**Styling Features**:
+- Dark background (#1a1a1a) with green border and shadow for visibility
+- Green checkmark icon with glow effect
+- Consistent layout and animation with ErrorNotification component
+- Fixed positioning for global overlay display
+- Min/max width constraints for consistent sizing
+
+**Integration**: Used by any Vue component to display success messages. Currently used in StartScreen to display "Login Successful" message after successful authentication.
+
 #### StartScreen Component (`src/components/StartScreen.vue`)
-**Purpose**: Displays the welcome screen for the NumGame application with red and black color theme.
+
+**Purpose**: Displays the welcome screen for the NumGame application with red and black color theme and login functionality.
 
 **Component Properties**:
 - `name` (string): 'StartScreen' - Component identifier
+- `components` (Object): Registered child components - AppInput, ErrorNotification, SuccessNotification
 - `mounted()`: Lifecycle hook that logs when component is mounted
+- `data.username` (string): Username entered by the user in the login form
+- `data.password` (string): Password entered by the user in the login form
+- `data.isLoggingIn` (boolean): Flag indicating if a login request is in progress
+- `data.showError` (boolean): Flag controlling error notification visibility
+- `data.errorMessage` (string): Error message to display in the notification
+- `data.showSuccess` (boolean): Flag controlling success notification visibility
+
+
+**Methods**:
+- `handleLogin()`: Validates credentials and sends login request to backend API. Stores user_id and user_name in localStorage on success. Shows error notification on failure.
+- `showErrorMessage(message)`: Sets error message and shows the error notification toast.
 
 **Template Structure**: 
 - Main container with black background
 - Red X-mark icon using Font Awesome
 - Welcome title with red gradient text
 - Subtitle for game description
+- Login form with username and password fields (using AppInput component)
+- Red Login button with loading state
+- Error notification toast (using ErrorNotification component)
+- Success notification toast (using SuccessNotification component)
 - Responsive design for different screen sizes
+
 
 **Styling Features**:
 - Red and black color theme
 - Cascadia Code font family
-- Responsive layout with content positioned higher for future functionality
+- Responsive layout with content positioned higher
 - Red X-mark icon without background decoration
 - Gradient text effects for welcome message
+- White input fields with red focus states
+- Red Login button with hover/active/disabled states
 
-**Integration**: Used as the main welcome screen, mounted by the root App component.
+**Integration**: Uses AppInput for login form fields and ErrorNotification for error feedback. Uses apiClient and config modules to send login requests. Stores user credentials in localStorage for session persistence.
 
 #### Babel Configuration (`babel.config.js`)
 **Purpose**: Configures Babel for JavaScript transpilation.
@@ -378,10 +489,9 @@ When deprecating functions or modules:
   - Returns: {string} The user registration endpoint path (default: '/api/user/userRegister')
 - `getLoginEndpoint()`: Retrieves the user login endpoint path from VUE_APP_LOGIN_ENDPOINT
   - Returns: {string} The user login endpoint path (default: '/api/user/userLogin')
-- `getAutoLoginEndpoint()`: Retrieves the user auto-login endpoint path from VUE_APP_LOGOUT_ENDPOINT
+- `getAutoLoginEndpoint()`: Retrieves the user auto-login endpoint path from VUE_APP_AUTO_LOGIN_ENDPOINT
   - Returns: {string} The user auto-login endpoint path (default: '/api/user/autoLogin')
-  - Note: Despite environment variable name, used for auto-login functionality
-- `getUserEndpoint()`: Retrieves the user information endpoint path from VUE_APP_USER_ENDPOINT
+- `getUserEndpoint()`: Retrieves the user information endpoint path from VUE_APP_USER_INFO_ENDPOINT
   - Returns: {string} The user information endpoint path (default: '/api/user/userInfo')
 - `getRegisterUrl()`: Returns complete URL for user registration (backend URL + endpoint path)
   - Returns: {string} Complete URL for user registration
@@ -433,8 +543,27 @@ When deprecating functions or modules:
 
 **Integration**: Uses the Configuration Module to get the backend URL. Uses axios library for HTTP requests with automatic JSON parsing, request/response interceptors, and comprehensive error handling. Provides HTTP client functionality for other application modules to communicate with the backend API.
 
+#### Request Bodies Module (`src/utils/requestBodies.js`)
+**Purpose**: Provides centralized request body generation functions for API endpoints used in user authentication and information retrieval.
+
+**Functions**:
+- `getUserRegisterBody(playerName, playerPassword)`: Creates a request body for user registration
+  - `playerName` (string, default: 'string'): The username for the new player account
+  - `playerPassword` (string, default: 'stringst'): The password for the new player account
+  - Returns: {Object} Request body with `player_name` and `player_password` properties
+- `getUserLoginBody(playerName, playerPassword)`: Creates a request body for user login
+  - `playerName` (string, default: 'string'): The registered username of the player
+  - `playerPassword` (string, default: 'stringst'): The password credential for authentication
+  - Returns: {Object} Request body with `player_name` and `player_password` properties
+- `getUserInfoBody(playerName, playerId)`: Creates a request body for user information retrieval
+  - `playerName` (string, default: 'string'): The username of the player to look up
+  - `playerId` (string, default: 'string'): The unique identifier of the player account
+  - Returns: {Object} Request body with `player_name` and `player_id` properties
+
+**Integration**: Provides request body generation functions used by application modules when making API calls to backend endpoints for registration, login, and user information retrieval.
+
 ---
 
-*Last Updated: April 14, 2026*  
+*Last Updated: May 18, 2026*
 *Version: 1.0.0*  
 *All documentation must be maintained in English as per project requirements.*
