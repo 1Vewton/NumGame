@@ -6,6 +6,7 @@ from typing import Any
 from contextlib import asynccontextmanager
 # FastAPI dependencies
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 # Project Dependencies
 from utils.config import settings
 import utils.logger_config as logger_config
@@ -100,6 +101,13 @@ app = FastAPI(
     description="Backend Server for NumGame",
     openapi_tags=tags,
     root_path="/api",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.dev_frontend_url],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 # Limiter setting
 app.state.limiter = limiter

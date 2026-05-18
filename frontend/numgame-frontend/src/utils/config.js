@@ -61,7 +61,7 @@ class Config {
      * @type {string}
      * @private
      */
-    this._autoLoginEndpoint = process.env.VUE_APP_LOGOUT_ENDPOINT || '/api/user/autoLogin';
+    this._autoLoginEndpoint = process.env.VUE_APP_AUTO_LOGIN_ENDPOINT || '/api/user/autoLogin';
     
     /**
      * User information endpoint path
@@ -69,7 +69,7 @@ class Config {
      * @type {string}
      * @private
      */
-    this._userEndpoint = process.env.VUE_APP_USER_ENDPOINT || '/api/user/userInfo';
+    this._userEndpoint = process.env.VUE_APP_USER_INFO_ENDPOINT || '/api/user/userInfo';
   }
 
   /**
@@ -127,14 +127,13 @@ class Config {
    * Gets the user auto-login endpoint path
    * 
    * This method returns the endpoint path for user auto-login API.
-   * The value is read from the VUE_APP_LOGOUT_ENDPOINT environment variable.
-   * Note: Despite the environment variable name, this is used for auto-login functionality.
+   * The value is read from the VUE_APP_AUTO_LOGIN_ENDPOINT environment variable.
    * If the environment variable is not set, a default endpoint path is returned.
    * 
    * @method getAutoLoginEndpoint
    * @returns {string} The user auto-login endpoint path
    * @example
-   * // Returns '/api/user/autoLogin' if VUE_APP_LOGOUT_ENDPOINT is not set
+   * // Returns '/api/user/autoLogin' if VUE_APP_AUTO_LOGIN_ENDPOINT is not set
    * const autoLoginEndpoint = config.getAutoLoginEndpoint();
    */
   getAutoLoginEndpoint() {
@@ -145,13 +144,13 @@ class Config {
    * Gets the user information endpoint path
    * 
    * This method returns the endpoint path for user information API.
-   * The value is read from the VUE_APP_USER_ENDPOINT environment variable.
+   * The value is read from the VUE_APP_USER_INFO_ENDPOINT environment variable.
    * If the environment variable is not set, a default endpoint path is returned.
    * 
    * @method getUserEndpoint
    * @returns {string} The user information endpoint path
    * @example
-   * // Returns '/api/user/userInfo' if VUE_APP_USER_ENDPOINT is not set
+   * // Returns '/api/user/userInfo' if VUE_APP_USER_INFO_ENDPOINT is not set
    * const userEndpoint = config.getUserEndpoint();
    */
   getUserEndpoint() {
