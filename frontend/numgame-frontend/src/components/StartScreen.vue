@@ -4,8 +4,8 @@ StartScreen.vue - Start Screen Component for NumGame
 This component displays the welcome screen for the NumGame application.
 It features a red and black color theme with the game title, login form,
 and error notification functionality. Users can enter their credentials
-to log in, and their user information is stored in the browser's localStorage
-upon successful authentication.
+to log in, and their user information is stored in the reactive in-memory
+userStore for the current browser session.
 
 @module StartScreen
 -->
@@ -46,14 +46,25 @@ upon successful authentication.
         @enter="handleLogin"
       />
 
-      <!-- Login button -->
-      <button
-        class="login-button"
+      <!-- Login button using reusable AppButton component -->
+      <AppButton
+        label="Login"
+        :is-loading="isLoggingIn"
+        loading-label="Logging in..."
+        variant="primary"
+        size="medium"
+        width="100%"
         @click="handleLogin"
-        :disabled="isLoggingIn"
-      >
-        {{ isLoggingIn ? 'Logging in...' : 'Login' }}
-      </button>
+      />
+
+      <!-- Register button using reusable AppButton component -->
+      <AppButton
+        label="Register"
+        variant="primary"
+        size="medium"
+        width="100%"
+      />
+
     </div>
 
     <!-- Error notification toast -->
@@ -68,7 +79,7 @@ upon successful authentication.
       :visible="showSuccess"
       @close="showSuccess = false"
     >
-      Login Successful
+      {{ successMessage }}
     </SuccessNotification>
 
   </div>
@@ -82,18 +93,19 @@ upon successful authentication.
  * game icon, and a login form for user authentication. It uses
  * the reusable AppInput component for input fields and the reusable
  * ErrorNotification component for displaying login error messages.
- * On successful login, the user's ID and name are stored in localStorage
- * for session persistence.
+ * On successful login, the user's ID and name are stored in the reactive
+ * in-memory userStore for the current browser session.
  * 
  * @module StartScreen
  */
 import AppInput from './AppInput.vue';
+import AppButton from './AppButton.vue';
 import ErrorNotification from './ErrorNotification.vue';
 import SuccessNotification from './SuccessNotification.vue';
 import apiClient from '../utils/api.js';
 import config from '../utils/config.js';
 import { getUserLoginBody } from '../utils/requestBodies.js';
-
+import userStore from '../stores/userStore.js';
 
 export default {
   // Component name used for debugging and Vue devtools
@@ -103,14 +115,16 @@ export default {
    * Child components registered in this component
    * 
    * @property {Component} AppInput - Reusable white input field component
+   * @property {Component} AppButton - Reusable styled button component
    * @property {Component} ErrorNotification - Reusable error toast notification component
+   * @property {Component} SuccessNotification - Reusable success toast notification component
    */
   components: {
     AppInput,
+    AppButton,
     ErrorNotification,
     SuccessNotification
   },
-
 
   /**
    * Component data properties
@@ -120,47 +134,19 @@ export default {
    * @property {boolean} isLoggingIn - Flag indicating if a login request is in progress
    * @property {boolean} showError - Flag controlling error notification visibility
    * @property {string} errorMessage - The error message to display in the notification
+   * @property {boolean} showSuccess - Flag controlling success notification visibility
+   * @property {string} successMessage - The success message to display in the notification
    */
   data() {
     return {
-      /**
-       * The username entered by the user in the login form
-       * @type {string}
-       */
       username: '',
-
-      /**
-       * The password entered by the user in the login form
-       * @type {string}
-       */
       password: '',
-
-      /**
-       * Flag indicating whether a login request is currently in progress
-       * Used to disable the login button and prevent multiple submissions
-       * @type {boolean}
-       */
       isLoggingIn: false,
-
-      /**
-       * Flag controlling the visibility of the error notification toast
-       * @type {boolean}
-       */
       showError: false,
-
-      /**
-       * The error message text to display in the notification toast
-       * @type {string}
-       */
       errorMessage: '',
-
-      /**
-       * Flag controlling the visibility of the success notification toast
-       * @type {boolean}
-       */
-      showSuccess: false
+      showSuccess: false,
+      successMessage: ''
     };
-
   },
 
   /**
@@ -181,8 +167,8 @@ export default {
      * 
      * This method validates that both username and password are provided,
      * then sends a login request to the backend API. On success, it stores
-     * the user's ID and name in localStorage. On failure, it displays an
-     * error notification toast with the reason from the server response.
+     * the user's ID and name in the reactive userStore. On failure, it
+     * displays an error notification toast with the reason from the server response.
      * 
      * @method handleLogin
      * @async
@@ -208,11 +194,12 @@ export default {
 
         // Check if login was successful
         if (response.success) {
-          // Store user information in localStorage for session persistence
-          localStorage.setItem('user_id', response.user_id);
-          localStorage.setItem('user_name', response.user_name);
+          // Store user information in the reactive in-memory userStore
+          userStore.setUser(response.user_id, response.user_name);
           console.log('Login successful:', response.user_name, response.user_id);
-          // Show success notification toast
+
+          // Set success message and show success notification toast
+          this.successMessage = 'Login Successful';
           this.showSuccess = true;
 
         } else {
@@ -220,8 +207,22 @@ export default {
           this.showErrorMessage(response.reason || 'Login failed');
         }
       } catch (error) {
-        // Handle network errors or unexpected failures
-        this.showErrorMessage(error.message || 'Unable to connect to server');
+        // Check if the server returned response data (e.g., HTTP error with body)
+        if (error.responseData) {
+          // Extract the "reason" value from the response data
+          const responseData = error.responseData;
+          let reason = null;
+          if (typeof responseData === 'object' && responseData !== null) {
+            reason = responseData.reason || null;
+          } else if (typeof responseData === 'string') {
+            // If response data is a raw string, use it directly
+            reason = responseData;
+          }
+          this.showErrorMessage(reason || 'Login failed');
+        } else {
+          // No response data received (network error, server unreachable, etc.)
+          this.showErrorMessage(error.message || 'Unable to connect to server');
+        }
       } finally {
         // Reset loading state
         this.isLoggingIn = false;
@@ -310,42 +311,8 @@ export default {
   margin-top: 1rem;
 }
 
-/* Login button styling */
-.login-button {
-  width: 100%;
-  padding: 12px 20px;
-  background-color: #ff0000;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  font-family: 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  letter-spacing: 1px;
-  margin-top: 0.5rem;
-}
-
-/* Login button hover state */
-.login-button:hover:not(:disabled) {
-  background-color: #cc0000;
-  box-shadow: 0 0 12px rgba(255, 0, 0, 0.5);
-}
-
-/* Login button active/pressed state */
-.login-button:active:not(:disabled) {
-  background-color: #990000;
-}
-
-/* Login button disabled state */
-.login-button:disabled {
-  background-color: #662222;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
 /* Responsive design */
+
 @media (max-width: 768px) {
   .start-screen {
     padding-top: 12vh; /* Adjust top padding for smaller screens */

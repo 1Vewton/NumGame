@@ -1,5 +1,22 @@
 # NumGame Frontend - Coding Standards and Documentation
 
+## ⚠️ Agent Instructions (Read First)
+
+This file defines coding standards for the NumGame frontend project. As an AI agent working on this project, you **MUST** adhere to the following rules:
+
+### 1. Scope Constraints
+- **Only implement the specific features I explicitly ask for.** Do not add extra functionality, refactor existing code, or make improvements beyond what I request.
+- If you think something needs to be added or improved, ask me first before implementing it.
+
+### 2. Data Structure & Design Questions
+- If you have any questions about **third-party libraries or frameworks** (e.g., Vue.js, axios, Font Awesome), **use DeepWiki's MCP tools** (`cdNP410mcp0ask_question`, `cdNP410mcp0read_wiki_structure`, `cdNP410mcp0read_wiki_contents`) to look up the official repository documentation first.
+- If you have any questions about **this project's backend** (e.g., NumGame backend data structures, API endpoints, business logic, component designs), **ask me directly using the `ask_followup_question` tool** — do not use DeepWiki for this project's own backend.
+- **Do not make assumptions** about data formats, API contracts, or business logic. Always verify.
+
+### Let's keep the project clean, focused, and exactly what I ask for. Thank you!
+
+---
+
 ## Overview
 
 NumGame is a number-based strategy game frontend application built with Vue.js 3. This document outlines the coding standards, documentation requirements, and development workflow for the NumGame frontend project.
@@ -14,10 +31,10 @@ numgame-frontend/
 │   ├── components/          # Vue components
 │   │   ├── HelloWorld.vue   # Demo component (to be replaced)
 │   │   ├── AppInput.vue     # Reusable white input field component
+│   │   ├── AppButton.vue    # Reusable styled button component
 │   │   ├── ErrorNotification.vue  # Reusable error toast notification component
 │   │   ├── SuccessNotification.vue  # Reusable success toast notification component
 │   │   └── StartScreen.vue  # Welcome screen with login functionality
-
 │   ├── App.vue              # Root application component
 │   ├── main.js             # Application entry point
 │   └── utils/              # Utility modules
@@ -250,6 +267,8 @@ For each new module, add to AGENTS.md:
 - Utilities: `src/utils/`
 - Services: `src/services/`
 - Stores: `src/stores/` (for state management)
+  - `userStore.js`: Reactive in-memory user session store
+
 
 ### 7. Development Requirements
 
@@ -367,7 +386,42 @@ When deprecating functions or modules:
 
 **Integration**: Used by any Vue component that needs styled input fields, particularly the StartScreen login form.
 
+#### AppButton Component (`src/components/AppButton.vue`)
+**Purpose**: Reusable styled button component with loading state, multiple sizes, color variants, and custom width support.
+
+**Component Properties**:
+- `name` (string): 'AppButton' - Component identifier
+- `props.label` (String, default: 'Button'): Button text displayed when no slot content is provided
+- `props.loadingLabel` (String, default: 'Loading...'): Text displayed next to spinner during loading state
+- `props.isLoading` (Boolean, default: false): Controls loading spinner and disabled state
+- `props.disabled` (Boolean, default: false): Controls whether the button is disabled
+- `props.size` (String, default: 'medium'): Button size variant ('small', 'medium', 'large')
+- `props.variant` (String, default: 'primary'): Visual style variant ('primary'=red, 'secondary'=gray, 'success'=green)
+- `props.width` (String, default: ''): Custom CSS width value (e.g., '100%', '200px', 'auto')
+- `props.type` (String, default: 'button'): HTML button type ('button' or 'submit')
+
+**Events**:
+- `click`: Emitted when the button is clicked (only fires when not loading/disabled)
+
+**Slots**:
+- `default`: Custom button content (replaces label prop when provided)
+
+**Template Structure**: 
+- Styled button element with dynamic class bindings for variant, size, and loading state
+- Loading state shows a spinning circle animation with loading label
+- Normal state displays slot content or label text
+
+**Styling Features**:
+- Three size variants (small/medium/large) with appropriate padding and font sizes
+- Three color variants (primary red, secondary gray, success green) with hover/active/disabled states
+- Loading spinner animation using CSS keyframes
+- Custom width support via inline style binding
+- Disabled state with reduced opacity and cursor change
+
+**Integration**: Used by any Vue component that needs styled buttons. Currently used in StartScreen for the login button with primary red variant and full width.
+
 #### ErrorNotification Component (`src/components/ErrorNotification.vue`)
+
 **Purpose**: Reusable error toast notification component with warning icon and auto-dismiss.
 
 **Component Properties**:
@@ -425,7 +479,8 @@ When deprecating functions or modules:
 
 **Component Properties**:
 - `name` (string): 'StartScreen' - Component identifier
-- `components` (Object): Registered child components - AppInput, ErrorNotification, SuccessNotification
+- `components` (Object): Registered child components - AppInput, AppButton, ErrorNotification, SuccessNotification
+
 - `mounted()`: Lifecycle hook that logs when component is mounted
 - `data.username` (string): Username entered by the user in the login form
 - `data.password` (string): Password entered by the user in the login form
@@ -436,7 +491,7 @@ When deprecating functions or modules:
 
 
 **Methods**:
-- `handleLogin()`: Validates credentials and sends login request to backend API. Stores user_id and user_name in localStorage on success. Shows error notification on failure.
+- `handleLogin()`: Validates credentials and sends login request to backend API. Stores user_id and user_name in the reactive in-memory userStore on success. Shows error notification on failure.
 - `showErrorMessage(message)`: Sets error message and shows the error notification toast.
 
 **Template Structure**: 
@@ -450,7 +505,6 @@ When deprecating functions or modules:
 - Success notification toast (using SuccessNotification component)
 - Responsive design for different screen sizes
 
-
 **Styling Features**:
 - Red and black color theme
 - Cascadia Code font family
@@ -460,9 +514,34 @@ When deprecating functions or modules:
 - White input fields with red focus states
 - Red Login button with hover/active/disabled states
 
-**Integration**: Uses AppInput for login form fields and ErrorNotification for error feedback. Uses apiClient and config modules to send login requests. Stores user credentials in localStorage for session persistence.
+**Integration**: Uses AppInput for login form fields and AppButton for the login button. Uses apiClient and config modules to send login requests. Stores user credentials in the reactive in-memory userStore for the current browser session.
+
+#### User Store Module (`src/stores/userStore.js`)
+**Purpose**: Provides a reactive in-memory store for the current user's session data. Data is not persisted and will be lost when the browser tab is closed.
+
+**State Properties**:
+- `state.userId` (string|null): The unique identifier of the logged-in user
+- `state.userName` (string|null): The display name of the logged-in user
+- `state.isLoggedIn` (boolean): Flag indicating whether a user is currently logged in
+
+**Methods**:
+- `getState()`: Returns the reactive state object for direct property binding in components
+  - Returns: {Object} The reactive state object
+- `getUserId()`: Gets the current user's unique identifier
+  - Returns: {string|null} The user ID or null
+- `getUserName()`: Gets the current user's display name
+  - Returns: {string|null} The user name or null
+- `isUserLoggedIn()`: Checks if a user is currently logged in
+  - Returns: {boolean} True if logged in, false otherwise
+- `setUser(userId, userName)`: Sets the current user's session data after successful login
+  - `userId` (string): The unique identifier of the user
+  - `userName` (string): The display name of the user
+- `clearUser()`: Clears the current user's session data on logout
+
+**Integration**: Imported by components to access and modify user session data. Currently used by StartScreen to store user info after successful login.
 
 #### Babel Configuration (`babel.config.js`)
+
 **Purpose**: Configures Babel for JavaScript transpilation.
 
 **Properties**:
