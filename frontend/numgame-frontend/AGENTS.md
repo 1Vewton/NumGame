@@ -21,6 +21,13 @@ This file defines coding standards for the NumGame frontend project. As an AI ag
 
 NumGame is a number-based strategy game frontend application built with Vue.js 3. This document outlines the coding standards, documentation requirements, and development workflow for the NumGame frontend project.
 
+### 3. Button Variant Design Principle
+- **When a user is allowed to press a button (action is enabled/valid), the button's variant must be `"primary"` (red).**
+- **When a user is not allowed to press a button (action is disabled/invalid), the button's variant must be `"secondary"` (gray).**
+- This rule applies to all buttons throughout the application where the enabled/disabled state depends on validation or conditions.
+
+---
+
 ## Project Structure
 
 ```
@@ -485,22 +492,32 @@ When deprecating functions or modules:
 - `data.username` (string): Username entered by the user in the login form
 - `data.password` (string): Password entered by the user in the login form
 - `data.isLoggingIn` (boolean): Flag indicating if a login request is in progress
+- `data.isRegistering` (boolean): Flag indicating if a registration request is in progress
+- `data.showLogin` (boolean): Flag indicating whether to show login or registration form
+- `data.registerUsername` (string): Username entered in the registration form
+- `data.registerPassword` (string): Password entered in the registration form
+- `data.registerConfirmPassword` (string): Confirm password entered in the registration form
 - `data.showError` (boolean): Flag controlling error notification visibility
 - `data.errorMessage` (string): Error message to display in the notification
 - `data.showSuccess` (boolean): Flag controlling success notification visibility
-
+- `data.successMessage` (string): Success message to display in the notification
+- `computed.canRegister` (boolean): True when password meets format requirements and confirm password matches
 
 **Methods**:
+- `switchToRegister()`: Sets showLogin to false to display the registration form
+- `switchToLogin()`: Sets showLogin to true to display the login form
 - `handleLogin()`: Validates credentials and sends login request to backend API. Stores user_id and user_name in the reactive in-memory userStore on success. Shows error notification on failure.
 - `showErrorMessage(message)`: Sets error message and shows the error notification toast.
+- `handleRegister()`: Sends registration request to backend API with username and password. Shows success notification on success or error notification on failure.
 
 **Template Structure**: 
 - Main container with black background
 - Red X-mark icon using Font Awesome
 - Welcome title with red gradient text
 - Subtitle for game description
-- Login form with username and password fields (using AppInput component)
-- Red Login button with loading state
+- Login form with username and password fields (using AppInput component) and Login/Register buttons
+- Registration form with username, password, confirm password fields (using AppInput component) and Register/Back to Login buttons
+- Password format hint text
 - Error notification toast (using ErrorNotification component)
 - Success notification toast (using SuccessNotification component)
 - Responsive design for different screen sizes
@@ -513,8 +530,9 @@ When deprecating functions or modules:
 - Gradient text effects for welcome message
 - White input fields with red focus states
 - Red Login button with hover/active/disabled states
+- Register button follows variant design principle (primary when valid, secondary when disabled)
 
-**Integration**: Uses AppInput for login form fields and AppButton for the login button. Uses apiClient and config modules to send login requests. Stores user credentials in the reactive in-memory userStore for the current browser session.
+**Integration**: Uses AppInput for login/registration form fields and AppButton for buttons. Uses apiClient and config modules to send login and registration requests. Stores user credentials in the reactive in-memory userStore for the current browser session.
 
 #### User Store Module (`src/stores/userStore.js`)
 **Purpose**: Provides a reactive in-memory store for the current user's session data. Data is not persisted and will be lost when the browser tab is closed.
@@ -641,8 +659,38 @@ When deprecating functions or modules:
 
 **Integration**: Provides request body generation functions used by application modules when making API calls to backend endpoints for registration, login, and user information retrieval.
 
+#### Error Handler Module (`src/utils/errorHandler.js`)
+**Purpose**: Provides a unified `extractErrorMessage` function for extracting human-readable error messages from failed API calls, following the standardized backend error response format.
+
+**Functions**:
+- `extractErrorMessage(error, fallbackMessage)`: Extracts the most meaningful error message from an API error object
+  - `error` (Error): The error object from an API call (expected to have `responseData` and `message` properties)
+  - `fallbackMessage` (string, default: 'Request failed'): Default message if nothing else can be extracted
+  - Returns: {string} A human-readable error message
+  - **Resolution order**:
+    1. If `error.responseData` is an object with a `reason` string property → returns `reason`
+    2. If `error.responseData` is an object without `reason` → returns JSON.stringify of the object (if not empty)
+    3. If `error.responseData` is a non-empty string → returns it directly
+    4. If `error.message` is a non-empty string → returns `error.message`
+    5. Otherwise → returns `fallbackMessage`
+
+**Examples**:
+```javascript
+// Response has "reason" key: returns "Username does not exist"
+extractErrorMessage({ responseData: { reason: 'Username does not exist' } }, 'Login failed')
+
+// Response data is a string: returns "Server error"
+extractErrorMessage({ responseData: 'Server error' }, 'Login failed')
+
+// No response data: returns "Network Error"
+extractErrorMessage({ message: 'Network Error' }, 'Login failed')
+```
+
+**Integration**: Used by any component that makes API calls to handle errors consistently. Currently used in StartScreen's `handleLogin` catch block to replace manual error parsing. Future components can simply call `extractErrorMessage(error, fallback)` for standardized error display.
+
 ---
 
-*Last Updated: May 18, 2026*
+*Last Updated: May 22, 2026*
+
 *Version: 1.0.0*  
 *All documentation must be maintained in English as per project requirements.*
