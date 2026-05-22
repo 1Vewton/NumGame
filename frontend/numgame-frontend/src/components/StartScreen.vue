@@ -3,9 +3,9 @@ StartScreen.vue - Start Screen Component for NumGame
 
 This component displays the welcome screen for the NumGame application.
 It features a red and black color theme with the game title, login form,
-and error notification functionality. Users can enter their credentials
-to log in, and their user information is stored in the reactive in-memory
-userStore for the current browser session.
+registration form, and notification functionality. The component supports
+switching between login and registration views. The registration form
+includes password format validation and confirm password matching.
 
 @module StartScreen
 -->
@@ -25,7 +25,7 @@ userStore for the current browser session.
     </div>
 
     <!-- Login form -->
-    <div class="login-form">
+    <div v-if="showLogin" class="login-form">
       <!-- Username input field -->
       <AppInput
         v-model="username"
@@ -63,6 +63,65 @@ userStore for the current browser session.
         variant="primary"
         size="medium"
         width="100%"
+        @click="switchToRegister"
+      />
+
+    </div>
+
+    <!-- Registration form -->
+    <div v-else class="login-form">
+      <!-- Username input field -->
+      <AppInput
+        v-model="registerUsername"
+        type="text"
+        placeholder="Enter your username"
+        label="Username"
+        input-id="register-username"
+      />
+
+      <!-- Password input field -->
+      <AppInput
+        v-model="registerPassword"
+        type="password"
+        placeholder="Enter your password"
+        label="Password"
+        input-id="register-password"
+      />
+
+      <!-- Confirm password input field -->
+      <AppInput
+        v-model="registerConfirmPassword"
+        type="password"
+        placeholder="Confirm your password"
+        label="Confirm Password"
+        input-id="register-confirm-password"
+      />
+
+      <!-- Password format hint -->
+      <div class="password-hint">
+        Password must be at least 8 characters, with at least one uppercase letter,
+        one lowercase letter, one digit, and one special character (@$!%*?&)
+      </div>
+
+      <!-- Register button - primary when valid, secondary when invalid -->
+      <AppButton
+        label="Register"
+        :is-loading="isRegistering"
+        loading-label="Registering..."
+        :variant="canRegister ? 'primary' : 'secondary'"
+        size="medium"
+        width="100%"
+        :disabled="!canRegister || isRegistering"
+        @click="handleRegister"
+      />
+
+      <!-- Back to Login button -->
+      <AppButton
+        label="Back to Login"
+        variant="primary"
+        size="medium"
+        width="100%"
+        @click="switchToLogin"
       />
 
     </div>
@@ -87,14 +146,13 @@ userStore for the current browser session.
 
 <script>
 /**
- * StartScreen Component - Welcome screen with login functionality
+ * StartScreen Component - Welcome screen with login and registration functionality
  * 
  * This component displays the welcome screen with the game title,
- * game icon, and a login form for user authentication. It uses
- * the reusable AppInput component for input fields and the reusable
- * ErrorNotification component for displaying login error messages.
- * On successful login, the user's ID and name are stored in the reactive
- * in-memory userStore for the current browser session.
+ * game icon, and a form that can switch between login and registration views.
+ * It uses the reusable AppInput component for input fields and the reusable
+ * ErrorNotification component for displaying error messages.
+ * The registration form validates password format and confirm password matching.
  * 
  * @module StartScreen
  */
@@ -104,8 +162,18 @@ import ErrorNotification from './ErrorNotification.vue';
 import SuccessNotification from './SuccessNotification.vue';
 import apiClient from '../utils/api.js';
 import config from '../utils/config.js';
-import { getUserLoginBody } from '../utils/requestBodies.js';
+import { getUserLoginBody, getUserRegisterBody } from '../utils/requestBodies.js';
 import userStore from '../stores/userStore.js';
+import { extractErrorMessage } from '../utils/errorHandler.js';
+
+
+
+/**
+ * Regular expression for password validation
+ * Requires at least 8 characters, one uppercase letter, one lowercase letter,
+ * one digit, and one special character (@$!%*?&)
+ */
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export default {
   // Component name used for debugging and Vue devtools
@@ -129,9 +197,14 @@ export default {
   /**
    * Component data properties
    * 
-   * @property {string} username - The username entered by the user
-   * @property {string} password - The password entered by the user
+   * @property {string} username - The username entered by the user (login form)
+   * @property {string} password - The password entered by the user (login form)
    * @property {boolean} isLoggingIn - Flag indicating if a login request is in progress
+   * @property {boolean} isRegistering - Flag indicating if a registration request is in progress
+   * @property {boolean} showLogin - Flag indicating whether to show login or registration form
+   * @property {string} registerUsername - The username entered in the registration form
+   * @property {string} registerPassword - The password entered in the registration form
+   * @property {string} registerConfirmPassword - The confirm password entered in the registration form
    * @property {boolean} showError - Flag controlling error notification visibility
    * @property {string} errorMessage - The error message to display in the notification
    * @property {boolean} showSuccess - Flag controlling success notification visibility
@@ -142,11 +215,36 @@ export default {
       username: '',
       password: '',
       isLoggingIn: false,
+      isRegistering: false,
+      showLogin: true,
+      registerUsername: '',
+      registerPassword: '',
+      registerConfirmPassword: '',
       showError: false,
       errorMessage: '',
       showSuccess: false,
       successMessage: ''
     };
+  },
+
+  /**
+   * Computed properties
+   */
+  computed: {
+    /**
+     * Determines whether the registration button should be enabled
+     * 
+     * Returns true only when the password meets the format requirements
+     * and the confirm password matches the password.
+     * 
+     * @returns {boolean} True if registration form data is valid
+     */
+    canRegister() {
+      return (
+        PASSWORD_REGEX.test(this.registerPassword) &&
+        this.registerConfirmPassword === this.registerPassword
+      );
+    }
   },
 
   /**
@@ -162,6 +260,30 @@ export default {
    * Component methods
    */
   methods: {
+    /**
+     * Switches the view to the registration form
+     * 
+     * This method sets showLogin to false, which triggers the v-if directive
+     * to display the registration form instead of the login form.
+     * 
+     * @method switchToRegister
+     */
+    switchToRegister() {
+      this.showLogin = false;
+    },
+
+    /**
+     * Switches the view to the login form
+     * 
+     * This method sets showLogin to true, which triggers the v-if directive
+     * to display the login form instead of the registration form.
+     * 
+     * @method switchToLogin
+     */
+    switchToLogin() {
+      this.showLogin = true;
+    },
+
     /**
      * Handles the user login process
      * 
@@ -207,22 +329,9 @@ export default {
           this.showErrorMessage(response.reason || 'Login failed');
         }
       } catch (error) {
-        // Check if the server returned response data (e.g., HTTP error with body)
-        if (error.responseData) {
-          // Extract the "reason" value from the response data
-          const responseData = error.responseData;
-          let reason = null;
-          if (typeof responseData === 'object' && responseData !== null) {
-            reason = responseData.reason || null;
-          } else if (typeof responseData === 'string') {
-            // If response data is a raw string, use it directly
-            reason = responseData;
-          }
-          this.showErrorMessage(reason || 'Login failed');
-        } else {
-          // No response data received (network error, server unreachable, etc.)
-          this.showErrorMessage(error.message || 'Unable to connect to server');
-        }
+        // Use the unified error handler to extract the most meaningful error message
+        this.showErrorMessage(extractErrorMessage(error, 'Login failed'));
+
       } finally {
         // Reset loading state
         this.isLoggingIn = false;
@@ -241,6 +350,55 @@ export default {
     showErrorMessage(message) {
       this.errorMessage = message;
       this.showError = true;
+    },
+
+    /**
+     * Handles the user registration process
+     * 
+     * This method validates that the registration form data is complete and valid,
+     * then sends a registration request to the backend API. On success, it displays
+     * a success notification toast. On failure, it displays an error notification
+     * toast with the reason from the server response.
+     * 
+     * @method handleRegister
+     * @async
+     * @returns {Promise<void>}
+     */
+    async handleRegister() {
+      // Set loading state to prevent duplicate submissions
+      this.isRegistering = true;
+
+      try {
+        // Get the register endpoint and request body
+        const registerEndpoint = config.getRegisterEndpoint();
+        const requestBody = getUserRegisterBody(this.registerUsername.trim(), this.registerPassword);
+
+        // Send the registration request to the backend
+        const response = await apiClient.post(registerEndpoint, requestBody);
+
+        // Check if registration was successful
+        if (response.success) {
+          console.log('Registration successful for:', this.registerUsername.trim());
+
+          // Set success message and show success notification toast
+          this.successMessage = 'Registration Successful';
+          this.showSuccess = true;
+
+          // Switch back to login screen after successful registration
+          this.switchToLogin();
+
+        } else {
+          // Display the error reason from the server response
+          this.showErrorMessage(response.reason || 'Registration failed');
+        }
+      } catch (error) {
+        // Use the unified error handler to extract the most meaningful error message
+        this.showErrorMessage(extractErrorMessage(error, 'Registration failed'));
+
+      } finally {
+        // Reset loading state
+        this.isRegistering = false;
+      }
     }
   }
 }
@@ -309,6 +467,14 @@ export default {
   flex-direction: column;
   gap: 1.2rem;
   margin-top: 1rem;
+}
+
+/* Password format hint styling */
+.password-hint {
+  font-size: 0.8rem;
+  color: #aaaaaa;
+  line-height: 1.4;
+  padding: 0 0.2rem;
 }
 
 /* Responsive design */
