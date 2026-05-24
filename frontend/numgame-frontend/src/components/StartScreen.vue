@@ -12,6 +12,16 @@ includes password format validation and confirm password matching.
 <template>
   <!-- Main start screen container -->
   <div class="start-screen">
+    <!-- User info icon button (top-right corner, only visible when logged in) -->
+    <div v-if="loggedIn" class="user-icon-container">
+      <button class="user-icon-button" @click="showUserInfo = true" title="User Info">
+        <i class="fas fa-circle-user fa-2x"></i>
+      </button>
+    </div>
+
+    <!-- User information modal overlay -->
+    <UserInfo v-if="showUserInfo" @close="showUserInfo = false" />
+
     <!-- Game icon -->
     <div class="game-icon-container">
       <!-- Font Awesome x-mark icon -->
@@ -24,106 +34,167 @@ includes password format validation and confirm password matching.
       <p class="welcome-subtitle">A strategic number-based game</p>
     </div>
 
-    <!-- Login form -->
-    <div v-if="showLogin" class="login-form">
-      <!-- Username input field -->
-      <AppInput
-        v-model="username"
-        type="text"
-        placeholder="Enter your username"
-        label="Username"
-        input-id="login-username"
-        @enter="handleLogin"
-      />
+    <!-- Game mode selection (shown after successful login) -->
+    <div v-if="loggedIn" class="game-mode-container">
+      <!-- PVE button - the only playable mode -->
+      <div class="game-mode-item">
+        <i class="fas fa-robot game-mode-icon"></i>
+        <AppButton
+          label="PVE"
+          variant="primary"
+          size="large"
+          width="100%"
+        />
+        <span class="game-mode-tooltip">Play against a state machine Bot</span>
+      </div>
 
-      <!-- Password input field -->
-      <AppInput
-        v-model="password"
-        type="password"
-        placeholder="Enter your password"
-        label="Password"
-        input-id="login-password"
-        @enter="handleLogin"
-      />
+      <!-- PVP button - disabled -->
+      <div class="game-mode-item">
+        <i class="fas fa-people-group game-mode-icon"></i>
+        <AppButton
+          label="PVP"
+          variant="secondary"
+          size="large"
+          width="100%"
+          :disabled="true"
+        />
+        <span class="game-mode-tooltip">Play against other players</span>
+      </div>
 
-      <!-- Login button using reusable AppButton component -->
-      <AppButton
-        label="Login"
-        :is-loading="isLoggingIn"
-        loading-label="Logging in..."
-        variant="primary"
-        size="medium"
-        width="100%"
-        @click="handleLogin"
-      />
+      <!-- LLM button - disabled -->
+      <div class="game-mode-item">
+        <i class="fas fa-brain game-mode-icon"></i>
 
-      <!-- Register button using reusable AppButton component -->
-      <AppButton
-        label="Register"
-        variant="primary"
-        size="medium"
-        width="100%"
-        @click="switchToRegister"
-      />
+        <AppButton
+          label="LLM"
+          variant="secondary"
+          size="large"
+          width="100%"
+          :disabled="true"
+        />
+        <span class="game-mode-tooltip">Play against an LLM</span>
+      </div>
+
+      <!-- AI button - disabled -->
+      <div class="game-mode-item">
+        <i class="fas fa-fax game-mode-icon"></i>
+
+        <AppButton
+          label="AI"
+          variant="secondary"
+          size="large"
+          width="100%"
+          :disabled="true"
+        />
+        <span class="game-mode-tooltip">Play against a reinforcement learning model</span>
+      </div>
 
     </div>
 
-    <!-- Registration form -->
-    <div v-else class="login-form">
-      <!-- Username input field -->
-      <AppInput
-        v-model="registerUsername"
-        type="text"
-        placeholder="Enter your username"
-        label="Username"
-        input-id="register-username"
-      />
 
-      <!-- Password input field -->
-      <AppInput
-        v-model="registerPassword"
-        type="password"
-        placeholder="Enter your password"
-        label="Password"
-        input-id="register-password"
-      />
+    <!-- Login form (hidden after successful login) -->
+    <div v-if="!loggedIn">
 
-      <!-- Confirm password input field -->
-      <AppInput
-        v-model="registerConfirmPassword"
-        type="password"
-        placeholder="Confirm your password"
-        label="Confirm Password"
-        input-id="register-confirm-password"
-      />
+      <div v-if="showLogin" class="login-form">
+        <!-- Username input field -->
+        <AppInput
+          v-model="username"
+          type="text"
+          placeholder="Enter your username"
+          label="Username"
+          input-id="login-username"
+          @enter="handleLogin"
+        />
 
-      <!-- Password format hint -->
-      <div class="password-hint">
-        Password must be at least 8 characters, with at least one uppercase letter,
-        one lowercase letter, one digit, and one special character (@$!%*?&)
+        <!-- Password input field -->
+        <AppInput
+          v-model="password"
+          type="password"
+          placeholder="Enter your password"
+          label="Password"
+          input-id="login-password"
+          @enter="handleLogin"
+        />
+
+        <!-- Login button using reusable AppButton component -->
+        <AppButton
+          label="Login"
+          :is-loading="isLoggingIn"
+          loading-label="Logging in..."
+          variant="primary"
+          size="medium"
+          width="100%"
+          @click="handleLogin"
+        />
+
+        <!-- Register button using reusable AppButton component -->
+        <AppButton
+          label="Register"
+          variant="primary"
+          size="medium"
+          width="100%"
+          @click="switchToRegister"
+        />
+
       </div>
 
-      <!-- Register button - primary when valid, secondary when invalid -->
-      <AppButton
-        label="Register"
-        :is-loading="isRegistering"
-        loading-label="Registering..."
-        :variant="canRegister ? 'primary' : 'secondary'"
-        size="medium"
-        width="100%"
-        :disabled="!canRegister || isRegistering"
-        @click="handleRegister"
-      />
+      <!-- Registration form -->
+      <div v-else class="login-form">
+        <!-- Username input field -->
+        <AppInput
+          v-model="registerUsername"
+          type="text"
+          placeholder="Enter your username"
+          label="Username"
+          input-id="register-username"
+        />
 
-      <!-- Back to Login button -->
-      <AppButton
-        label="Back to Login"
-        variant="primary"
-        size="medium"
-        width="100%"
-        @click="switchToLogin"
-      />
+        <!-- Password input field -->
+        <AppInput
+          v-model="registerPassword"
+          type="password"
+          placeholder="Enter your password"
+          label="Password"
+          input-id="register-password"
+        />
 
+        <!-- Confirm password input field -->
+        <AppInput
+          v-model="registerConfirmPassword"
+          type="password"
+          placeholder="Confirm your password"
+          label="Confirm Password"
+          input-id="register-confirm-password"
+        />
+
+        <!-- Password format hint -->
+        <div class="password-hint">
+          Password must be at least 8 characters, with at least one uppercase letter,
+          one lowercase letter, one digit, and one special character (@$!%*?&)
+        </div>
+
+        <!-- Register button - primary when valid, secondary when invalid -->
+        <AppButton
+          label="Register"
+          :is-loading="isRegistering"
+          loading-label="Registering..."
+          :variant="canRegister ? 'primary' : 'secondary'"
+          size="medium"
+          width="100%"
+          :disabled="!canRegister || isRegistering"
+          @click="handleRegister"
+        />
+
+        <!-- Back to Login button -->
+        <AppButton
+          label="Back to Login"
+          variant="primary"
+          size="medium"
+          width="100%"
+          @click="switchToLogin"
+        />
+
+      </div>
     </div>
 
     <!-- Error notification toast -->
@@ -160,6 +231,7 @@ import AppInput from './AppInput.vue';
 import AppButton from './AppButton.vue';
 import ErrorNotification from './ErrorNotification.vue';
 import SuccessNotification from './SuccessNotification.vue';
+import UserInfo from './UserInfo.vue';
 import apiClient from '../utils/api.js';
 import config from '../utils/config.js';
 import { getUserLoginBody, getUserRegisterBody } from '../utils/requestBodies.js';
@@ -186,12 +258,14 @@ export default {
    * @property {Component} AppButton - Reusable styled button component
    * @property {Component} ErrorNotification - Reusable error toast notification component
    * @property {Component} SuccessNotification - Reusable success toast notification component
+   * @property {Component} UserInfo - User information modal overlay component
    */
   components: {
     AppInput,
     AppButton,
     ErrorNotification,
-    SuccessNotification
+    SuccessNotification,
+    UserInfo
   },
 
   /**
@@ -209,6 +283,7 @@ export default {
    * @property {string} errorMessage - The error message to display in the notification
    * @property {boolean} showSuccess - Flag controlling success notification visibility
    * @property {string} successMessage - The success message to display in the notification
+   * @property {boolean} showUserInfo - Flag controlling the user info modal visibility
    */
   data() {
     return {
@@ -223,7 +298,8 @@ export default {
       showError: false,
       errorMessage: '',
       showSuccess: false,
-      successMessage: ''
+      successMessage: '',
+      showUserInfo: false
     };
   },
 
@@ -231,6 +307,18 @@ export default {
    * Computed properties
    */
   computed: {
+    /**
+     * Indicates whether the user is currently logged in
+     * 
+     * Returns the login status from the reactive userStore.
+     * When true, the login/registration forms are hidden.
+     * 
+     * @returns {boolean} True if user is logged in
+     */
+    loggedIn() {
+      return userStore.isUserLoggedIn();
+    },
+
     /**
      * Determines whether the registration button should be enabled
      * 
@@ -247,19 +335,55 @@ export default {
     }
   },
 
+
   /**
    * Component lifecycle hook
    * 
    * Logs when the StartScreen component is mounted to the DOM.
+   * Triggers an automatic login attempt to check if the user has
+   * an existing session via cookies/tokens. No notifications are
+   * shown regardless of success or failure.
    */
   mounted() {
     console.log('StartScreen component mounted');
+    this.handleAutoLogin();
   },
+
 
   /**
    * Component methods
    */
   methods: {
+    /**
+     * Handles automatic login attempt on component mount
+     * 
+     * This method sends a GET request to the auto-login endpoint without
+     * any request body. If the server returns success with user data, the
+     * user is automatically logged in (form fields disappear). If auto-login
+     * fails or the server returns an error, no notification is shown to the
+     * user - they will simply see the normal login form.
+     * 
+     * @method handleAutoLogin
+     * @async
+     * @returns {Promise<void>}
+     */
+    async handleAutoLogin() {
+      try {
+        const autoLoginEndpoint = config.getAutoLoginEndpoint();
+        const response = await apiClient.get(autoLoginEndpoint);
+
+        if (response.success) {
+          // Auto-login succeeded - store user data silently
+          userStore.setUser(response.user_id, response.user_name);
+          console.log('Auto-login successful:', response.user_name, response.user_id);
+        }
+        // Auto-login failed silently - no notification shown
+      } catch (error) {
+        // Auto-login request failed silently - no notification shown
+        console.log('Auto-login not available:', error.message);
+      }
+    },
+
     /**
      * Switches the view to the registration form
      * 
@@ -271,6 +395,7 @@ export default {
     switchToRegister() {
       this.showLogin = false;
     },
+
 
     /**
      * Switches the view to the login form
@@ -421,6 +546,38 @@ export default {
   margin: 0;
 }
 
+/* User icon container - positioned at the top-right corner */
+.user-icon-container {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+}
+
+/* User icon button styling */
+.user-icon-button {
+  background: none;
+  border: none;
+  color: #ff0000;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 50%;
+  transition: color 0.2s, text-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon-button:hover {
+  color: #ff4444;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+.user-icon-button:focus {
+  outline: none;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
 /* Game icon styling - Simple red X without any background */
 .game-icon-container {
   margin-bottom: 2.5rem; /* Slightly reduced margin */
@@ -499,6 +656,11 @@ export default {
   .login-form {
     max-width: 350px;
   }
+  
+  .user-icon-container {
+    top: 1rem;
+    right: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -525,7 +687,57 @@ export default {
   .login-form {
     max-width: 300px;
   }
+  
+  .user-icon-container {
+    top: 0.8rem;
+    right: 0.8rem;
+  }
 }
+
+/* Game mode selection container - shown after login */
+.game-mode-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3rem;
+  width: 100%;
+  max-width: 700px;
+  margin-top: 3.5rem;
+}
+
+/* Individual game mode button item with tooltip */
+.game-mode-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  max-width: 250px;
+}
+
+/* Icon above each game mode button */
+.game-mode-icon {
+  font-size: 2.5rem;
+  color: #ff0000;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+  margin-bottom: 0.3rem;
+}
+
+/* Tooltip text shown on hover */
+.game-mode-tooltip {
+  font-size: 0.8rem;
+  color: #aaaaaa;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  line-height: 1.3;
+  min-height: 2rem;
+}
+
+.game-mode-item:hover .game-mode-tooltip {
+  opacity: 1;
+}
+
 
 /* Space for future functionality elements */
 .start-screen::after {
@@ -534,3 +746,5 @@ export default {
   min-height: 20vh; /* Reserve space at the bottom */
 }
 </style>
+
+

@@ -41,7 +41,8 @@ numgame-frontend/
 │   │   ├── AppButton.vue    # Reusable styled button component
 │   │   ├── ErrorNotification.vue  # Reusable error toast notification component
 │   │   ├── SuccessNotification.vue  # Reusable success toast notification component
-│   │   └── StartScreen.vue  # Welcome screen with login functionality
+│   │   ├── StartScreen.vue  # Welcome screen with login functionality
+│   │   └── UserInfo.vue     # User information modal overlay component
 │   ├── App.vue              # Root application component
 │   ├── main.js             # Application entry point
 │   └── utils/              # Utility modules
@@ -55,7 +56,6 @@ numgame-frontend/
 ├── README.md               # Project setup instructions
 └── AGENTS.md              # Coding standards and documentation (this file)
 ```
-
 
 ## Coding Standards
 
@@ -276,7 +276,6 @@ For each new module, add to AGENTS.md:
 - Stores: `src/stores/` (for state management)
   - `userStore.js`: Reactive in-memory user session store
 
-
 ### 7. Development Requirements
 
 #### 7.1 Comment Compliance
@@ -486,7 +485,7 @@ When deprecating functions or modules:
 
 **Component Properties**:
 - `name` (string): 'StartScreen' - Component identifier
-- `components` (Object): Registered child components - AppInput, AppButton, ErrorNotification, SuccessNotification
+- `components` (Object): Registered child components - AppInput, AppButton, ErrorNotification, SuccessNotification, UserInfo
 
 - `mounted()`: Lifecycle hook that logs when component is mounted
 - `data.username` (string): Username entered by the user in the login form
@@ -501,17 +500,31 @@ When deprecating functions or modules:
 - `data.errorMessage` (string): Error message to display in the notification
 - `data.showSuccess` (boolean): Flag controlling success notification visibility
 - `data.successMessage` (string): Success message to display in the notification
+- `data.showUserInfo` (boolean): Flag controlling the UserInfo modal visibility
 - `computed.canRegister` (boolean): True when password meets format requirements and confirm password matches
+- `computed.loggedIn` (boolean): Returns `userStore.isUserLoggedIn()`. When true, the login/registration forms are hidden via `v-if="!loggedIn"` in the template
 
 **Methods**:
 - `switchToRegister()`: Sets showLogin to false to display the registration form
 - `switchToLogin()`: Sets showLogin to true to display the login form
-- `handleLogin()`: Validates credentials and sends login request to backend API. Stores user_id and user_name in the reactive in-memory userStore on success. Shows error notification on failure.
+- `handleAutoLogin()`: Sends a GET request to the auto-login endpoint (no request body) when the component mounts. If `response.success` is truthy, the user's session data (`user_id`, `user_name`) is stored in userStore silently — no notification shown regardless of success or failure.
+- `handleLogin()`: Validates credentials and sends login request to backend API. On success (`response.success === true`), stores `user_id` and `user_name` in the reactive in-memory userStore. Shows error notification on failure.
 - `showErrorMessage(message)`: Sets error message and shows the error notification toast.
 - `handleRegister()`: Sends registration request to backend API with username and password. Shows success notification on success or error notification on failure.
 
+**Login Status Determination Logic**:
+The component determines login status through three mechanisms:
+
+1. **Manual Login** (`handleLogin()`): After the user submits the login form, the method sends a POST request to the login endpoint. The response is checked for `response.success`. If truthy, `userStore.setUser(response.user_id, response.user_name)` is called, which sets `state.isLoggedIn = true` and makes the `loggedIn` computed property return `true`, causing the forms to disappear via `v-if="!loggedIn"`.
+
+2. **Auto Login** (`handleAutoLogin()`): On component mount (`mounted()`), a silent GET request is sent to the auto-login endpoint with cookies (`withCredentials: true` in axios). If `response.success` is truthy, `userStore.setUser(response.user_id, response.user_name)` is called, and the forms disappear automatically — no notification displayed.
+
+3. **Reactive Computed Property** (`loggedIn`): This computed property reads `userStore.isUserLoggedIn()`, which checks `state.isLoggedIn`. Since userStore uses Vue.observable (reactive state), any change (from either manual or auto login) immediately triggers re-rendering. In the template, `<div v-if="!loggedIn">` wraps the entire form block, so forms are hidden when `loggedIn` is `true`.
+
 **Template Structure**: 
 - Main container with black background
+- User info icon button (fa-circle-user) at the top-right corner (only visible when logged in)
+- UserInfo modal overlay (shown when showUserInfo is true)
 - Red X-mark icon using Font Awesome
 - Welcome title with red gradient text
 - Subtitle for game description
@@ -531,8 +544,53 @@ When deprecating functions or modules:
 - White input fields with red focus states
 - Red Login button with hover/active/disabled states
 - Register button follows variant design principle (primary when valid, secondary when disabled)
+- User icon button positioned absolutely at top-right with red color and hover glow effect
 
-**Integration**: Uses AppInput for login/registration form fields and AppButton for buttons. Uses apiClient and config modules to send login and registration requests. Stores user credentials in the reactive in-memory userStore for the current browser session.
+**Integration**: Uses AppInput for login/registration form fields and AppButton for buttons. Uses UserInfo for the user information modal. Uses apiClient and config modules to send login and registration requests. Stores user credentials in the reactive in-memory userStore for the current browser session.
+
+#### UserInfo Component (`src/components/UserInfo.vue`)
+**Purpose**: Displays the logged-in user's profile information in a modal overlay with red and black theme.
+
+**Component Properties**:
+- `name` (string): 'UserInfo' - Component identifier
+- `components` (Object): Registered child components - AppButton
+
+**Events**:
+- `close`: Emitted when the user clicks the close button or the Back button to dismiss the modal
+
+**Data Properties**:
+- `userInfo` (Object|null): The fetched user information object from the backend API response
+- `isLoading` (boolean): Flag indicating if the API request to fetch user info is in progress
+- `errorMessage` (string): Error message to display if the API request fails
+
+**Computed Properties**:
+- `formattedDate` (string): Converts the `registered_at` Unix timestamp (seconds since epoch) to a human-readable YYYY-MM-DD date string. Returns 'N/A' if no timestamp is available.
+- `winRate` (string): Calculates win rate as `(wins / total_games) * 100`, formatted to one decimal place (e.g., '75.0%'). Returns 'N/A' if `total_games` is 0.
+
+**Methods**:
+- `fetchUserInfo()`: Sends a POST request to the user info endpoint (`/api/user/userInfo`) with `player_name` and `player_id` from the userStore. On success, stores the `result` field in `userInfo`. On failure, sets `errorMessage` using the unified error handler.
+
+**Template Structure**:
+- Full-screen dark overlay with centered modal container
+- Header with "User Information" title and close (X) button
+- Loading state with spinning icon when fetching data
+- Error state with warning icon and error message
+- User info content showing: User ID, Username, Registered At (YYYY-MM-DD format), Wins, Total Games, Win Rate (percentage or N/A if no games)
+- Back button using AppButton component (primary variant)
+
+**Styling Features**:
+- Dark modal (#1a1a1a) with red border and red glow shadow
+- Fade-in slide-down animation on open
+- Red title with text glow
+- Info rows with dark background (#2a2a2a), left red border accent, and label/value layout
+- Loading spinner in red
+- Error text in red
+- Close button with hover effect turning red
+- Responsive layout for mobile (stacks info rows vertically)
+
+**Notes**: Password field and Bot status are intentionally excluded from display. The component fetches data via API call on mount and shows loading/error states accordingly. Only visible when the user is logged in (controlled by parent StartScreen). Uses the `getUserInfoBody` function from requestBodies utility for the request payload.
+
+**Integration**: Used by StartScreen component as a modal overlay. Imported and registered in StartScreen, shown conditionally via `v-if="showUserInfo"`. Communicates back to parent via `$emit('close')` event. Uses the existing userStore, config, apiClient, requestBodies, and errorHandler utilities.
 
 #### User Store Module (`src/stores/userStore.js`)
 **Purpose**: Provides a reactive in-memory store for the current user's session data. Data is not persisted and will be lost when the browser tab is closed.
@@ -690,7 +748,7 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 ---
 
-*Last Updated: May 22, 2026*
+*Last Updated: May 24, 2026*
 
 *Version: 1.0.0*  
 *All documentation must be maintained in English as per project requirements.*
