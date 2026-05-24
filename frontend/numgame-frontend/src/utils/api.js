@@ -64,8 +64,10 @@ class APIClient {
     this._axiosInstance = axios.create({
       baseURL: this._baseUrl,
       headers: this._defaultHeaders,
-      timeout: 10000 // 10 seconds timeout
+      timeout: 10000, // 10 seconds timeout
+      withCredentials: true // Include cookies in requests (needed for auto-login)
     });
+
   }
 
   /**
