@@ -44,6 +44,7 @@ includes password format validation and confirm password matching.
           variant="primary"
           size="large"
           width="100%"
+          @click="goToBotGame"
         />
         <span class="game-mode-tooltip">Play against a state machine Bot</span>
       </div>
@@ -524,6 +525,19 @@ export default {
         // Reset loading state
         this.isRegistering = false;
       }
+    },
+
+    /**
+     * Navigates to the Bot game setup screen
+     * 
+     * This method uses Vue Router to navigate to the /startBotGame route,
+     * which renders the StartBotGame component where the user can set a
+     * target number and start a game against the Bot.
+     * 
+     * @method goToBotGame
+     */
+    goToBotGame() {
+      this.$router.push({ name: 'StartBotGame' });
     }
   }
 }
