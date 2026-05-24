@@ -42,9 +42,12 @@ numgame-frontend/
 │   │   ├── ErrorNotification.vue  # Reusable error toast notification component
 │   │   ├── SuccessNotification.vue  # Reusable success toast notification component
 │   │   ├── StartScreen.vue  # Welcome screen with login functionality
+│   │   ├── StartBotGame.vue # Bot game setup screen
 │   │   └── UserInfo.vue     # User information modal overlay component
 │   ├── App.vue              # Root application component
 │   ├── main.js             # Application entry point
+│   ├── router/             # Vue Router configuration
+│   │   └── index.js        # Router setup with route definitions
 │   └── utils/              # Utility modules
 │       ├── api.js           # API client (axios)
 │       ├── config.js        # Environment configuration
@@ -271,6 +274,8 @@ For each new module, add to AGENTS.md:
 #### 6.2 Directory Structure
 - Components: `src/components/`
 - Views/Pages: `src/views/`
+- Router: `src/router/` (for Vue Router configuration)
+  - `index.js`: Vue Router setup with route definitions
 - Utilities: `src/utils/`
 - Services: `src/services/`
 - Stores: `src/stores/` (for state management)
@@ -479,6 +484,41 @@ When deprecating functions or modules:
 
 **Integration**: Used by any Vue component to display success messages. Currently used in StartScreen to display "Login Successful" message after successful authentication.
 
+#### StartBotGame Component (`src/components/StartBotGame.vue`)
+
+**Purpose**: Displays the Bot game setup screen with a red and black color theme, a crosshairs icon (fa-crosshairs), and a single input field for entering the game target number.
+
+**Component Properties**:
+- `name` (string): 'StartBotGame' - Component identifier
+- `components` (Object): Registered child components - AppInput, AppButton, ErrorNotification, SuccessNotification
+
+**Data Properties**:
+- `data.targetNumber` (string|number): The target number for the Bot game, bound to the input field via v-model
+- `data.showError` (boolean): Flag controlling error notification visibility
+- `data.errorMessage` (string): Error message to display in the notification
+- `data.showSuccess` (boolean): Flag controlling success notification visibility
+- `data.successMessage` (string): Success message to display in the notification
+
+**Template Structure**: 
+- Main container with black background
+- Red crosshairs icon (fa-crosshairs) using Font Awesome
+- Welcome title with red gradient text ("Bot Game")
+- Subtitle "Set a target number and challenge the Bot"
+- Single input field for "Game Target" number (using AppInput component)
+- Error notification toast (using ErrorNotification component)
+- Success notification toast (using SuccessNotification component)
+- Responsive design for different screen sizes
+
+**Styling Features**:
+- Red and black color theme matching StartScreen
+- Cascadia Code font family
+- Responsive layout with content positioned higher
+- Red crosshairs icon with glow effect
+- Gradient text effects for welcome message
+- White input field with red focus state
+
+**Integration**: New Vue Router route at `/startBotGame`. Uses AppInput for the target number input field and AppButton, ErrorNotification, SuccessNotification for UI elements. No internal game logic implemented yet.
+
 #### StartScreen Component (`src/components/StartScreen.vue`)
 
 **Purpose**: Displays the welcome screen for the NumGame application with red and black color theme and login functionality.
@@ -615,6 +655,27 @@ The component determines login status through three mechanisms:
 - `clearUser()`: Clears the current user's session data on logout
 
 **Integration**: Imported by components to access and modify user session data. Currently used by StartScreen to store user info after successful login.
+
+#### Router Module (`src/router/index.js`)
+
+**Purpose**: Configures Vue Router for the NumGame frontend application, defining routing rules for navigating between different views/pages.
+
+**Routes**:
+- `path: '/'`: Maps to `StartScreen` component — renders the welcome/login screen when accessing `http://localhost:8080/` (no specific endpoint)
+  - `name` (string): 'StartScreen' — Route identifier for programmatic navigation
+  - `component` (Component): StartScreen — The welcome screen component to render
+- `path: '/startBotGame'`: Maps to `StartBotGame` component — renders the Bot game setup screen when accessing `http://localhost:8080/startBotGame`
+  - `name` (string): 'StartBotGame' — Route identifier for programmatic navigation
+  - `component` (Component): StartBotGame — The Bot game setup screen component to render
+
+**Functions**:
+- `createRouter(options)`: Creates a new Vue Router instance with HTML5 history mode
+  - `options.history` — Uses `createWebHistory()` for clean URLs without hash marks
+  - `options.routes` — Array of route definition objects
+
+**Integration**: Imported by `main.js` and registered via `app.use(router)`. The root `App.vue` component renders the current route's component using `<router-view />` instead of directly importing and rendering components.
+
+**Notes**: Uses HTML5 history mode (`createWebHistory`) for clean, hash-free URLs. Additional routes can be added to the `routes` array to support more views/pages as the application grows.
 
 #### Babel Configuration (`babel.config.js`)
 

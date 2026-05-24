@@ -2,7 +2,8 @@
  * main.js - Application Entry Point
  * 
  * This is the main entry point for the NumGame Vue.js application.
- * It initializes the Vue application and mounts it to the DOM.
+ * It initializes the Vue application, registers Vue Router, and
+ * mounts the application to the DOM.
  */
 
 // Import Vue's createApp function for creating Vue applications
@@ -11,17 +12,25 @@ import { createApp } from 'vue'
 // Import the root App component
 import App from './App.vue'
 
+// Import the Vue Router for page navigation
+import router from './router/index.js'
+
 /**
- * Creates and mounts the Vue application
+ * Creates, configures, and mounts the Vue application
  * 
- * This function initializes the Vue 3 application with the root App component
- * and mounts it to the HTML element with id 'app'.
+ * This function initializes the Vue 3 application with the root App component,
+ * registers the Vue Router for page navigation, and mounts the application
+ * to the HTML element with id 'app'.
  * 
  * @function createApp
  * @param {Component} App - The root component of the application
  * @returns {App} The created Vue application instance
  * 
+ * @function use
+ * @param {Router} router - The Vue Router instance for navigation
+ * @returns {App} The Vue application instance with router registered
+ * 
  * @function mount
  * @param {string} selector - CSS selector for the DOM element to mount to
  */
-createApp(App).mount('#app')
+createApp(App).use(router).mount('#app')
