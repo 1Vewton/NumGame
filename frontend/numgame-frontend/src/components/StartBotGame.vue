@@ -2,8 +2,8 @@
 StartBotGame.vue - Bot Game Start Screen Component
 
 This component displays the game setup screen for starting a Bot match.
-It features a red and black color theme with a crosshairs icon and a
-single input field for setting the game target number.
+It features a red and black color theme with a crosshairs icon and
+two input fields for setting the game target number and decision time.
 
 @module StartBotGame
 -->
@@ -18,7 +18,7 @@ single input field for setting the game target number.
     <!-- Welcome text -->
     <div class="welcome-container">
       <h1 class="welcome-title">Bot Game</h1>
-      <p class="welcome-subtitle">Set a target number and challenge the Bot</p>
+      <p class="welcome-subtitle">Set a target number and decision time to challenge the Bot</p>
     </div>
 
     <!-- Game setup form -->
@@ -31,6 +31,27 @@ single input field for setting the game target number.
         label="Game Target"
         input-id="bot-target"
       />
+      <!-- Decision time input field -->
+      <AppInput
+        v-model="decisionTime"
+        type="number"
+        placeholder="Enter decision time in seconds"
+        label="Decision Time (s)"
+        input-id="decision-time"
+      />
+    </div>
+
+    <!-- Start button -->
+    <div class="start-button-container">
+      <AppButton
+        :disabled="!isFormValid"
+        :variant="isFormValid ? 'primary' : 'secondary'"
+        width="100%"
+        size="large"
+        @click="handleStart"
+      >
+        Start
+      </AppButton>
     </div>
 
     <!-- Error notification toast -->
@@ -62,8 +83,10 @@ single input field for setting the game target number.
  * @module StartBotGame
  */
 import AppInput from './AppInput.vue';
+import AppButton from './AppButton.vue';
 import ErrorNotification from './ErrorNotification.vue';
 import SuccessNotification from './SuccessNotification.vue';
+
 
 export default {
   // Component name used for debugging and Vue devtools
@@ -79,9 +102,11 @@ export default {
    */
   components: {
     AppInput,
+    AppButton,
     ErrorNotification,
     SuccessNotification
   },
+
 
   /**
    * Component data properties
@@ -94,12 +119,41 @@ export default {
    */
   data() {
     return {
-      targetNumber: '',
+      targetNumber: 10,
+      decisionTime: 30,
       showError: false,
       errorMessage: '',
       showSuccess: false,
       successMessage: ''
     };
+  },
+
+  /**
+   * Computed properties
+   */
+  computed: {
+    /**
+     * isFormValid - Checks if the form inputs are valid integers
+     * 
+     * Validates that both targetNumber and decisionTime are non-empty
+     * and are valid integers (not decimals, not NaN).
+     * 
+     * @returns {boolean} True if both inputs are valid integers
+     */
+    isFormValid() {
+      const target = this.targetNumber;
+      const decision = this.decisionTime;
+      
+      // Check if values are not empty
+      if (target === '' || target === null || target === undefined) return false;
+      if (decision === '' || decision === null || decision === undefined) return false;
+      
+      // Convert to number and check for integer validity
+      const targetNum = Number(target);
+      const decisionNum = Number(decision);
+      
+      return Number.isInteger(targetNum) && Number.isInteger(decisionNum);
+    }
   },
 
   /**
@@ -115,8 +169,20 @@ export default {
    * Component methods
    */
   methods: {
-    // Internal logic will be added in future updates
+    /**
+     * handleStart - Handles the Start button click
+     * 
+     * This method is called when the user clicks the Start button.
+     * It will initiate the Bot game with the configured target number
+     * and decision time.
+     * 
+     * @method handleStart
+     */
+    handleStart() {
+      console.log('Starting Bot game with target:', this.targetNumber, 'and decision time:', this.decisionTime);
+    }
   }
+
 }
 </script>
 
@@ -185,21 +251,28 @@ export default {
   margin-top: 1rem;
 }
 
+/* Start button container styling */
+.start-button-container {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 2rem;
+}
+
 /* Responsive design */
 
 @media (max-width: 768px) {
   .start-bot-game {
     padding-top: 12vh; /* Adjust top padding for smaller screens */
   }
-  
+
   .welcome-title {
     font-size: 2.8rem;
   }
-  
+
   .fa-5x {
     font-size: 4rem;
   }
-  
+
   .game-icon-container {
     margin-bottom: 2rem;
   }
@@ -213,19 +286,19 @@ export default {
   .start-bot-game {
     padding-top: 10vh; /* Further adjust for mobile */
   }
-  
+
   .welcome-title {
     font-size: 2rem;
   }
-  
+
   .welcome-subtitle {
     font-size: 1.1rem;
   }
-  
+
   .fa-5x {
     font-size: 3.5rem;
   }
-  
+
   .game-icon-container {
     margin-bottom: 1.5rem;
   }

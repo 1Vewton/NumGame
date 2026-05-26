@@ -11,6 +11,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import StartScreen from '../components/StartScreen.vue'
 import StartBotGame from '../components/StartBotGame.vue'
+import userStore from '../stores/userStore.js'
 
 /**
  * Route configuration array
@@ -52,7 +53,27 @@ const routes = [
      */
     path: '/startBotGame',
     name: 'StartBotGame',
-    component: StartBotGame
+    component: StartBotGame,
+    /**
+     * Navigation guard that checks if the user is logged in
+     * 
+     * If the user is not logged in, redirects to the home page (StartScreen).
+     * This prevents unauthorized access to the Bot game setup screen.
+     * 
+     * @function beforeEnter
+     * @param {Object} to - Target route object
+     * @param {Object} from - Current route object
+     * @param {Function} next - Function to resolve the navigation
+     */
+    beforeEnter: (to, from, next) => {
+      if (!userStore.isUserLoggedIn()) {
+        // Redirect to home page if user is not logged in
+        next({ name: 'StartScreen' });
+      } else {
+        // Allow navigation to proceed
+        next();
+      }
+    }
   }
 ]
 
