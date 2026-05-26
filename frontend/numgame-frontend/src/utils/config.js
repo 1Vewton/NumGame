@@ -70,6 +70,14 @@ class Config {
      * @private
      */
     this._userEndpoint = process.env.VUE_APP_USER_INFO_ENDPOINT || '/api/user/userInfo';
+    
+    /**
+     * Bot game endpoint path
+     * 
+     * @type {string}
+     * @private
+     */
+    this._botGameEndpoint = process.env.VUE_APP_BOT_GAME_ENDPOINT || '/api/game/botPlay';
   }
 
   /**
@@ -206,6 +214,23 @@ class Config {
   }
 
   /**
+   * Gets the bot game endpoint path
+   * 
+   * This method returns the endpoint path for bot game API.
+   * The value is read from the VUE_APP_BOT_GAME_ENDPOINT environment variable.
+   * If the environment variable is not set, a default endpoint path is returned.
+   * 
+   * @method getBotGameEndpoint
+   * @returns {string} The bot game endpoint path
+   * @example
+   * // Returns '/api/game/botPlay' if VUE_APP_BOT_GAME_ENDPOINT is not set
+   * const botGameEndpoint = config.getBotGameEndpoint();
+   */
+  getBotGameEndpoint() {
+    return this._botGameEndpoint;
+  }
+
+  /**
    * Gets the complete URL for user information endpoint
    * 
    * This method combines the backend base URL with the user information endpoint path
@@ -219,6 +244,22 @@ class Config {
    */
   getUserUrl() {
     return `${this._backendUrl}${this._userEndpoint}`;
+  }
+
+  /**
+   * Gets the complete URL for bot game endpoint
+   * 
+   * This method combines the backend base URL with the bot game endpoint path
+   * to return a complete URL that can be used for API requests.
+   * 
+   * @method getBotGameUrl
+   * @returns {string} Complete URL for bot game
+   * @example
+   * // Returns 'http://localhost:7111/api/game/botPlay'
+   * const botGameUrl = config.getBotGameUrl();
+   */
+  getBotGameUrl() {
+    return `${this._backendUrl}${this._botGameEndpoint}`;
   }
 
   /**
@@ -236,10 +277,12 @@ class Config {
    * //   loginEndpoint: '/api/user/userLogin',
    * //   autoLoginEndpoint: '/api/user/autoLogin',
    * //   userEndpoint: '/api/user/userInfo',
+   * //   botGameEndpoint: '/api/game/botPlay',
    * //   registerUrl: 'http://localhost:7111/api/user/userRegister',
    * //   loginUrl: 'http://localhost:7111/api/user/userLogin',
    * //   autoLoginUrl: 'http://localhost:7111/api/user/autoLogin',
-   * //   userUrl: 'http://localhost:7111/api/user/userInfo'
+   * //   userUrl: 'http://localhost:7111/api/user/userInfo',
+   * //   botGameUrl: 'http://localhost:7111/api/game/botPlay'
    * // }
    * const allConfig = config.getAllConfig();
    */
@@ -250,10 +293,12 @@ class Config {
       loginEndpoint: this._loginEndpoint,
       autoLoginEndpoint: this._autoLoginEndpoint,
       userEndpoint: this._userEndpoint,
+      botGameEndpoint: this._botGameEndpoint,
       registerUrl: `${this._backendUrl}${this._registerEndpoint}`,
       loginUrl: `${this._backendUrl}${this._loginEndpoint}`,
       autoLoginUrl: `${this._backendUrl}${this._autoLoginEndpoint}`,
-      userUrl: `${this._backendUrl}${this._userEndpoint}`
+      userUrl: `${this._backendUrl}${this._userEndpoint}`,
+      botGameUrl: `${this._backendUrl}${this._botGameEndpoint}`
     };
   }
 
@@ -289,7 +334,8 @@ class Config {
       { name: 'register', value: this._registerEndpoint },
       { name: 'login', value: this._loginEndpoint },
       { name: 'auto-login', value: this._autoLoginEndpoint },
-      { name: 'user', value: this._userEndpoint }
+      { name: 'user', value: this._userEndpoint },
+      { name: 'bot-game', value: this._botGameEndpoint }
     ];
     
     for (const endpoint of endpoints) {
@@ -337,10 +383,12 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports.getLoginEndpoint = configInstance.getLoginEndpoint.bind(configInstance);
   module.exports.getAutoLoginEndpoint = configInstance.getAutoLoginEndpoint.bind(configInstance);
   module.exports.getUserEndpoint = configInstance.getUserEndpoint.bind(configInstance);
+  module.exports.getBotGameEndpoint = configInstance.getBotGameEndpoint.bind(configInstance);
   module.exports.getRegisterUrl = configInstance.getRegisterUrl.bind(configInstance);
   module.exports.getLoginUrl = configInstance.getLoginUrl.bind(configInstance);
   module.exports.getAutoLoginUrl = configInstance.getAutoLoginUrl.bind(configInstance);
   module.exports.getUserUrl = configInstance.getUserUrl.bind(configInstance);
+  module.exports.getBotGameUrl = configInstance.getBotGameUrl.bind(configInstance);
   module.exports.getAllConfig = configInstance.getAllConfig.bind(configInstance);
   module.exports.validateConfig = configInstance.validateConfig.bind(configInstance);
   
