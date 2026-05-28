@@ -32,12 +32,4 @@ export default {
 }
 </script>
 
-<style>
-/* Global application styles */
-#app {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  font-family: 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-}
-</style>
+<style src="./assets/styles/app.css"></style>

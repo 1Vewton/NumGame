@@ -1,0 +1,42 @@
+/**
+ * start-bot-game.css - StartBotGame Component Styles
+ * 
+ * This file contains styles specific to the StartBotGame component only.
+ * Shared base styles are imported globally from:
+ *   - page-layout.css     (screen base layout, responsive breakpoints)
+ *   - welcome-section.css (game icon, welcome title/subtitle)
+ *   - animations.css      (@keyframes fadeIn, slideIn, slideOut)
+ * 
+ * @module StartBotGameStyles
+ */
+
+/* Setup form styling */
+.setup-form {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+/* Start button container styling */
+.start-button-container {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 2rem;
+}
+
+/* Responsive design - StartBotGame specific overrides */
+
+@media (max-width: 768px) {
+  .setup-form {
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .setup-form {
+    max-width: 300px;
+  }
+}

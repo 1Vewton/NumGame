@@ -1,0 +1,59 @@
+/**
+ * scrollbar.css - Reusable Custom Scrollbar Styles
+ * 
+ * This file defines reusable CSS classes for custom-styled scrollbars
+ * with a red and black color theme matching the NumGame application design.
+ * 
+ * Usage:
+ *   Add the class "custom-scrollbar" to any scrollable container element
+ *   to apply the custom scrollbar styling.
+ * 
+ * @module ScrollbarStyles
+ */
+
+/**
+ * Custom scrollbar class
+ * 
+ * Apply this class to any scrollable container to style its scrollbar
+ * with a red (#ff0000) thumb on a dark (#2a2a2a) track.
+ * 
+ * Supports both Firefox and WebKit (Chrome, Safari, Edge) browsers.
+ * 
+ * @class custom-scrollbar
+ * 
+ * @example
+ * // In a Vue component template:
+ * <div class="custom-scrollbar" style="overflow-y: auto;">
+ *   <!-- scrollable content -->
+ * </div>
+ * 
+ * // Or combine with existing classes:
+ * <div class="my-modal custom-scrollbar">
+ *   <!-- scrollable content -->
+ * </div>
+ */
+.custom-scrollbar {
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #ff0000 #2a2a2a;
+}
+
+/* WebKit (Chrome, Safari, Edge) scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #ff0000;
+  border-radius: 4px;
+  border: 1px solid #2a2a2a;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #ff4444;
+}

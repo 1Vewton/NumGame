@@ -1,0 +1,172 @@
+/**
+ * app-button.css - AppButton Component Styles
+ * 
+ * This file contains styles for the reusable styled button component.
+ * Supports loading state, custom sizing, width control, and various
+ * visual variants (primary/secondary/success) matching the NumGame theme.
+ * 
+ * @module AppButtonStyles
+ */
+
+/* 
+ * AppButton - Base button styles
+ * Shared across all variants and sizes
+ */
+
+/* Button base styling */
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+  letter-spacing: 1px;
+  text-decoration: none;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+/* Disabled state */
+.app-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Full width when custom width is specified */
+.app-button--custom-width {
+  display: flex;
+}
+
+/* ============================================ */
+/* Size Variants                                 */
+/* ============================================ */
+
+/* Small button - compact for tight spaces */
+.app-button--small {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+/* Medium button - default size */
+.app-button--medium {
+  padding: 12px 20px;
+  font-size: 1.1rem;
+}
+
+/* Large button - prominent for primary actions */
+.app-button--large {
+  padding: 16px 28px;
+  font-size: 1.3rem;
+}
+
+/* ============================================ */
+/* Color Variants                                */
+/* ============================================ */
+
+/* Primary variant - Red theme (NumGame branding) */
+.app-button--primary {
+  background-color: #ff0000;
+  color: #ffffff;
+}
+
+.app-button--primary:hover:not(:disabled) {
+  background-color: #cc0000;
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.5);
+}
+
+.app-button--primary:active:not(:disabled) {
+  background-color: #990000;
+}
+
+.app-button--primary:disabled {
+  background-color: #662222;
+}
+
+/* Secondary variant - Gray/neutral theme */
+.app-button--secondary {
+  background-color: #444444;
+  color: #ffffff;
+}
+
+.app-button--secondary:hover:not(:disabled) {
+  background-color: #555555;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+.app-button--secondary:active:not(:disabled) {
+  background-color: #333333;
+}
+
+.app-button--secondary:disabled {
+  background-color: #333333;
+}
+
+/* Success variant - Green theme */
+.app-button--success {
+  background-color: #22aa44;
+  color: #ffffff;
+}
+
+.app-button--success:hover:not(:disabled) {
+  background-color: #1a8836;
+  box-shadow: 0 0 12px rgba(34, 170, 68, 0.5);
+}
+
+.app-button--success:active:not(:disabled) {
+  background-color: #15662a;
+}
+
+.app-button--success:disabled {
+  background-color: #1a5528;
+}
+
+/* ============================================ */
+/* Loading State                                 */
+/* ============================================ */
+
+/* Loading spinner animation */
+.app-button__spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: app-button-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Spinner size adjustments per button size */
+.app-button--small .app-button__spinner {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
+.app-button--large .app-button__spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 3px;
+}
+
+/* Spinner keyframe animation */
+@keyframes app-button-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Button text styling */
+.app-button__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

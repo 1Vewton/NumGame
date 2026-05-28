@@ -1,0 +1,56 @@
+/**
+ * animations.css - Shared CSS Animation Keyframes
+ * 
+ * This file defines reusable CSS animation keyframes shared across
+ * multiple Vue components. Includes fade-in for modals and slide
+ * animations for notification toasts.
+ * 
+ * Import this file globally in main.js to make these animations
+ * available across all components without duplication.
+ * 
+ * @module AnimationStyles
+ */
+
+/* ============================================ */
+/* Modal Animations                              */
+/* ============================================ */
+
+/* Fade-in slide-down animation for modals */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================ */
+/* Toast Notification Animations                 */
+/* ============================================ */
+
+/* Slide-in animation for notification toasts */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Slide-out animation for notification toasts */
+@keyframes slideOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
