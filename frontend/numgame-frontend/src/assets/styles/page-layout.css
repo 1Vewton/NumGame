@@ -1,0 +1,60 @@
+/**
+ * page-layout.css - Page Screen Base Layout Styles
+ * 
+ * This file defines the base page layout shared by all screen components
+ * (StartScreen, StartBotGame, and future screens like game screens).
+ * It provides a full-viewport black background with centered content layout
+ * and responsive breakpoints.
+ * 
+ * Import this file globally in main.js to make these styles available
+ * across all components without duplication.
+ * 
+ * @module PageLayoutStyles
+ */
+
+/* ============================================ */
+/* Page Screen Base Layout                       */
+/* ============================================ */
+
+/* Full-viewport black background with centered content layout */
+.start-screen,
+.start-bot-game {
+  min-height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 15vh;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 2rem;
+  margin: 0;
+}
+
+/* Bottom spacer for future functionality */
+.start-screen::after,
+.start-bot-game::after {
+  content: '';
+  flex-grow: 1;
+  min-height: 20vh;
+}
+
+/* ============================================ */
+/* Shared Responsive Breakpoints                 */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .start-screen,
+  .start-bot-game {
+    padding-top: 12vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .start-screen,
+  .start-bot-game {
+    padding-top: 10vh;
+  }
+}

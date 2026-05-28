@@ -580,7 +580,8 @@ class BotGameProcess:
             "destructivity": await self.getPlayerDestructivity(),
             "productivity": await self.getPlayerProductivity(),
             "action_point": await self.getPlayerActionPoint(),
-            "action_point_per_turn": await self.getPlayerActionPointPT()
+            "action_point_per_turn": await self.getPlayerActionPointPT(),
+            "turn": await self.getTurn()
         }
         return result
 
@@ -600,4 +601,17 @@ class BotGameProcess:
             self.game_id,
             "turn",
             1
+        )
+        # Add action point
+        player_action_point_pt = await self.getPlayerActionPointPT()
+        bot_action_point_pt = await self.getBotActionPointPT()
+        await self.client.hincrby(
+            self.game_id,
+            "player_action_point",
+            int(player_action_point_pt)
+        )
+        await self.client.hincrby(
+            self.game_id,
+            "bot_action_point",
+            int(bot_action_point_pt)
         )

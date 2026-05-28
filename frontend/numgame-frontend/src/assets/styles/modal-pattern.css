@@ -1,0 +1,98 @@
+/**
+ * modal-pattern.css - Reusable Modal Component Pattern Styles
+ * 
+ * This file defines the modal overlay pattern reused by multiple
+ * components (StartScreen's game rules modal, UserInfo modal).
+ * It provides a full-screen dark backdrop, modal container with
+ * red border and glow, header with title, and close button.
+ * 
+ * Import this file globally in main.js to make these styles available
+ * across all components without duplication.
+ * 
+ * @module ModalPatternStyles
+ */
+
+/* ============================================ */
+/* Modal Overlay                                 */
+/* ============================================ */
+
+/* Full-screen dark overlay backdrop */
+.rules-overlay,
+.user-info-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+/* ============================================ */
+/* Modal Container                               */
+/* ============================================ */
+
+/* Modal container with red border and glow */
+.rules-modal,
+.user-info-modal {
+  background-color: #1a1a1a;
+  border: 1px solid #ff0000;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================================ */
+/* Modal Header                                  */
+/* ============================================ */
+
+/* Modal header with title and close button */
+.rules-header,
+.user-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #333333;
+}
+
+/* Modal title with red glow */
+.rules-title,
+.user-info-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff0000;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+/* ============================================ */
+/* Close Button                                  */
+/* ============================================ */
+
+/* Generic close button in modals */
+.rules-close-button,
+.close-button {
+  background: none;
+  border: none;
+  color: #888888;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.rules-close-button:hover,
+.close-button:hover {
+  color: #ff0000;
+  background-color: rgba(255, 0, 0, 0.1);
+}

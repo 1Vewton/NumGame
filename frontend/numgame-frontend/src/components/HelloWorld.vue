@@ -76,26 +76,4 @@ export default {
   Scoped styles - CSS limited to this component only
   The 'scoped' attribute ensures styles don't leak to other components
 -->
-<style scoped>
-/* Heading style for h3 elements */
-h3 {
-  margin: 40px 0 0;
-}
-
-/* Unordered list styling */
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-/* List item styling */
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-/* Link styling */
-a {
-  color: #42b983;
-}
-</style>
+<style scoped src="../assets/styles/hello-world.css"></style>

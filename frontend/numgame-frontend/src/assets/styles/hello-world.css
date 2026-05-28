@@ -1,0 +1,29 @@
+/**
+ * hello-world.css - HelloWorld Component Styles
+ * 
+ * This file contains styles for the demo/placeholder HelloWorld component.
+ * 
+ * @module HelloWorldStyles
+ */
+
+/* Heading style for h3 elements */
+h3 {
+  margin: 40px 0 0;
+}
+
+/* Unordered list styling */
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* List item styling */
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+
+/* Link styling */
+a {
+  color: #42b983;
+}

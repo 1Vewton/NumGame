@@ -12,6 +12,13 @@ includes password format validation and confirm password matching.
 <template>
   <!-- Main start screen container -->
   <div class="start-screen">
+    <!-- Game rules icon button (top-left corner) -->
+    <div class="rules-icon-container">
+      <button class="rules-icon-button" @click="showGameRules = true" title="Game Rules">
+        <i class="fas fa-circle-info fa-2x"></i>
+      </button>
+    </div>
+
     <!-- User info icon button (top-right corner, only visible when logged in) -->
     <div v-if="loggedIn" class="user-icon-container">
       <button class="user-icon-button" @click="showUserInfo = true" title="User Info">
@@ -21,6 +28,122 @@ includes password format validation and confirm password matching.
 
     <!-- User information modal overlay -->
     <UserInfo v-if="showUserInfo" @close="showUserInfo = false" />
+
+    <!-- Game rules modal overlay -->
+    <div v-if="showGameRules" class="rules-overlay">
+      <div class="rules-modal custom-scrollbar">
+
+        <!-- Header with title and close button -->
+        <div class="rules-header">
+          <h2 class="rules-title">Game Rules</h2>
+          <button class="rules-close-button" @click="showGameRules = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Rules content -->
+        <div class="rules-content">
+          <div class="rules-section">
+            <h3 class="rules-section-title">Objective</h3>
+            <p class="rules-text">
+              Defeat your opponent by having a higher score and reaching the target number.
+            </p>
+          </div>
+
+          <div class="rules-section">
+            <h3 class="rules-section-title">Action Points</h3>
+            <p class="rules-text">
+              Each turn, you have a certain number of <strong>Action Points (AP)</strong>.
+              You can consume <strong>10 AP</strong> to perform an operation.
+              Choose wisely — every action costs resources.
+            </p>
+          </div>
+
+          <div class="rules-section">
+            <h3 class="rules-section-title">Operations</h3>
+
+            <div class="rules-operation">
+              <div class="rules-operation-icon">
+                <i class="fas fa-plus-circle"></i>
+              </div>
+              <div class="rules-operation-info">
+                <span class="rules-operation-name">Produce</span>
+                <span class="rules-operation-desc">
+                  Add your <strong>Productivity</strong> value to your own score.
+                </span>
+              </div>
+            </div>
+
+            <div class="rules-operation">
+              <div class="rules-operation-icon">
+                <i class="fas fa-minus-circle"></i>
+              </div>
+              <div class="rules-operation-info">
+                <span class="rules-operation-name">Destruct</span>
+                <span class="rules-operation-desc">
+                  Subtract your <strong>Destructivity</strong> value from the opponent's score.
+                </span>
+              </div>
+            </div>
+
+            <div class="rules-operation">
+              <div class="rules-operation-icon">
+                <i class="fas fa-arrow-up"></i>
+              </div>
+              <div class="rules-operation-info">
+                <span class="rules-operation-name">Enhance Productivity</span>
+                <span class="rules-operation-desc">
+                  Permanently increase your <strong>Productivity</strong> by 1.
+                </span>
+              </div>
+            </div>
+
+            <div class="rules-operation">
+              <div class="rules-operation-icon">
+                <i class="fas fa-arrow-down"></i>
+              </div>
+              <div class="rules-operation-info">
+                <span class="rules-operation-name">Enhance Destructivity</span>
+                <span class="rules-operation-desc">
+                  Permanently increase your <strong>Destructivity</strong> by 1.
+                </span>
+              </div>
+            </div>
+
+            <div class="rules-operation">
+              <div class="rules-operation-icon">
+                <i class="fas fa-bolt"></i>
+              </div>
+              <div class="rules-operation-info">
+                <span class="rules-operation-name">Enhance Action Points</span>
+                <span class="rules-operation-desc">
+                  Permanently increase the <strong>AP</strong> you gain each turn by 1.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rules-section">
+            <h3 class="rules-section-title">Winning Condition</h3>
+            <p class="rules-text">
+              You win when your <strong>score exceeds your opponent's</strong> and
+              reaches or surpasses the <strong>target number</strong> set at the start of the game.
+            </p>
+          </div>
+        </div>
+
+        <!-- Close button -->
+        <div class="rules-button-container">
+          <AppButton
+            label="Got it!"
+            variant="primary"
+            size="medium"
+            width="100%"
+            @click="showGameRules = false"
+          />
+        </div>
+      </div>
+    </div>
 
     <!-- Game icon -->
     <div class="game-icon-container">
@@ -285,6 +408,7 @@ export default {
    * @property {boolean} showSuccess - Flag controlling success notification visibility
    * @property {string} successMessage - The success message to display in the notification
    * @property {boolean} showUserInfo - Flag controlling the user info modal visibility
+   * @property {boolean} showGameRules - Flag controlling the game rules modal visibility
    */
   data() {
     return {
@@ -300,8 +424,10 @@ export default {
       errorMessage: '',
       showSuccess: false,
       successMessage: '',
-      showUserInfo: false
+      showUserInfo: false,
+      showGameRules: false
     };
+
   },
 
   /**
@@ -543,222 +669,6 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Start Screen Styles - Adjusted for future functionality */
-.start-screen {
-  min-height: 100vh;
-  background-color: #000000; /* Black background */
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* Changed from center to flex-start to move content up */
-  padding-top: 15vh; /* Add top padding to position content higher */
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-bottom: 2rem;
-  margin: 0;
-}
-
-/* User icon container - positioned at the top-right corner */
-.user-icon-container {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-}
-
-/* User icon button styling */
-.user-icon-button {
-  background: none;
-  border: none;
-  color: #ff0000;
-  cursor: pointer;
-  padding: 0.3rem;
-  border-radius: 50%;
-  transition: color 0.2s, text-shadow 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.user-icon-button:hover {
-  color: #ff4444;
-  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-}
-
-.user-icon-button:focus {
-  outline: none;
-  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-}
-
-/* Game icon styling - Simple red X without any background */
-.game-icon-container {
-  margin-bottom: 2.5rem; /* Slightly reduced margin */
-  margin-top: 2rem;
-}
-
-.fa-5x {
-  color: #ff0000; /* Red icon */
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-  font-size: 5rem; /* Use rem units for better scaling */
-}
-
-/* Welcome text styling */
-.welcome-container {
-  text-align: center;
-  margin-bottom: 2rem; /* Reduced margin to leave space for future elements */
-  max-width: 600px;
-}
-
-.welcome-title {
-  font-size: 3.5rem; /* Slightly reduced from 4rem */
-  font-weight: 700; /* Slightly reduced weight */
-  margin-bottom: 0.8rem;
-  background: linear-gradient(to right, #ff0000, #ff6666);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
-  letter-spacing: 1.5px;
-}
-
-.welcome-subtitle {
-  font-size: 1.3rem;
-  color: #cccccc;
-  font-weight: 300;
-  letter-spacing: 0.8px;
-}
-
-/* Login form styling */
-.login-form {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  margin-top: 1rem;
-}
-
-/* Password format hint styling */
-.password-hint {
-  font-size: 0.8rem;
-  color: #aaaaaa;
-  line-height: 1.4;
-  padding: 0 0.2rem;
-}
-
-/* Responsive design */
-
-@media (max-width: 768px) {
-  .start-screen {
-    padding-top: 12vh; /* Adjust top padding for smaller screens */
-  }
-  
-  .welcome-title {
-    font-size: 2.8rem;
-  }
-  
-  .fa-5x {
-    font-size: 4rem;
-  }
-  
-  .game-icon-container {
-    margin-bottom: 2rem;
-  }
-
-  .login-form {
-    max-width: 350px;
-  }
-  
-  .user-icon-container {
-    top: 1rem;
-    right: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .start-screen {
-    padding-top: 10vh; /* Further adjust for mobile */
-  }
-  
-  .welcome-title {
-    font-size: 2rem;
-  }
-  
-  .welcome-subtitle {
-    font-size: 1.1rem;
-  }
-  
-  .fa-5x {
-    font-size: 3.5rem;
-  }
-  
-  .game-icon-container {
-    margin-bottom: 1.5rem;
-  }
-
-  .login-form {
-    max-width: 300px;
-  }
-  
-  .user-icon-container {
-    top: 0.8rem;
-    right: 0.8rem;
-  }
-}
-
-/* Game mode selection container - shown after login */
-.game-mode-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 3rem;
-  width: 100%;
-  max-width: 700px;
-  margin-top: 3.5rem;
-}
-
-/* Individual game mode button item with tooltip */
-.game-mode-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  width: 100%;
-  max-width: 250px;
-}
-
-/* Icon above each game mode button */
-.game-mode-icon {
-  font-size: 2.5rem;
-  color: #ff0000;
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-  margin-bottom: 0.3rem;
-}
-
-/* Tooltip text shown on hover */
-.game-mode-tooltip {
-  font-size: 0.8rem;
-  color: #aaaaaa;
-  text-align: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  line-height: 1.3;
-  min-height: 2rem;
-}
-
-.game-mode-item:hover .game-mode-tooltip {
-  opacity: 1;
-}
-
-
-/* Space for future functionality elements */
-.start-screen::after {
-  content: '';
-  flex-grow: 1; /* This will push future elements downward if added */
-  min-height: 20vh; /* Reserve space at the bottom */
-}
-</style>
+<style scoped src="../assets/styles/start-screen.css"></style>
 
 

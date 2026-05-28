@@ -236,6 +236,7 @@
 - `data.showSuccess` (boolean): Flag controlling success notification visibility
 - `data.successMessage` (string): Success message to display in the notification
 - `data.showUserInfo` (boolean): Flag controlling the UserInfo modal visibility
+- `data.showGameRules` (boolean): Flag controlling the Game Rules modal visibility
 - `computed.canRegister` (boolean): True when password meets format requirements and confirm password matches
 - `computed.loggedIn` (boolean): Returns `userStore.isUserLoggedIn()`. When true, the login/registration forms are hidden via `v-if="!loggedIn"` in the template
 
@@ -258,8 +259,20 @@ The component determines login status through three mechanisms:
 
 **Template Structure**: 
 - Main container with black background
+- Game rules icon button (fa-circle-info) at the top-left corner (always visible)
 - User info icon button (fa-circle-user) at the top-right corner (only visible when logged in)
 - UserInfo modal overlay (shown when showUserInfo is true)
+- Game Rules modal overlay (shown when showGameRules is true), containing:
+  - **Objective**: Defeat opponent by having a higher score and reaching the target number
+  - **Action Points**: Consume 10 AP to perform an operation
+  - **Operations list** — 5 operations each with a Font Awesome icon:
+    - `fas fa-plus-circle` — Produce: Add your Productivity value to your own score
+    - `fas fa-minus-circle` — Destruct: Subtract your Destructivity value from the opponent's score
+    - `fas fa-arrow-up` — Enhance Productivity: Permanently increase Productivity by 1
+    - `fas fa-arrow-down` — Enhance Destructivity: Permanently increase Destructivity by 1
+    - `fas fa-bolt` — Enhance Action Points: Permanently increase AP gained per turn by 1
+  - **Winning Condition**: Score exceeds opponent AND reaches/passes the target number
+  - "Got it!" button to dismiss the modal
 - Red X-mark icon using Font Awesome
 - Welcome title with red gradient text
 - Subtitle for game description
@@ -280,6 +293,7 @@ The component determines login status through three mechanisms:
 - Red Login button with hover/active/disabled states
 - Register button follows variant design principle (primary when valid, secondary when disabled)
 - User icon button positioned absolutely at top-right with red color and hover glow effect
+- Game rules icon button positioned absolutely at top-left with red color and hover glow effect
 
 **Integration**: Uses AppInput for login/registration form fields and AppButton for buttons. Uses UserInfo for the user information modal. Uses apiClient and config modules to send login and registration requests. Stores user credentials in the reactive in-memory userStore for the current browser session.
 
@@ -556,4 +570,230 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 ---
 
-*Last Updated: May 26, 2026*
+---
+
+## Scrollbar Styles (`src/assets/styles/scrollbar.css`)
+
+**Purpose**: Provides a reusable `.custom-scrollbar` CSS class for styling scrollbars with a red and black color theme matching the NumGame application design.
+
+**Class**:
+- `.custom-scrollbar`: Apply this class to any scrollable container to style its scrollbar
+  - **Firefox**: Uses `scrollbar-width: thin` and `scrollbar-color: #ff0000 #2a2a2a` (red thumb on dark track)
+  - **WebKit (Chrome, Safari, Edge)**: 8px-wide red (`#ff0000`) thumb with rounded corners, dark (`#2a2a2a`) track, and a lighter red (`#ff4444`) hover state on the thumb
+
+**Usage**:
+```html
+<!-- Add the class to any scrollable container -->
+<div class="custom-scrollbar" style="overflow-y: auto; max-height: 300px;">
+  <!-- scrollable content -->
+</div>
+
+<!-- Combine with existing classes -->
+<div class="my-modal custom-scrollbar">
+  <!-- scrollable content -->
+</div>
+```
+
+**Integration**: Imported globally in `src/main.js` so the `.custom-scrollbar` class is available across all components without additional imports.
+
+**Notes**: Currently used by the Game Rules modal in the StartScreen component. Can be reused by any component that needs a custom-styled scrollbar.
+
+---
+
+## App Styles (`src/assets/styles/app.css`)
+
+**Purpose**: Provides global layout styles for the root App component, defining the base application container and typography.
+
+**Selectors**:
+- `#app`: Sets margin/padding to 0, `min-height: 100vh`, and the Cascadia Code monospace font family as the application default.
+
+**Integration**: Imported globally in `src/main.js` to apply base application layout styles.
+
+---
+
+## AppInput Styles (`src/assets/styles/app-input.css`)
+
+**Purpose**: Contains styles for the reusable white input field component (AppInput) with red focus/hover states.
+
+**Key Classes**:
+- `.app-input-container`: Flex column container with full width
+- `.app-input-label`: White label text with spacing
+- `.app-input`: White background input with dark text, red focus border (#ff0000), and red hover border (#ff6666)
+- `.app-input::placeholder`: Light gray (#999999) placeholder text
+
+**Integration**: Imported by `AppInput.vue` via `<style scoped src="...">`.
+
+---
+
+## AppButton Styles (`src/assets/styles/app-button.css`)
+
+**Purpose**: Contains styles for the reusable button component (AppButton) with loading state, size variants, and color variants.
+
+**Key Classes**:
+- `.app-button`: Base button styling with flex layout, font, and transitions
+- `.app-button--small/medium/large`: Size variants with appropriate padding and font sizes
+- `.app-button--primary`: Red theme with hover/active/disabled states
+- `.app-button--secondary`: Gray/neutral theme with hover/active/disabled states
+- `.app-button--success`: Green theme with hover/active/disabled states
+- `.app-button__spinner`: Loading spinner animation via `@keyframes app-button-spin`
+
+**Integration**: Imported by `AppButton.vue` via `<style scoped src="...">`.
+
+---
+
+## Page Layout Styles (`src/assets/styles/page-layout.css`)
+
+**Purpose**: Defines the base page layout shared by all screen components (StartScreen, StartBotGame, and future game screens). Provides a full-viewport black background with centered content layout and responsive breakpoints.
+
+**Key Selectors**:
+- `.start-screen`, `.start-bot-game`: Full-viewport black background (`#000000`) with centered flex column layout, 15vh top padding, and bottom spacer via `::after`
+
+**Integration**: Imported globally in `src/main.js`. All screen components inherit the base layout automatically.
+
+---
+
+## Welcome Section Styles (`src/assets/styles/welcome-section.css`)
+
+**Purpose**: Defines the welcome section styles shared across multiple screen components, including game icon styling with red glow effect and gradient welcome titles.
+
+**Key Selectors**:
+- `.game-icon-container`: Red icon container with 2.5rem bottom margin
+- `.fa-5x`: Red (`#ff0000`) Font Awesome icon with 5rem size and red glow shadow
+- `.welcome-container`: Centered text container, 600px max-width
+- `.welcome-title`: 3.5rem red gradient text (linear-gradient `#ff0000` to `#ff6666`) with text-shadow glow
+- `.welcome-subtitle`: 1.3rem light gray (`#cccccc`) subtitle with light font weight
+
+**Integration**: Imported globally in `src/main.js`. Any screen component using `.game-icon-container`, `.fa-5x`, `.welcome-title`, etc. inherits these styles.
+
+---
+
+## Modal Pattern Styles (`src/assets/styles/modal-pattern.css`)
+
+**Purpose**: Defines the reusable modal overlay pattern used by multiple components (e.g., StartScreen's game rules modal, UserInfo modal). Provides a full-screen dark backdrop, modal container with red border and glow, header with title, and close button.
+
+**Key Selectors**:
+- `.rules-overlay`, `.user-info-overlay`: Full-screen fixed dark backdrop (rgba 0,0,0,0.85) with centered flex layout
+- `.rules-modal`, `.user-info-modal`: Dark modal (`#1a1a1a`) with red border (`#ff0000`), 12px border-radius, red glow shadow, and fadeIn animation
+- `.rules-header`, `.user-info-header`: Flex header row with space-between title and close button, bottom border divider
+- `.rules-title`, `.user-info-title`: Red title (`#ff0000`) with 1.5rem size and red glow text-shadow
+- `.rules-close-button`, `.close-button`: Gray close button with red hover state and background highlight
+
+**Integration**: Imported globally in `src/main.js`. Any component using the modal pattern (overlay + modal + header + close button) inherits these styles automatically.
+
+---
+
+## Animation Styles (`src/assets/styles/animations.css`)
+
+**Purpose**: Defines reusable CSS animation keyframes shared across multiple components.
+
+**Keyframes**:
+- `@keyframes fadeIn`: Fade-in slide-down from -20px to 0 (used by modal containers)
+- `@keyframes slideIn`: Slide-in from -20px to 0 (used by notification toasts on enter)
+- `@keyframes slideOut`: Slide-out from 0 to -20px (used by notification toasts on dismiss)
+
+**Integration**: Imported globally in `src/main.js`. Any component using `animation: fadeIn`, `animation: slideIn`, or `animation: slideOut` inherits these keyframes automatically.
+
+---
+
+## ErrorNotification Styles (`src/assets/styles/error-notification.css`)
+
+**Purpose**: Contains styles for the reusable error notification toast component with red accent colors. The `slideIn`/`slideOut` animations are now defined in `animations.css`.
+
+**Key Classes**:
+- `.error-notification-overlay`: Fixed full-screen overlay centered at top
+- `.error-notification`: Dark container with red border (#ff3333) and glow shadow
+- `.error-notification-icon i`: Red (#ff4444) warning icon with glow effect
+- `.error-notification-message`: Light red (#ffcccc) text for error message
+
+**Integration**: Imported by `ErrorNotification.vue` via `<style scoped src="...">`. Animations inherited from globally imported `animations.css`.
+
+---
+
+## SuccessNotification Styles (`src/assets/styles/success-notification.css`)
+
+**Purpose**: Contains styles for the reusable success notification toast component with green accent colors. The `slideIn`/`slideOut` animations are now defined in `animations.css`.
+
+**Key Classes**:
+- `.success-notification-overlay`: Fixed full-screen overlay centered at top
+- `.success-notification`: Dark container with green border (#33cc33) and glow shadow
+- `.success-notification-icon i`: Green (#33cc33) checkmark icon with glow effect
+- `.success-notification-content`: Light green (#ccffcc) text for customizable content
+
+**Integration**: Imported by `SuccessNotification.vue` via `<style scoped src="...">`. Animations inherited from globally imported `animations.css`.
+
+---
+
+## HelloWorld Styles (`src/assets/styles/hello-world.css`)
+
+**Purpose**: Contains styles for the demo/placeholder HelloWorld component.
+
+**Key Selectors**:
+- `h3`: Top margin for section headings
+- `ul`, `li`: Unstyled list with inline-block items
+- `a`: Green (#42b983) link color
+
+**Integration**: Imported by `HelloWorld.vue` via `<style scoped src="...">`.
+
+---
+
+## StartScreen Styles (`src/assets/styles/start-screen.css`)
+
+**Purpose**: Contains styles specific to the StartScreen component only. Shared base styles are imported globally from separate files:
+- `page-layout.css` — screen base layout, shared responsive breakpoints
+- `welcome-section.css` — game icon, welcome title/subtitle
+- `modal-pattern.css` — modal overlay, container, header, close button
+- `animations.css` — `@keyframes fadeIn`, `slideIn`, `slideOut`
+
+**Key Classes**:
+- `.user-icon-container` / `.user-icon-button`: Top-right user icon with red hover glow
+- `.rules-icon-container` / `.rules-icon-button`: Top-left rules icon with red hover glow
+- `.login-form`: Centered form container with flex column layout
+- `.password-hint`: Light gray hint text for password format
+- `.rules-modal`: Overrides base modal width (560px) and adds max-height/overflow
+- `.rules-content`, `.rules-section`: Content sections with red section titles
+- `.rules-operation`: Operation entry with red left border accent
+- `.game-mode-container`, `.game-mode-item`: Game mode selection grid with tooltips
+- `.game-mode-icon`, `.game-mode-tooltip`: Icon and hover-tooltip styling
+- Responsive breakpoints at 768px and 480px (StartScreen-specific overrides only)
+
+**Integration**: Imported by `StartScreen.vue` via `<style scoped src="...">`. Base layout, welcome, icon, modal, and animation styles inherited from globally imported shared CSS files.
+
+---
+
+## StartBotGame Styles (`src/assets/styles/start-bot-game.css`)
+
+**Purpose**: Contains styles specific to the StartBotGame component only. Shared base styles are imported globally from separate files:
+- `page-layout.css` — screen base layout, shared responsive breakpoints
+- `welcome-section.css` — game icon, welcome title/subtitle
+- `animations.css` — `@keyframes fadeIn`, `slideIn`, `slideOut`
+
+**Key Classes**:
+- `.setup-form`: Form container with flex column layout
+- `.start-button-container`: Button container with max-width
+- Responsive breakpoints at 768px and 480px (StartBotGame-specific overrides only)
+
+**Integration**: Imported by `StartBotGame.vue` via `<style scoped src="...">`. Base layout, welcome, icon, and animation styles inherited from globally imported shared CSS files.
+
+---
+
+## UserInfo Styles (`src/assets/styles/user-info.css`)
+
+**Purpose**: Contains styles specific to the UserInfo component only. Shared base styles are imported globally from:
+- `modal-pattern.css` — modal overlay, container, header, close button
+- `animations.css` — `@keyframes fadeIn`, `slideIn`, `slideOut`
+
+**Key Classes**:
+- `.loading-state`, `.loading-spinner`: Loading state with red spinner
+- `.error-state`: Error state with red (#ff4444) text and icon
+- `.user-info-content`: Content area with gap spacing
+- `.info-row`: Info row with dark background and red left border accent
+- `.info-label`, `.info-value`: Label and value text styling
+- `.back-button-container`: Button container
+- `.user-info-modal`: Overrides base modal max-width to 480px
+- Responsive breakpoint at 480px (stacks rows vertically)
+
+**Integration**: Imported by `UserInfo.vue` via `<style scoped src="...">`. Base overlay, modal, header, title, close button, and animation styles inherited from globally imported shared CSS files.
+
+---
+
+*Last Updated: May 28, 2026*

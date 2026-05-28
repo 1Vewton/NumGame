@@ -15,6 +15,15 @@ import App from './App.vue'
 // Import the Vue Router for page navigation
 import router from './router/index.js'
 
+// Import global reusable styles (shared patterns)
+import './assets/styles/scrollbar.css'
+import './assets/styles/app.css'
+import './assets/styles/page-layout.css'
+import './assets/styles/welcome-section.css'
+import './assets/styles/modal-pattern.css'
+import './assets/styles/animations.css'
+
+
 /**
  * Creates, configures, and mounts the Vue application
  * 
