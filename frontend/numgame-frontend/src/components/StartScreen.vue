@@ -29,121 +29,11 @@ includes password format validation and confirm password matching.
     <!-- User information modal overlay -->
     <UserInfo v-if="showUserInfo" @close="showUserInfo = false" />
 
-    <!-- Game rules modal overlay -->
-    <div v-if="showGameRules" class="rules-overlay">
-      <div class="rules-modal custom-scrollbar">
-
-        <!-- Header with title and close button -->
-        <div class="rules-header">
-          <h2 class="rules-title">Game Rules</h2>
-          <button class="rules-close-button" @click="showGameRules = false">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <!-- Rules content -->
-        <div class="rules-content">
-          <div class="rules-section">
-            <h3 class="rules-section-title">Objective</h3>
-            <p class="rules-text">
-              Defeat your opponent by having a higher score and reaching the target number.
-            </p>
-          </div>
-
-          <div class="rules-section">
-            <h3 class="rules-section-title">Action Points</h3>
-            <p class="rules-text">
-              Each turn, you have a certain number of <strong>Action Points (AP)</strong>.
-              You can consume <strong>10 AP</strong> to perform an operation.
-              Choose wisely — every action costs resources.
-            </p>
-          </div>
-
-          <div class="rules-section">
-            <h3 class="rules-section-title">Operations</h3>
-
-            <div class="rules-operation">
-              <div class="rules-operation-icon">
-                <i class="fas fa-plus-circle"></i>
-              </div>
-              <div class="rules-operation-info">
-                <span class="rules-operation-name">Produce</span>
-                <span class="rules-operation-desc">
-                  Add your <strong>Productivity</strong> value to your own score.
-                </span>
-              </div>
-            </div>
-
-            <div class="rules-operation">
-              <div class="rules-operation-icon">
-                <i class="fas fa-minus-circle"></i>
-              </div>
-              <div class="rules-operation-info">
-                <span class="rules-operation-name">Destruct</span>
-                <span class="rules-operation-desc">
-                  Subtract your <strong>Destructivity</strong> value from the opponent's score.
-                </span>
-              </div>
-            </div>
-
-            <div class="rules-operation">
-              <div class="rules-operation-icon">
-                <i class="fas fa-arrow-up"></i>
-              </div>
-              <div class="rules-operation-info">
-                <span class="rules-operation-name">Enhance Productivity</span>
-                <span class="rules-operation-desc">
-                  Permanently increase your <strong>Productivity</strong> by 1.
-                </span>
-              </div>
-            </div>
-
-            <div class="rules-operation">
-              <div class="rules-operation-icon">
-                <i class="fas fa-arrow-down"></i>
-              </div>
-              <div class="rules-operation-info">
-                <span class="rules-operation-name">Enhance Destructivity</span>
-                <span class="rules-operation-desc">
-                  Permanently increase your <strong>Destructivity</strong> by 1.
-                </span>
-              </div>
-            </div>
-
-            <div class="rules-operation">
-              <div class="rules-operation-icon">
-                <i class="fas fa-bolt"></i>
-              </div>
-              <div class="rules-operation-info">
-                <span class="rules-operation-name">Enhance Action Points</span>
-                <span class="rules-operation-desc">
-                  Permanently increase the <strong>AP</strong> you gain each turn by 1.
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="rules-section">
-            <h3 class="rules-section-title">Winning Condition</h3>
-            <p class="rules-text">
-              You win when your <strong>score exceeds your opponent's</strong> and
-              reaches or surpasses the <strong>target number</strong> set at the start of the game.
-            </p>
-          </div>
-        </div>
-
-        <!-- Close button -->
-        <div class="rules-button-container">
-          <AppButton
-            label="Got it!"
-            variant="primary"
-            size="medium"
-            width="100%"
-            @click="showGameRules = false"
-          />
-        </div>
-      </div>
-    </div>
+    <!-- Game rules modal overlay (reusable component) -->
+    <GameRulesModal
+      :visible="showGameRules"
+      @close="showGameRules = false"
+    />
 
     <!-- Game icon -->
     <div class="game-icon-container">
@@ -356,6 +246,7 @@ import AppButton from './AppButton.vue';
 import ErrorNotification from './ErrorNotification.vue';
 import SuccessNotification from './SuccessNotification.vue';
 import UserInfo from './UserInfo.vue';
+import GameRulesModal from './GameRulesModal.vue';
 import apiClient from '../utils/api.js';
 import config from '../utils/config.js';
 import { getUserLoginBody, getUserRegisterBody } from '../utils/requestBodies.js';
@@ -389,7 +280,8 @@ export default {
     AppButton,
     ErrorNotification,
     SuccessNotification,
-    UserInfo
+    UserInfo,
+    GameRulesModal
   },
 
   /**

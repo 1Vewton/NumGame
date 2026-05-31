@@ -299,6 +299,48 @@ The component determines login status through three mechanisms:
 
 ---
 
+## GameRulesModal Component (`src/components/GameRulesModal.vue`)
+
+**Purpose**: A reusable game rules modal component that can be used across multiple screens (StartScreen, GameScreen, etc.). Displays the NumGame rules including Objective, Action Points, Operations, and Winning Condition.
+
+**Component Properties**:
+- `name` (string): 'GameRulesModal' - Component identifier
+- `components` (Object): Registered child components - AppButton
+
+**Props**:
+- `visible` (Boolean, default: false): Controls whether the rules modal is visible
+
+**Emits**:
+- `close`: Emitted when the user dismisses the modal (via close button or "Got it!" button)
+
+**Template Structure**:
+- Modal overlay with dark backdrop and scrollable content area
+- Header with "Game Rules" title and close (X) button
+- **Objective**: Defeat opponent by having a higher score and reaching the target number
+- **Action Points**: Consume 10 AP to perform an operation
+- **Operations list** — 5 operations each with a Font Awesome icon:
+  - `fas fa-plus-circle` — Produce: Add your Productivity value to your own score
+  - `fas fa-minus-circle` — Destruct: Subtract your Destructivity value from the opponent's score
+  - `fas fa-arrow-up` — Enhance Productivity: Permanently increase Productivity by 1
+  - `fas fa-arrow-down` — Enhance Destructivity: Permanently increase Destructivity by 1
+  - `fas fa-bolt` — Enhance Action Points: Permanently increase AP gained per turn by 1
+- **Winning Condition**: Score exceeds opponent AND reaches/passes the target number
+- "Got it!" button (AppButton, primary variant) to dismiss the modal
+
+**Styling**: Modal pattern styles inherited from globally imported `modal-pattern.css` (overlay, container, header, close button), content styles inherited from globally imported `game-rules-content.css` (sections, text, operation entries, button container). The component uses `custom-scrollbar` from the globally imported `scrollbar.css`.
+
+**Usage**:
+```vue
+<GameRulesModal
+  :visible="showRules"
+  @close="showRules = false"
+/>
+```
+
+**Integration**: Imported and registered by StartScreen and GameScreen components. Provides a single source of truth for game rules content, eliminating duplication.
+
+---
+
 ## UserInfo Component (`src/components/UserInfo.vue`)
 
 **Purpose**: Displays the logged-in user's profile information in a modal overlay with red and black theme.
@@ -384,6 +426,10 @@ The component determines login status through three mechanisms:
 - `path: '/startBotGame'`: Maps to `StartBotGame` component — renders the Bot game setup screen when accessing `http://localhost:8080/startBotGame`
   - `name` (string): 'StartBotGame' — Route identifier for programmatic navigation
   - `component` (Component): StartBotGame — The Bot game setup screen component to render
+  - `beforeEnter`: Navigation guard that checks if the user is logged in via `userStore.isUserLoggedIn()`. If not logged in, redirects to StartScreen.
+- `path: '/botGame'`: Maps to `BotGame` component — renders the Bot game mode interface when accessing `http://localhost:8080/botGame`
+  - `name` (string): 'BotGame' — Route identifier for programmatic navigation
+  - `component` (Component): BotGame — The Bot game mode component (wraps the shared GameScreen template)
   - `beforeEnter`: Navigation guard that checks if the user is logged in via `userStore.isUserLoggedIn()`. If not logged in, redirects to StartScreen.
 
 **Functions**:
@@ -646,9 +692,10 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 **Purpose**: Defines the base page layout shared by all screen components (StartScreen, StartBotGame, and future game screens). Provides a full-viewport black background with centered content layout and responsive breakpoints.
 
 **Key Selectors**:
-- `.start-screen`, `.start-bot-game`: Full-viewport black background (`#000000`) with centered flex column layout, 15vh top padding, and bottom spacer via `::after`
+- `.start-screen`, `.start-bot-game`, `.game-screen`: Full-viewport black background (`#000000`) with centered flex column layout and box-sizing: border-box
+- `.start-screen`, `.start-bot-game`: Additional 15vh top padding and bottom spacer via `::after` (game-screen uses its own internal padding via its specific CSS)
 
-**Integration**: Imported globally in `src/main.js`. All screen components inherit the base layout automatically.
+**Integration**: Imported globally in `src/main.js`. All screen components (StartScreen, StartBotGame, GameScreen) inherit the base layout automatically.
 
 ---
 
@@ -664,6 +711,24 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 - `.welcome-subtitle`: 1.3rem light gray (`#cccccc`) subtitle with light font weight
 
 **Integration**: Imported globally in `src/main.js`. Any screen component using `.game-icon-container`, `.fa-5x`, `.welcome-title`, etc. inherits these styles.
+
+---
+
+## Game Rules Content Styles (`src/assets/styles/game-rules-content.css`)
+
+**Purpose**: Defines the reusable content styles for the Game Rules modal. The modal pattern (overlay, container, header, close button) is provided by the globally imported `modal-pattern.css`, while this file provides the inner content layout (sections, text, operation entries, close button container).
+
+**Key Classes**:
+- `.rules-content`: Flex column container for rules sections with gap spacing and bottom margin
+- `.rules-section`: Section container with gap between title and content
+- `.rules-section-title`: Red (`#ff0000`) section heading with glow text-shadow
+- `.rules-text`, `.rules-text strong`: Light gray body text with white bold emphasis
+- `.rules-operation`: Operation entry row with dark background (#2a2a2a), left red border accent (#ff0000), and rounded corners
+- `.rules-operation-icon`: Red icon container with 1.8rem fixed size
+- `.rules-operation-info`, `.rules-operation-name`, `.rules-operation-desc`: Label/value layout with white name and gray description
+- `.rules-button-container`: Top margin for the dismiss button
+
+**Integration**: Imported globally in `src/main.js`. Used by the GameRulesModal component for its inner content styling. Available to any component using the `.rules-*` content classes.
 
 ---
 
@@ -796,4 +861,113 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 ---
 
-*Last Updated: May 28, 2026*
+## BotGame Component (`src/components/BotGame.vue`)
+
+**Purpose**: Implements the Bot (PVE) game mode. Wraps the shared GameScreen template component and manages Bot-specific game data. Currently contains placeholder state and method stubs with no internal game logic implemented — game logic (WebSocket connections, API calls, turn management, win/loss detection) will be added in future iterations.
+
+**Component Properties**:
+- `name` (string): 'BotGame' - Component identifier
+
+**Dependencies**:
+- `GameScreen` (Component): Imported from `./GameScreen.vue` — the shared game UI template
+
+**Data Properties**:
+- `data.enemyScore` (number): The Bot's current score (default: 0)
+- `data.playerScore` (number): The player's current score (default: 0)
+- `data.actionPoints` (number): The player's available action points (default: 10)
+
+**Methods**:
+- `handleOperation(operation)`: Placeholder for processing game operations in Bot mode. Will be implemented with actual game logic, WebSocket messaging, and API calls in future iterations.
+  - `operation` (string): The operation identifier ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity')
+
+**Template Structure**:
+- Renders the `<GameScreen>` component with props (`enemyScore`, `playerScore`, `actionPoints`) bound to local data
+- Listens for the `@operate` event and delegates to `handleOperation()`
+
+**Design Principle**: BotGame is the **controller** for Bot game mode. It owns the game state and logic, while GameScreen is a **pure template** that only renders UI. This separation allows GameScreen to be reused by other game modes (PvP, etc.) with completely different logic implementations.
+
+**Integration**: Registered in the Vue Router at `/botGame` route with authentication guard. Uses GameScreen for visual rendering and `game-screen.css` for styling.
+
+---
+
+## GameScreen Component (`src/components/GameScreen.vue`)
+
+**Purpose**: A pure presentational UI shell shared by multiple game modes (Bot, PvP, etc.). Displays enemy/player scores, action points, a center gamepad icon (fa-solid fa-gamepad), and four operation buttons arranged on the left and right sides. **Has NO internal game logic or state management** — it is a stateless template component.
+
+**Component Properties**:
+- `name` (string): 'GameScreen' - Component identifier
+
+**Props**:
+- `enemyScore` (Number, default: 0): The current score of the enemy/opponent
+- `playerScore` (Number, default: 0): The current score of the player
+- `actionPoints` (Number, default: 10): The current action points available
+
+**Emits**:
+- `operate(operation)`: Emitted when a game operation button is clicked
+  - `operation` (string): The operation identifier ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity')
+
+**Usage Example** (by game mode components like BotGame, PvPGame):
+```vue
+<GameScreen
+  :enemyScore="myEnemyScore"
+  :playerScore="myPlayerScore"
+  :actionPoints="myActionPoints"
+  @operate="handleOperation"
+/>
+```
+
+**Template Structure**:
+- Score section with enemy score (red tint) above, center gamepad icon (fa-solid fa-gamepad), player score below, and AP display
+- Operations section with two columns:
+  - **Left column**: Produce (fa-solid fa-plus-circle) and Enhance Productivity (fa-solid fa-arrow-up)
+  - **Right column**: Destruct (fa-solid fa-minus-circle) and Enhance Destructivity (fa-solid fa-arrow-down)
+- Each operation button shows the icon, operation name, and a short description
+- Responsive design for desktop, tablet, and mobile layouts
+
+**Styling Features**:
+- Black background matching NumGame's color theme
+- Cascadia Code monospace font family
+- Red gamepad icon with red glow shadow
+- Enemy score in red (#ff4444) with glow, player score in white with subtle glow
+- AP display with yellow bolt icon (#ffaa00)
+- Operation buttons with red border, semi-transparent red background, and hover/active/disabled states
+- Hover effect with upward lift (translateY -2px) and red glow box-shadow
+- Icon scaling animation on hover
+- Responsive breakpoints at 768px and 480px
+- On mobile (480px), operations stack vertically in a single column
+
+**Design Principle**: GameScreen is a **pure template** — it manages no data, contains no game logic, and makes no API calls. All data flows in via props, all user actions are emitted as events. Each game mode (Bot, PvP, etc.) creates its own parent component that wraps GameScreen and implements its own independent logic, WebSocket handling, and API calls.
+
+**Integration**: Used by BotGame component (and future game mode components) which passes props and handles the `@operate` event. Routed via `/botGame` through the BotGame component. Uses self-contained CSS module (`game-screen.css`) for styling.
+
+---
+
+## GameScreen Styles (`src/assets/styles/game-screen.css`)
+
+**Purpose**: Defines game-specific UI styles for the GameScreen component. Shared base layout (`.game-screen` full-viewport black background, flex column) is provided by the globally imported `page-layout.css` — this file only contains game-specific styles (score indicators, gamepad icon, AP display, operation buttons).
+
+**Key Classes**:
+- `.score-section`: Flex column container for score items, gamepad icon, and AP display
+- `.score-row`: Flex row aligning score items horizontally
+- `.score-item`: Flex column for label and value pairs
+- `.score-label`: Uppercase gray (#aaaaaa) label text for score titles
+- `.score-value`: Large (2.5rem) bold score number
+- `.score-item--enemy .score-value`: Red (#ff4444) enemy score with red glow
+- `.score-item--player .score-value`: White score with subtle white glow
+- `.ap-display`: Flex row for action points display with yellow (#ffaa00) bolt icon
+- `.gamepad-container .fa-gamepad`: Red (#ff0000) gamepad icon at 4.5rem with red glow shadow
+- `.operations-section`: Flex row container for the two operation columns (max-width 700px)
+- `.operation-column`: Flex column (50% width, max 250px) for grouping operations
+- `.operation-column--left`: Right-aligned column for left-side buttons
+- `.operation-column--right`: Left-aligned column for right-side buttons
+- `.operation-button`: Custom button (not AppButton) with red border, semi-transparent red background, white text, and hover/active/disabled states
+- `.operation-button i`: Red icon inside the operation button with scale animation on hover
+- `.operation-label`: Flex column for operation name and description
+- `.operation-name`: Bold operation name (0.95rem)
+- `.operation-desc`: Small (0.7rem) gray (#999999) description text
+- Responsive breakpoints at 768px (smaller fonts/icons/padding) and 480px (single column layout for operations)
+
+**Integration**: Imported by `GameScreen.vue` via `<style scoped src="...">`.
+
+
+*Last Updated: May 31, 2026*

@@ -11,6 +11,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import StartScreen from '../components/StartScreen.vue'
 import StartBotGame from '../components/StartBotGame.vue'
+import BotGame from '../components/BotGame.vue'
 import userStore from '../stores/userStore.js'
 
 /**
@@ -19,6 +20,7 @@ import userStore from '../stores/userStore.js'
  * Defines all application routes with their associated components.
  * The root path ('/') renders the StartScreen component.
  * The '/startBotGame' path renders the StartBotGame component.
+ * The '/botGame' path renders the BotGame component.
  * Additional routes can be added here to support more views.
  * 
  * @constant routes
@@ -59,6 +61,44 @@ const routes = [
      * 
      * If the user is not logged in, redirects to the home page (StartScreen).
      * This prevents unauthorized access to the Bot game setup screen.
+     * 
+     * @function beforeEnter
+     * @param {Object} to - Target route object
+     * @param {Object} from - Current route object
+     * @param {Function} next - Function to resolve the navigation
+     */
+    beforeEnter: (to, from, next) => {
+      if (!userStore.isUserLoggedIn()) {
+        // Redirect to home page if user is not logged in
+        next({ name: 'StartScreen' });
+      } else {
+        // Allow navigation to proceed
+        next();
+      }
+    }
+  },
+  {
+    /**
+     * BotGame route
+     * 
+     * When accessing http://localhost:8080/botGame,
+     * this route renders the BotGame component which wraps the
+     * shared GameScreen template and adds Bot mode-specific logic.
+     * The GameScreen is a reusable UI shell that can be used
+     * by multiple game modes (Bot, PvP, etc.) with different
+     * internal logic implementations.
+     * 
+     * @route GET /botGame
+     * @component BotGame
+     */
+    path: '/botGame',
+    name: 'BotGame',
+    component: BotGame,
+    /**
+     * Navigation guard that checks if the user is logged in
+     * 
+     * If the user is not logged in, redirects to the home page (StartScreen).
+     * This prevents unauthorized access to the Bot game screen.
      * 
      * @function beforeEnter
      * @param {Object} to - Target route object

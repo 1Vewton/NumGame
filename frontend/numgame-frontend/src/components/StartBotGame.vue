@@ -180,6 +180,9 @@ export default {
      */
     handleStart() {
       console.log('Starting Bot game with target:', this.targetNumber, 'and decision time:', this.decisionTime);
+      
+      // Navigate to the Bot game screen
+      this.$router.push({ name: 'BotGame' });
     }
   }
 

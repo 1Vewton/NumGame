@@ -22,6 +22,7 @@ import './assets/styles/page-layout.css'
 import './assets/styles/welcome-section.css'
 import './assets/styles/modal-pattern.css'
 import './assets/styles/animations.css'
+import './assets/styles/game-rules-content.css'
 
 
 /**
