@@ -1,0 +1,248 @@
+/**
+ * game-screen.css - Game Screen Specific Styles
+ *
+ * This file defines styles specific to the GameScreen component.
+ * Shared base layout styles (full-viewport black background, centered
+ * content, font family) are provided by the globally imported
+ * page-layout.css. Shared welcome section styles are provided by
+ * the globally imported welcome-section.css. The rules icon and
+ * game rules modal styles are now globally shared via page-layout.css
+ * and game-rules-content.css respectively.
+ *
+ * This file only contains game-specific UI styles:
+ * - Score indicators (enemy/player) with VS divider
+ * - AP display
+ * - Operation buttons with inline labels
+ *
+ * @module GameScreenStyles
+ */
+
+/* ============================================ */
+/* Score Section                                 */
+/* ============================================ */
+
+.game-score-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 0.5rem;
+  padding: 1.5rem 2rem;
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 12px;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  color: #aaaaaa;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.score-value {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Enemy score in red with red glow */
+.score-item--enemy .score-value {
+  color: #ff4444;
+  text-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+}
+
+/* Player score in white with subtle glow */
+.score-item--player .score-value {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* VS divider between scores */
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #ff0000;
+  text-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+}
+
+/* ============================================ */
+/* AP Display                                    */
+/* ============================================ */
+
+.ap-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: #cccccc;
+  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+}
+
+.ap-display .fa-bolt,
+.ap-display .fas.fa-bolt {
+  color: #ffaa00;
+  text-shadow: 0 0 6px rgba(255, 170, 0, 0.4);
+  font-size: 1.2rem;
+}
+
+.ap-value {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ============================================ */
+/* Operation Buttons Grid                        */
+/* ============================================ */
+
+.game-operations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 2rem;
+}
+
+.operation-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.operation-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  background-color: rgba(255, 0, 0, 0.08);
+  border: 1px solid #ff0000;
+  border-radius: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.operation-button:hover {
+  background-color: rgba(255, 0, 0, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+}
+
+.operation-button:active {
+  transform: translateY(0);
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+.operation-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.operation-button i,
+.operation-button .fas {
+  font-size: 1.6rem;
+  color: #ff0000;
+  transition: transform 0.2s;
+}
+
+.operation-button:hover i,
+.operation-button:hover .fas {
+  transform: scale(1.15);
+}
+
+.operation-label {
+  font-size: 0.7rem;
+  color: #aaaaaa;
+  text-align: center;
+  line-height: 1.3;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ============================================ */
+/* Responsive Breakpoints                        */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .score-value {
+    font-size: 2.2rem;
+  }
+
+  .game-score-section {
+    gap: 1.5rem;
+    padding: 1.2rem 1.5rem;
+  }
+
+  .operation-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .operation-button i,
+  .operation-button .fas {
+    font-size: 1.4rem;
+  }
+
+  .game-operations {
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .score-value {
+    font-size: 1.8rem;
+  }
+
+  .game-score-section {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .vs-divider {
+    font-size: 1.4rem;
+  }
+
+  .operation-button {
+    width: 50px;
+    height: 50px;
+  }
+
+  .operation-button i,
+  .operation-button .fas {
+    font-size: 1.2rem;
+  }
+
+  .game-operations {
+    gap: 1rem;
+  }
+
+  .operation-label {
+    font-size: 0.65rem;
+  }
+}

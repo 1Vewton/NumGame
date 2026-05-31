@@ -3,10 +3,11 @@
  * 
  * This file contains styles specific to the StartScreen component only.
  * Shared base styles are imported globally from:
- *   - page-layout.css   (screen base layout, responsive breakpoints)
+ *   - page-layout.css   (screen base layout, rules icon, responsive breakpoints)
  *   - welcome-section.css (game icon, welcome title/subtitle)
  *   - modal-pattern.css  (modal overlay, container, header, close button)
  *   - animations.css     (@keyframes fadeIn, slideIn, slideOut)
+ *   - game-rules-content.css (rules section, operation entries)
  * 
  * @module StartScreenStyles
  */
@@ -59,129 +60,6 @@
   color: #aaaaaa;
   line-height: 1.4;
   padding: 0 0.2rem;
-}
-
-/* Rules icon container - positioned at the top-left corner */
-.rules-icon-container {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
-}
-
-/* Rules icon button styling */
-.rules-icon-button {
-  background: none;
-  border: none;
-  color: #ff0000;
-  cursor: pointer;
-  padding: 0.3rem;
-  border-radius: 50%;
-  transition: color 0.2s, text-shadow 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.rules-icon-button:hover {
-  color: #ff4444;
-  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-}
-
-.rules-icon-button:focus {
-  outline: none;
-  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-}
-
-/* Rules modal - inherits base modal styles from shared.css */
-.rules-modal {
-  max-width: 560px;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-/* Rules content area */
-.rules-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Individual rules section */
-.rules-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.rules-section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #ff0000;
-  margin: 0;
-  text-shadow: 0 0 8px rgba(255, 0, 0, 0.2);
-}
-
-.rules-text {
-  font-size: 0.9rem;
-  color: #cccccc;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.rules-text strong {
-  color: #ffffff;
-}
-
-/* Operation entry row */
-.rules-operation {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.8rem;
-  padding: 0.6rem 0.8rem;
-  background-color: #2a2a2a;
-  border-radius: 6px;
-  border-left: 3px solid #ff0000;
-}
-
-.rules-operation-icon {
-  flex-shrink: 0;
-  width: 1.8rem;
-  height: 1.8rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ff0000;
-  font-size: 1.2rem;
-  margin-top: 0.1rem;
-}
-
-.rules-operation-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.rules-operation-name {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.rules-operation-desc {
-  font-size: 0.8rem;
-  color: #aaaaaa;
-  line-height: 1.4;
-}
-
-.rules-operation-desc strong {
-  color: #ffffff;
-}
-
-/* Close button container */
-.rules-button-container {
-  margin-top: 0.5rem;
 }
 
 /* Game mode selection container - shown after login */
@@ -244,10 +122,6 @@
     top: 1rem;
     left: 1rem;
   }
-
-  .rules-modal {
-    max-width: 480px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -263,10 +137,5 @@
   .rules-icon-container {
     top: 0.8rem;
     left: 0.8rem;
-  }
-
-  .rules-modal {
-    max-width: 100%;
-    padding: 1.5rem;
   }
 }

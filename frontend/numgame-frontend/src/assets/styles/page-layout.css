@@ -18,7 +18,8 @@
 
 /* Full-viewport black background with centered content layout */
 .start-screen,
-.start-bot-game {
+.start-bot-game,
+.game-screen {
   min-height: 100vh;
   background-color: #000000;
   color: #ffffff;
@@ -26,16 +27,57 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 15vh;
   padding-left: 2rem;
   padding-right: 2rem;
   padding-bottom: 2rem;
   margin: 0;
+  box-sizing: border-box;
 }
+
+/* Rules icon container - positioned at the top-left corner */
+.rules-icon-container {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 100;
+}
+
+/* Rules icon button styling */
+.rules-icon-button {
+  background: none;
+  border: none;
+  color: #ff0000;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 50%;
+  transition: color 0.2s, text-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rules-icon-button:hover {
+  color: #ff4444;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+.rules-icon-button:focus {
+  outline: none;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+/* Top padding is specific per screen type to accommodate different layouts */
+.start-screen,
+.start-bot-game,
+.game-screen {
+  padding-top: 15vh;
+}
+
 
 /* Bottom spacer for future functionality */
 .start-screen::after,
-.start-bot-game::after {
+.start-bot-game::after,
+.game-screen::after {
   content: '';
   flex-grow: 1;
   min-height: 20vh;
@@ -47,14 +89,16 @@
 
 @media (max-width: 768px) {
   .start-screen,
-  .start-bot-game {
+  .start-bot-game,
+  .game-screen {
     padding-top: 12vh;
   }
 }
 
 @media (max-width: 480px) {
   .start-screen,
-  .start-bot-game {
+  .start-bot-game,
+  .game-screen {
     padding-top: 10vh;
   }
 }
