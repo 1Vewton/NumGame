@@ -481,6 +481,8 @@ The component determines login status through three mechanisms:
   - Returns: {string} The user auto-login endpoint path (default: '/api/user/autoLogin')
 - `getUserEndpoint()`: Retrieves the user information endpoint path from VUE_APP_USER_INFO_ENDPOINT
   - Returns: {string} The user information endpoint path (default: '/api/user/userInfo')
+- `getWsBackendUrl()`: Retrieves the WebSocket backend URL from VUE_APP_WS_BACKEND_URL environment variable
+  - Returns: {string} The WebSocket backend URL (default: 'ws://localhost:7111')
 - `getRegisterUrl()`: Returns complete URL for user registration (backend URL + endpoint path)
   - Returns: {string} Complete URL for user registration
 - `getLoginUrl()`: Returns complete URL for user login (backend URL + endpoint path)
@@ -490,12 +492,12 @@ The component determines login status through three mechanisms:
 - `getUserUrl()`: Returns complete URL for user information (backend URL + endpoint path)
   - Returns: {string} Complete URL for user information
 - `getAllConfig()`: Returns all configuration values as a plain object including endpoints and full URLs
-  - Returns: {Object} Object containing all configuration values (backendUrl, registerEndpoint, loginEndpoint, autoLoginEndpoint, userEndpoint, registerUrl, loginUrl, autoLoginUrl, userUrl)
-- `validateConfig()`: Validates that all required configuration values are present and valid, including backend URL format and endpoint path validation
+  - Returns: {Object} Object containing all configuration values (backendUrl, wsBackendUrl, registerEndpoint, loginEndpoint, autoLoginEndpoint, userEndpoint, registerUrl, loginUrl, autoLoginUrl, userUrl)
+- `validateConfig()`: Validates that all required configuration values are present and valid, including backend URL format, WebSocket URL format, and endpoint path validation
   - Throws: {Error} If required configuration values are missing or invalid
   - Returns: {boolean} True if all configuration values are valid
 
-**Integration**: Used by other modules to access configuration values including backend URL and user authentication endpoints.
+**Integration**: Used by other modules to access configuration values including backend URL, WebSocket URL, and user authentication endpoints.
 
 ---
 
@@ -863,30 +865,56 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 ## BotGame Component (`src/components/BotGame.vue`)
 
-**Purpose**: Implements the Bot (PVE) game mode. Wraps the shared GameScreen template component and manages Bot-specific game data. Currently contains placeholder state and method stubs with no internal game logic implemented — game logic (WebSocket connections, API calls, turn management, win/loss detection) will be added in future iterations.
+**Purpose**: Implements the Bot (PVE) game mode. Wraps the shared GameScreen template component and manages Bot-specific game logic, WebSocket connection handling, and server communication. Upon mounting, establishes a WebSocket connection to the backend bot game endpoint, sends game initialization parameters (player credentials, target number, decision time), and processes incoming messages for turn management, score updates, and game results.
 
 **Component Properties**:
 - `name` (string): 'BotGame' - Component identifier
 
 **Dependencies**:
 - `GameScreen` (Component): Imported from `./GameScreen.vue` — the shared game UI template
+- `config` (Module): Imported from `../utils/config.js` — provides WebSocket URL and bot game endpoint
+- `userStore` (Module): Imported from `../stores/userStore.js` — provides player credentials (userName, userId)
+- `WSResponseTypes` (Enum): Imported from `../utils/enums.js` — WebSocket message type identifiers
 
 **Data Properties**:
 - `data.enemyScore` (number): The Bot's current score (default: 0)
 - `data.playerScore` (number): The player's current score (default: 0)
+- `data.productivity` (number): The player's current productivity value (default: 1)
+- `data.destructivity` (number): The player's current destructivity value (default: 1)
 - `data.actionPoints` (number): The player's available action points (default: 10)
+- `data.ws` (WebSocket|null): The WebSocket connection instance (default: null)
+- `data.wsConnected` (boolean): Flag indicating WebSocket connection status (default: false)
+- `data.heartbeatTimer` (number|null): Interval timer ID for heartbeat ping/pong (default: null)
+
+**Lifecycle Hooks**:
+- `mounted()`: Reads `targetNumber` and `decisionTime` from `$route.query` (passed from StartBotGame), then calls `connectWebSocket(targetNumber, decisionTime)`.
+- `beforeUnmount()`: Calls `disconnectWebSocket()` to clean up the WebSocket connection and heartbeat timer.
 
 **Methods**:
-- `handleOperation(operation)`: Placeholder for processing game operations in Bot mode. Will be implemented with actual game logic, WebSocket messaging, and API calls in future iterations.
-  - `operation` (string): The operation identifier ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity')
+- `connectWebSocket(targetNumber, decisionTime)`: Builds the WebSocket URL (`ws://localhost:7111/api/game/botPlay`), creates a new WebSocket connection, and sets up event handlers:
+  - `onopen`: Sends an initialization message with `player_name`, `player_id`, `target_number`, and `decision_time`; starts a 10-second heartbeat interval.
+  - `onmessage`: Parses JSON messages and dispatches them to `handleGameMessage()`. Ignores heartbeat/pong responses.
+  - `onerror`: Logs WebSocket errors.
+  - `onclose`: Cleans up connection state and clears the heartbeat timer.
+- `disconnectWebSocket()`: Closes the WebSocket (code 1000) and clears the heartbeat timer.
+- `handleGameMessage(message)`: Processes incoming WebSocket messages based on their `type` (WSResponseTypes enum):
+  - `DATA_UPDATE (5)`: Updates game state (`enemy_score`, `player_score`, `action_points`, `productivity`, `destructivity`) from message payload.
+  - `PLAYER_TURN_START (7)`, `BOT_TURN_START (6)`, `BOT_TURN_FINISH (9)`, `PLAYER_WIN (10)`, `BOT_WIN (11)`: Logs the event (placeholder handlers for future implementation).
+- `handleOperation(operation)`: Sends the player's operation to the backend via WebSocket as a `PLAYER_OPERATION` message. Warns if WebSocket is not connected.
 
 **Template Structure**:
-- Renders the `<GameScreen>` component with props (`enemyScore`, `playerScore`, `actionPoints`) bound to local data
+- Renders the `<GameScreen>` component with props (`enemyScore`, `playerScore`, `productivity`, `destructivity`, `actionPoints`) bound to local data
 - Listens for the `@operate` event and delegates to `handleOperation()`
+
+**Data Flow**:
+1. StartBotGame passes `targetNumber` and `decisionTime` as route query params when navigating to `/botGame`
+2. BotGame reads these params in `mounted()` and establishes a WebSocket connection
+3. Server sends game state updates via WebSocket messages → BotGame updates reactive data → GameScreen re-renders
+4. User clicks an operation button in GameScreen → `@operate` event emitted → BotGame sends operation to server via WebSocket
 
 **Design Principle**: BotGame is the **controller** for Bot game mode. It owns the game state and logic, while GameScreen is a **pure template** that only renders UI. This separation allows GameScreen to be reused by other game modes (PvP, etc.) with completely different logic implementations.
 
-**Integration**: Registered in the Vue Router at `/botGame` route with authentication guard. Uses GameScreen for visual rendering and `game-screen.css` for styling.
+**Integration**: Registered in the Vue Router at `/botGame` route with authentication guard. Uses GameScreen for visual rendering, config for endpoint URLs, userStore for player credentials, and enums for message type constants. Uses `game-screen.css` for styling.
 
 ---
 

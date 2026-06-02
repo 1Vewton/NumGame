@@ -42,12 +42,10 @@ class BotGameProcess:
                 "bot_productivity": 1,
                 "bot_destructivity": 1,
                 "bot_action_point": 0,
-                "bot_action_point_per_turn": 10,
+                "bot_action_point_per_turn": 11,
                 "turn": 0,
                 "target": target,
                 "operation_cost": operation_cost,
-                "player_executed": False,
-                "bot_executed": False,
                 "current_player": "player"
             }
         else:
@@ -56,7 +54,7 @@ class BotGameProcess:
                 "player_productivity": 1,
                 "player_destructivity": 1,
                 "player_action_point": 0,
-                "player_action_point_per_turn": 10,
+                "player_action_point_per_turn": 11,
                 "bot_score": 0,
                 "bot_productivity": 1,
                 "bot_destructivity": 1,
@@ -65,8 +63,6 @@ class BotGameProcess:
                 "turn": 0,
                 "target": target,
                 "operation_cost": operation_cost,
-                "player_executed": False,
-                "bot_executed": False,
                 "current_player": "bot"
             }
         # Store it to hash table

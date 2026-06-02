@@ -181,8 +181,14 @@ export default {
     handleStart() {
       console.log('Starting Bot game with target:', this.targetNumber, 'and decision time:', this.decisionTime);
       
-      // Navigate to the Bot game screen
-      this.$router.push({ name: 'BotGame' });
+      // Navigate to the Bot game screen with game parameters
+      this.$router.push({
+        name: 'BotGame',
+        query: {
+          target: String(this.targetNumber),
+          player_timeout: String(this.decisionTime)
+        }
+      });
     }
   }
 

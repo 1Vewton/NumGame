@@ -63,10 +63,25 @@ and API calls without being coupled to this component.
 
     </div>
 
-    <!-- Action Points display -->
-    <div class="ap-display">
-      <i class="fas fa-bolt"></i>
-      <span>AP: <span class="ap-value">{{ actionPoints }}</span></span>
+    <!-- Stats row: Productivity, Destructivity, Action Points -->
+    <div class="stats-row">
+      <!-- Productivity display -->
+      <div class="stat-display stat-display--productivity">
+        <i class="fas fa-arrow-up"></i>
+        <span>Productivity: <span class="stat-value">{{ productivity }}</span></span>
+      </div>
+
+      <!-- Destructivity display -->
+      <div class="stat-display stat-display--destructivity">
+        <i class="fas fa-arrow-down"></i>
+        <span>Destructivity: <span class="stat-value">{{ destructivity }}</span></span>
+      </div>
+
+      <!-- Action Points display -->
+      <div class="stat-display stat-display--ap">
+        <i class="fas fa-bolt"></i>
+        <span>AP: <span class="stat-value">{{ actionPoints }}</span></span>
+      </div>
     </div>
 
     <!-- ============================================ -->
@@ -172,6 +187,8 @@ export default {
    *
    * @property {number} enemyScore - The current score of the enemy/opponent
    * @property {number} playerScore - The current score of the player
+   * @property {number} productivity - The player's current productivity value
+   * @property {number} destructivity - The player's current destructivity value
    * @property {number} actionPoints - The current action points available
    */
   props: {
@@ -182,6 +199,14 @@ export default {
     playerScore: {
       type: Number,
       default: 0
+    },
+    productivity: {
+      type: Number,
+      default: 1
+    },
+    destructivity: {
+      type: Number,
+      default: 1
     },
     actionPoints: {
       type: Number,
