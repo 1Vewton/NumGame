@@ -144,7 +144,6 @@ class BotGameStateMachine:
         }
         await self.ws_client.send_json(content)
 
-
     # User turn end
     async def user_turn_end(self):
         if self.is_user_first:
@@ -152,7 +151,6 @@ class BotGameStateMachine:
         else:
             await self.state_transition(GameState.SETTLEMENT)
         self.user_executing.set()
-
 
     # User operation execution
     async def user_operation(self, operation: Operations):
