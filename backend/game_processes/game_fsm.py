@@ -80,10 +80,13 @@ class BotGameStateMachine:
     async def game_initialize(self, target: int):
         logger.info("Game initialize")
         self.is_user_first = decide_is_user_first()
-        await self.game.initializeBotPlay(
-            is_user_first=self.is_user_first,
-            target=target
-        )
+        try:
+            await self.game.initializeBotPlay(
+                is_user_first=self.is_user_first,
+                target=target
+            )
+        except Exception as e:
+            raise Exception(f"Game redis initialize failed due to {e}")
         move_info = {
             "type": WSResponseType.MOVE_DIVISION.value,
             "first_move": self.is_user_first
@@ -141,6 +144,16 @@ class BotGameStateMachine:
         }
         await self.ws_client.send_json(content)
 
+
+    # User turn end
+    async def user_turn_end(self):
+        if self.is_user_first:
+            await self.state_transition(GameState.BOT_TURN)
+        else:
+            await self.state_transition(GameState.SETTLEMENT)
+        self.user_executing.set()
+
+
     # User operation execution
     async def user_operation(self, operation: Operations):
         logger.info("New user operation")
@@ -153,11 +166,7 @@ class BotGameStateMachine:
                 }
                 await self.ws_client.send_json(content)
                 # Change game state
-                if self.is_user_first:
-                    await self.state_transition(GameState.BOT_TURN)
-                else:
-                    await self.state_transition(GameState.SETTLEMENT)
-                self.user_executing.set()
+                await self.user_turn_end()
             else:
                 # Execution turn
                 logger.info("Start executing user operation")
@@ -344,6 +353,7 @@ class BotGameStateMachine:
                     "reason": TurnFinishReason.TIMEOUT.value
                 }
                 await self.ws_client.send_json(content)
+                await self.user_turn_end()
             self.user_executing.clear()
         elif new_state == GameState.SETTLEMENT:
             await self.game_settlement()

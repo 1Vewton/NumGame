@@ -1,7 +1,7 @@
 import redis.asyncio as aioredis
 import logging
 from utils.config import settings
-from fastapi import Request
+from fastapi import Request, WebSocket
 
 logger = logging.getLogger("Redis Manager")
 
@@ -28,3 +28,8 @@ async def create_redis_client() -> aioredis.Redis:
 # Get redis
 def get_redis(request: Request) -> aioredis.Redis:
     return request.app.state.redis_client
+
+
+# Get redis from websocket
+def get_redis_ws(websocket: WebSocket) -> aioredis.Redis:
+    return websocket.app.state.redis_client

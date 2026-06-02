@@ -21,7 +21,7 @@ from utils.token_management import (
     generate_login_token,
     search_user_token
 )
-from game_processes.redis_manager import get_redis
+from data_management.redis_manager import get_redis
 # ORM Dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select

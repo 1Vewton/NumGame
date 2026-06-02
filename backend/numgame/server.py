@@ -13,7 +13,7 @@ import utils.logger_config as logger_config
 from utils.utils import limiter, generate_uuid
 from data_management.data_management import init_models, get_db
 from data_management.data_models import players
-from game_processes.redis_manager import create_redis_client
+from data_management.redis_manager import create_redis_client
 from routers.router_user_management import user_router
 from routers.router_utils import utils_router
 from routers.router_game import game_router

@@ -78,6 +78,14 @@ class Config {
      * @private
      */
     this._botGameEndpoint = process.env.VUE_APP_BOT_GAME_ENDPOINT || '/api/game/botPlay';
+    
+    /**
+     * WebSocket backend URL
+     * 
+     * @type {string}
+     * @private
+     */
+    this._wsBackendUrl = process.env.VUE_APP_WS_BACKEND_URL || 'ws://localhost:7111';
   }
 
   /**
@@ -263,6 +271,23 @@ class Config {
   }
 
   /**
+   * Gets the WebSocket backend URL
+   * 
+   * This method returns the WebSocket server URL for real-time communication.
+   * The value is read from the VUE_APP_WS_BACKEND_URL environment variable.
+   * If the environment variable is not set, a default localhost WebSocket URL is returned.
+   * 
+   * @method getWsBackendUrl
+   * @returns {string} The WebSocket backend URL
+   * @example
+   * // Returns 'ws://localhost:7111' if VUE_APP_WS_BACKEND_URL is not set
+   * const wsBackendUrl = config.getWsBackendUrl();
+   */
+  getWsBackendUrl() {
+    return this._wsBackendUrl;
+  }
+
+  /**
    * Gets all configuration values as an object
    * 
    * This method returns a plain object containing all configuration values.
@@ -273,6 +298,7 @@ class Config {
    * @example
    * // Returns {
    * //   backendUrl: 'http://localhost:7111',
+   * //   wsBackendUrl: 'ws://localhost:7111',
    * //   registerEndpoint: '/api/user/userRegister',
    * //   loginEndpoint: '/api/user/userLogin',
    * //   autoLoginEndpoint: '/api/user/autoLogin',
@@ -289,6 +315,7 @@ class Config {
   getAllConfig() {
     return {
       backendUrl: this._backendUrl,
+      wsBackendUrl: this._wsBackendUrl,
       registerEndpoint: this._registerEndpoint,
       loginEndpoint: this._loginEndpoint,
       autoLoginEndpoint: this._autoLoginEndpoint,
@@ -327,6 +354,18 @@ class Config {
       new URL(this._backendUrl);
     } catch (error) {
       throw new Error(`Invalid backend URL format: ${this._backendUrl}`);
+    }
+    
+    // Validate WebSocket backend URL
+    if (!this._wsBackendUrl || this._wsBackendUrl.trim() === '') {
+      throw new Error('WebSocket backend URL configuration is missing or empty');
+    }
+    
+    // Validate WebSocket URL format
+    try {
+      new URL(this._wsBackendUrl);
+    } catch (error) {
+      throw new Error(`Invalid WebSocket backend URL format: ${this._wsBackendUrl}`);
     }
     
     // Validate all endpoint paths
@@ -389,6 +428,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports.getAutoLoginUrl = configInstance.getAutoLoginUrl.bind(configInstance);
   module.exports.getUserUrl = configInstance.getUserUrl.bind(configInstance);
   module.exports.getBotGameUrl = configInstance.getBotGameUrl.bind(configInstance);
+  module.exports.getWsBackendUrl = configInstance.getWsBackendUrl.bind(configInstance);
   module.exports.getAllConfig = configInstance.getAllConfig.bind(configInstance);
   module.exports.validateConfig = configInstance.validateConfig.bind(configInstance);
   

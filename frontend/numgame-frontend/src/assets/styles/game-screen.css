@@ -79,32 +79,57 @@
 }
 
 /* ============================================ */
-/* AP Display                                    */
+/* Stats Row (Productivity, Destructivity, AP)  */
 /* ============================================ */
 
-.ap-display {
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 1rem;
+}
+
+.stat-display {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.1rem;
+  gap: 0.4rem;
+  font-size: 0.85rem;
   color: #cccccc;
-  margin-top: 1rem;
-  padding: 0.6rem 1.5rem;
+  padding: 0.5rem 1rem;
   background-color: #1a1a1a;
   border: 1px solid #333333;
   border-radius: 8px;
+  white-space: nowrap;
 }
 
-.ap-display .fa-bolt,
-.ap-display .fas.fa-bolt {
-  color: #ffaa00;
-  text-shadow: 0 0 6px rgba(255, 170, 0, 0.4);
-  font-size: 1.2rem;
-}
-
-.ap-value {
+.stat-value {
   font-weight: 700;
   color: #ffffff;
+}
+
+/* Productivity icon color */
+.stat-display--productivity .fa-arrow-up {
+  color: #4caf50;
+  text-shadow: 0 0 6px rgba(76, 175, 80, 0.4);
+  font-size: 0.95rem;
+}
+
+/* Destructivity icon color */
+.stat-display--destructivity .fa-arrow-down {
+  color: #ff9800;
+  text-shadow: 0 0 6px rgba(255, 152, 0, 0.4);
+  font-size: 0.95rem;
+}
+
+/* AP icon color */
+.stat-display--ap .fa-bolt {
+  color: #ffaa00;
+  text-shadow: 0 0 6px rgba(255, 170, 0, 0.4);
+  font-size: 0.95rem;
 }
 
 /* ============================================ */

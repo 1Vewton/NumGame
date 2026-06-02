@@ -23,7 +23,7 @@ from utils.token_management import (
     search_user_token
 )
 from utils.config import settings
-from game_processes.redis_manager import get_redis
+from data_management.redis_manager import get_redis_ws
 from game_processes.game_fsm import BotGameStateMachine
 # ORM dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,10 +53,12 @@ async def test():
 @game_router.websocket("/botPlay")
 async def botPlay(websocket: WebSocket,
                   session: Annotated[AsyncSession, Depends(get_db)],
-                  redis: aioredis.Redis = Depends(get_redis)):
+                  redis: aioredis.Redis = Depends(get_redis_ws)):
     # Get info from the connection
+    logger.info(f"Params: {websocket.query_params}")
     target = int(websocket.query_params.get("target"))
     player_timeout = int(websocket.query_params.get("player_timeout"))
+    logger.info(f"target: {target}, player_timeout: {player_timeout}")
     # Accept connection
     await websocket.accept()
     # Basic game settings
@@ -102,7 +104,6 @@ async def botPlay(websocket: WebSocket,
                         redis_client=redis,
                         target=target
                     )
-                    await game.start()
                     # Heartbeat Sequence Number
                     next_sequence = 0
                     timeout_count = 0
@@ -111,8 +112,12 @@ async def botPlay(websocket: WebSocket,
 
                     # Game loop
                     async def game_loop():
-                        logger.info("Game loop executed")
-                        await game.run_game_loop()
+                        try:
+                            logger.info("Game loop executed")
+                            await game.run_game_loop()
+                            logger.info("Game loop end!")
+                        except Exception as e:
+                            logger.error(f"Game loop failed due to {e}")
 
                     # Heart Beat
                     async def send_heartbeat():
@@ -163,6 +168,7 @@ async def botPlay(websocket: WebSocket,
                         except Exception as e:
                             logger.error(f"Heartbeat failed due to {e}")
                         finally:
+                            logger.info("Process end by heart beat process")
                             # Finish the game
                             game_finished.set()
 
@@ -195,6 +201,7 @@ async def botPlay(websocket: WebSocket,
                         except Exception as e:
                             logger.error(f"Main game process failed due to {e}")
                         finally:
+                            logger.info("Process end by receive_message")
                             game_finished.set()
 
                     # Tasks
