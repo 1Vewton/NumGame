@@ -63,8 +63,15 @@ and API calls without being coupled to this component.
 
     </div>
 
-    <!-- Stats row: Productivity, Destructivity, Action Points -->
+    <!-- Stats row: Turn, Productivity, Destructivity, Action Points, Countdown -->
     <div class="stats-row">
+
+      <!-- Turn display -->
+      <div class="stat-display stat-display--turn">
+        <i class="fas fa-flag"></i>
+        <span>Turn: <span class="stat-value">{{ turn }}</span></span>
+      </div>
+
       <!-- Productivity display -->
       <div class="stat-display stat-display--productivity">
         <i class="fas fa-arrow-up"></i>
@@ -81,6 +88,12 @@ and API calls without being coupled to this component.
       <div class="stat-display stat-display--ap">
         <i class="fas fa-bolt"></i>
         <span>AP: <span class="stat-value">{{ actionPoints }}</span></span>
+      </div>
+
+      <!-- Countdown timer display (shown only when countdown is active) -->
+      <div class="stat-display stat-display--countdown" v-if="countdown > 0">
+        <i class="fas fa-hourglass-half"></i>
+        <span>Time: <span class="stat-value stat-value--countdown">{{ countdown }}</span>s</span>
       </div>
     </div>
 
@@ -144,6 +157,17 @@ and API calls without being coupled to this component.
         <span class="operation-label">Enhance<br/>Destructivity</span>
       </div>
 
+      <!-- Skip -->
+      <div class="operation-item">
+        <button
+          class="operation-button"
+          @click="$emit('operate', 'skip')"
+        >
+          <i class="fas fa-forward-step"></i>
+        </button>
+        <span class="operation-label">Skip</span>
+      </div>
+
     </div>
 
   </div>
@@ -190,6 +214,9 @@ export default {
    * @property {number} productivity - The player's current productivity value
    * @property {number} destructivity - The player's current destructivity value
    * @property {number} actionPoints - The current action points available
+   * @property {number} countdown - The countdown timer value for the current turn,
+   *   in seconds (0 = no active timer). When greater than 0, a countdown display
+   *   is shown in the stats row.
    */
   props: {
     enemyScore: {
@@ -208,9 +235,17 @@ export default {
       type: Number,
       default: 1
     },
+    turn: {
+      type: Number,
+      default: 1
+    },
     actionPoints: {
       type: Number,
       default: 10
+    },
+    countdown: {
+      type: Number,
+      default: 0
     }
   },
 
@@ -219,7 +254,8 @@ export default {
    *
    * @event operate - Emitted when a game operation button is clicked
    *   @param {string} operation - The operation identifier
-   *     ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity')
+   *     ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity',
+   *      'enhanceActionPoints', 'skip')
    */
   emits: ['operate'],
 

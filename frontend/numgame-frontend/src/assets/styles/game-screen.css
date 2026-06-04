@@ -132,6 +132,39 @@
   font-size: 0.95rem;
 }
 
+/* Turn display */
+.stat-display--turn .fa-flag {
+  color: #4fc3f7;
+  text-shadow: 0 0 6px rgba(79, 195, 247, 0.4);
+  font-size: 0.95rem;
+}
+
+/* Countdown timer display */
+.stat-display--countdown .fa-hourglass-half {
+  color: #ff4444;
+  text-shadow: 0 0 6px rgba(255, 68, 68, 0.5);
+  font-size: 0.95rem;
+}
+
+.stat-display--countdown {
+  border-color: #ff4444;
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+.stat-value--countdown {
+  color: #ff4444;
+  text-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
+}
+
+@keyframes countdown-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+  }
+}
+
 /* ============================================ */
 /* Operation Buttons Grid                        */
 /* ============================================ */

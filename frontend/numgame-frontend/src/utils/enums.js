@@ -67,6 +67,41 @@ export const WSResponseTypes = Object.freeze({
 });
 
 /**
+ * Game Operations Enumeration
+ *
+ * Defines the numeric identifiers for game operations that a player or bot
+ * can perform during their turn. Each value represents a distinct action type
+ * such as producing resources, destructing opponents, or enhancing capabilities.
+ *
+ * @enum {Object<string, number>}
+ * @readonly
+ * @property {number} PRODUCE - 1: Produce resources
+ * @property {number} DESTRUCT - 2: Destruct opponent's resources
+ * @property {number} ENHANCE_PRODUCTIVITY - 3: Enhance productivity capability
+ * @property {number} ENHANCE_DESTRUCTIBILITY - 4: Enhance destructibility capability
+ * @property {number} ENHANCE_ACTION_POINT - 5: Enhance action point capacity
+ * @property {number} SKIP - 6: Skip the current turn
+ *
+ * @example
+ * // Access a specific operation
+ * console.log(Operations.PRODUCE); // 1
+ *
+ * @example
+ * // Use in a conditional check
+ * if (operation === Operations.ENHANCE_PRODUCTIVITY) {
+ *   console.log('Enhancing productivity');
+ * }
+ */
+export const Operations = Object.freeze({
+  PRODUCE: 1,
+  DESTRUCT: 2,
+  ENHANCE_PRODUCTIVITY: 3,
+  ENHANCE_DESTRUCTIBILITY: 4,
+  ENHANCE_ACTION_POINT: 5,
+  SKIP: 6
+});
+
+/**
  * Aggregate object containing all application enums for convenient single-import access.
  *
  * This object groups all enumeration constants defined in this module under a single
@@ -75,16 +110,18 @@ export const WSResponseTypes = Object.freeze({
  *
  * @type {Object}
  * @property {Object} WSResponseTypes - WebSocket response type enum constants
+ * @property {Object} Operations - Game operations enum constants
  */
 const enums = {
-  WSResponseTypes
+  WSResponseTypes,
+  Operations
 };
 
 export default enums;
 
 // Support CommonJS exports for Node.js environments
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { WSResponseTypes };
+  module.exports = { WSResponseTypes, Operations };
   module.exports.default = enums;
   module.exports.__esModule = true;
 }

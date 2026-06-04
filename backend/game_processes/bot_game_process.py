@@ -43,7 +43,7 @@ class BotGameProcess:
                 "bot_destructivity": 1,
                 "bot_action_point": 0,
                 "bot_action_point_per_turn": 11,
-                "turn": 0,
+                "turn": 1,
                 "target": target,
                 "operation_cost": operation_cost,
                 "current_player": "player"
@@ -60,7 +60,7 @@ class BotGameProcess:
                 "bot_destructivity": 1,
                 "bot_action_point": 0,
                 "bot_action_point_per_turn": 10,
-                "turn": 0,
+                "turn": 1,
                 "target": target,
                 "operation_cost": operation_cost,
                 "current_player": "bot"
