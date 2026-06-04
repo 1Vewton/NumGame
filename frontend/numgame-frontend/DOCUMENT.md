@@ -265,12 +265,13 @@ The component determines login status through three mechanisms:
 - Game Rules modal overlay (shown when showGameRules is true), containing:
   - **Objective**: Defeat opponent by having a higher score and reaching the target number
   - **Action Points**: Consume 10 AP to perform an operation
-  - **Operations list** — 5 operations each with a Font Awesome icon:
+  - **Operations list** — 6 operations each with a Font Awesome icon:
     - `fas fa-plus-circle` — Produce: Add your Productivity value to your own score
     - `fas fa-minus-circle` — Destruct: Subtract your Destructivity value from the opponent's score
     - `fas fa-arrow-up` — Enhance Productivity: Permanently increase Productivity by 1
     - `fas fa-arrow-down` — Enhance Destructivity: Permanently increase Destructivity by 1
     - `fas fa-bolt` — Enhance Action Points: Permanently increase AP gained per turn by 1
+    - `fas fa-forward-step` — Skip: Skip your current turn without performing any action. Does not consume AP.
   - **Winning Condition**: Score exceeds opponent AND reaches/passes the target number
   - "Got it!" button to dismiss the modal
 - Red X-mark icon using Font Awesome
@@ -318,12 +319,13 @@ The component determines login status through three mechanisms:
 - Header with "Game Rules" title and close (X) button
 - **Objective**: Defeat opponent by having a higher score and reaching the target number
 - **Action Points**: Consume 10 AP to perform an operation
-- **Operations list** — 5 operations each with a Font Awesome icon:
+- **Operations list** — 6 operations each with a Font Awesome icon:
   - `fas fa-plus-circle` — Produce: Add your Productivity value to your own score
   - `fas fa-minus-circle` — Destruct: Subtract your Destructivity value from the opponent's score
   - `fas fa-arrow-up` — Enhance Productivity: Permanently increase Productivity by 1
   - `fas fa-arrow-down` — Enhance Destructivity: Permanently increase Destructivity by 1
   - `fas fa-bolt` — Enhance Action Points: Permanently increase AP gained per turn by 1
+  - `fas fa-forward-step` — Skip: Skip your current turn without performing any action. Does not consume AP.
 - **Winning Condition**: Score exceeds opponent AND reaches/passes the target number
 - "Got it!" button (AppButton, primary variant) to dismiss the modal
 
@@ -882,13 +884,16 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 - `data.productivity` (number): The player's current productivity value (default: 1)
 - `data.destructivity` (number): The player's current destructivity value (default: 1)
 - `data.actionPoints` (number): The player's available action points (default: 10)
+- `data.countdown` (number): The countdown timer value for the player's turn, in seconds (0 = no active timer) (default: 0)
 - `data.ws` (WebSocket|null): The WebSocket connection instance (default: null)
 - `data.wsConnected` (boolean): Flag indicating WebSocket connection status (default: false)
 - `data.heartbeatTimer` (number|null): Interval timer ID for heartbeat ping/pong (default: null)
+- `data.countdownTimer` (number|null): Interval timer ID for the player turn countdown (default: null)
+- `data.playerTimeout` (number): The player's decision time limit in seconds, read from route query (default: 30)
 
 **Lifecycle Hooks**:
-- `mounted()`: Reads `targetNumber` and `decisionTime` from `$route.query` (passed from StartBotGame), then calls `connectWebSocket(targetNumber, decisionTime)`.
-- `beforeUnmount()`: Calls `disconnectWebSocket()` to clean up the WebSocket connection and heartbeat timer.
+- `mounted()`: Reads `targetNumber` and `decisionTime` from `$route.query` (passed from StartBotGame), stores the numeric `playerTimeout` value, then calls `connectWebSocket(targetNumber, decisionTime)`.
+- `beforeUnmount()`: Calls `disconnectWebSocket()` to clean up the WebSocket connection, heartbeat timer, and countdown timer.
 
 **Methods**:
 - `connectWebSocket(targetNumber, decisionTime)`: Builds the WebSocket URL (`ws://localhost:7111/api/game/botPlay`), creates a new WebSocket connection, and sets up event handlers:
@@ -896,11 +901,16 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
   - `onmessage`: Parses JSON messages and dispatches them to `handleGameMessage()`. Ignores heartbeat/pong responses.
   - `onerror`: Logs WebSocket errors.
   - `onclose`: Cleans up connection state and clears the heartbeat timer.
-- `disconnectWebSocket()`: Closes the WebSocket (code 1000) and clears the heartbeat timer.
+- `disconnectWebSocket()`: Closes the WebSocket (code 1000), clears the heartbeat timer and stops the countdown timer.
 - `handleGameMessage(message)`: Processes incoming WebSocket messages based on their `type` (WSResponseTypes enum):
   - `DATA_UPDATE (5)`: Updates game state (`enemy_score`, `player_score`, `action_points`, `productivity`, `destructivity`) from message payload.
-  - `PLAYER_TURN_START (7)`, `BOT_TURN_START (6)`, `BOT_TURN_FINISH (9)`, `PLAYER_WIN (10)`, `BOT_WIN (11)`: Logs the event (placeholder handlers for future implementation).
-- `handleOperation(operation)`: Sends the player's operation to the backend via WebSocket as a `PLAYER_OPERATION` message. Warns if WebSocket is not connected.
+  - `PLAYER_TURN_START (7)`: Starts the countdown timer via `startCountdown()`.
+  - `BOT_TURN_START (6)`: Stops the countdown timer via `stopCountdown()`.
+  - `BOT_TURN_FINISH (9)`, `PLAYER_WIN (10)`, `BOT_WIN (11)`: Logs the event (placeholder handlers for future implementation).
+- `handleOperation(operation)`: Stops the countdown timer, then sends the player's operation to the backend via WebSocket as a `PLAYER_OPERATION` message. Warns if WebSocket is not connected.
+- `startCountdown()`: Initializes `countdown` to `playerTimeout` seconds and sets up a 1-second interval to decrement it. When the countdown reaches zero, the timer stops and a timeout is logged.
+- `stopCountdown()`: Clears the countdown interval timer and sets `countdown` to 0.
+
 
 **Template Structure**:
 - Renders the `<GameScreen>` component with props (`enemyScore`, `playerScore`, `productivity`, `destructivity`, `actionPoints`) bound to local data
@@ -920,7 +930,7 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 ## GameScreen Component (`src/components/GameScreen.vue`)
 
-**Purpose**: A pure presentational UI shell shared by multiple game modes (Bot, PvP, etc.). Displays enemy/player scores, action points, a center gamepad icon (fa-solid fa-gamepad), and four operation buttons arranged on the left and right sides. **Has NO internal game logic or state management** — it is a stateless template component.
+**Purpose**: A pure presentational UI shell shared by multiple game modes (Bot, PvP, etc.). Displays enemy/player scores, productivity, destructivity, action points, a center gamepad icon (fa-solid fa-gamepad), and six operation buttons. **Has NO internal game logic or state management** — it is a stateless template component.
 
 **Component Properties**:
 - `name` (string): 'GameScreen' - Component identifier
@@ -928,28 +938,37 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 **Props**:
 - `enemyScore` (Number, default: 0): The current score of the enemy/opponent
 - `playerScore` (Number, default: 0): The current score of the player
+- `productivity` (Number, default: 1): The player's current productivity value
+- `destructivity` (Number, default: 1): The player's current destructivity value
 - `actionPoints` (Number, default: 10): The current action points available
+- `countdown` (Number, default: 0): The countdown timer value for the current turn, in seconds (0 = no active timer). When greater than 0, a countdown display with hourglass icon and pulsing red border is shown in the stats row.
+
 
 **Emits**:
 - `operate(operation)`: Emitted when a game operation button is clicked
-  - `operation` (string): The operation identifier ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity')
+  - `operation` (string): The operation identifier ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity', 'enhanceActionPoints', 'skip')
 
 **Usage Example** (by game mode components like BotGame, PvPGame):
 ```vue
 <GameScreen
   :enemyScore="myEnemyScore"
   :playerScore="myPlayerScore"
+  :productivity="myProductivity"
+  :destructivity="myDestructivity"
   :actionPoints="myActionPoints"
   @operate="handleOperation"
 />
 ```
 
 **Template Structure**:
-- Score section with enemy score (red tint) above, center gamepad icon (fa-solid fa-gamepad), player score below, and AP display
-- Operations section with two columns:
-  - **Left column**: Produce (fa-solid fa-plus-circle) and Enhance Productivity (fa-solid fa-arrow-up)
-  - **Right column**: Destruct (fa-solid fa-minus-circle) and Enhance Destructivity (fa-solid fa-arrow-down)
-- Each operation button shows the icon, operation name, and a short description
+- Score section with enemy score (red tint), VS divider, player score (white), and stats row showing Productivity, Destructivity, and Action Points
+- Operations section with 6 operation buttons:
+  - Enhance Productivity (fa-solid fa-arrow-up): Permanently increase Productivity by 1
+  - Produce (fa-solid fa-plus-circle): Add Productivity value to own score
+  - Enhance Action Points (fa-solid fa-bolt): Permanently increase AP gained per turn by 1
+  - Destruct (fa-solid fa-minus-circle): Subtract Destructivity value from opponent's score
+  - Enhance Destructivity (fa-solid fa-arrow-down): Permanently increase Destructivity by 1
+  - Skip (fa-solid fa-forward-step): Skip current turn without performing any action. Does not consume AP.
 - Responsive design for desktop, tablet, and mobile layouts
 
 **Styling Features**:

@@ -105,6 +105,18 @@ The component uses globally imported shared styles:
               </span>
             </div>
           </div>
+
+          <div class="rules-operation">
+            <div class="rules-operation-icon">
+              <i class="fas fa-forward-step"></i>
+            </div>
+            <div class="rules-operation-info">
+              <span class="rules-operation-name">Skip</span>
+              <span class="rules-operation-desc">
+                Skip your current turn without performing any action. Does not consume <strong>AP</strong>.
+              </span>
+            </div>
+          </div>
         </div>
 
         <div class="rules-section">

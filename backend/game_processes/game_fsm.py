@@ -1,6 +1,7 @@
 from logging import getLogger
 import asyncio
 from typing import Annotated
+import random
 # Redis
 import redis.asyncio as aioredis
 # FastAPI
@@ -110,6 +111,7 @@ class BotGameStateMachine:
         # Execution of operations
         while await self.game.getBotActionPoint() >= await self.game.getOperationCost() \
                 and execution_turns < settings.maximum_bot_operation_times:
+            await asyncio.sleep(random.random()*settings.bot_think)
             bot_status = await self.game.getBotStatus()
             self.bot_state_machine.update_state(
                 point=bot_status.point,
@@ -119,6 +121,8 @@ class BotGameStateMachine:
                 target=bot_status.target
             )
             operation = self.bot_state_machine.choose_action()
+            logger.info(f"Bot state: {self.bot_state_machine.get_current_state()}")
+            logger.info(f"Action: {operation}")
             result = await self.game.botOperationExecution(operation)
             if result["success"]:
                 data = await self.game.updateUserStatus()
@@ -182,6 +186,13 @@ class BotGameStateMachine:
                         "reason": result["reason"].value
                     }
                     await self.ws_client.send_json(content)
+            # Update data
+            data = await self.game.updateUserStatus()
+            content = {
+                "type": WSResponseType.DATA_UPDATE.value,
+                "data": data
+            }
+            await self.ws_client.send_json(content)
         else:
             content = {
                 "type": WSResponseType.PLAYER_OPERATION.value,
@@ -310,8 +321,8 @@ class BotGameStateMachine:
             "data": user_status
         }
         await self.ws_client.send_json(content)
-        if (player_score > target
-                and bot_score > target):
+        if (player_score >= target
+                or bot_score >= target):
             self.end_time = datetime.now()
             if player_score > bot_score:
                 self.is_player_win = True
