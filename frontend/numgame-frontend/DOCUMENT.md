@@ -1016,5 +1016,112 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 **Integration**: Imported by `GameScreen.vue` via `<style scoped src="...">`.
 
+---
 
-*Last Updated: May 31, 2026*
+## InfoNotification Component (`src/components/InfoNotification.vue`)
+
+**Purpose**: Reusable info toast notification component with info icon and message text, using yellow accent colors.
+
+**Component Properties**:
+- `name` (string): 'InfoNotification' - Component identifier
+- `props.visible` (Boolean, default: false): Controls whether the notification is shown
+- `props.message` (String, default: ''): The info message text to display
+
+**Events**:
+- `close`: Emitted after 1 second auto-dismiss timer expires
+
+**Template Structure**: 
+- Centered overlay notification at the top of the viewport
+- Left section with fa-solid fa-circle-info info icon
+- Right section displaying info message text
+
+**Styling Features**:
+- Dark background (#1a1a1a) with yellow border (#ffcc00) and glow shadow for visibility
+- Yellow info icon (#ffcc00) with glow effect
+- Light yellow message text (#ffffcc)
+- Consistent layout and animation with ErrorNotification and SuccessNotification components
+- Fixed positioning for global overlay display
+- Min/max width constraints for consistent sizing
+
+**Integration**: Can be used by any Vue component to display informational messages (e.g., game notifications, status updates, hints).
+
+---
+
+## InfoNotification Styles (`src/assets/styles/info-notification.css`)
+
+**Purpose**: Contains styles for the reusable info notification toast component with yellow accent colors. The `slideIn`/`slideOut` animations are now defined in `animations.css`.
+
+**Key Classes**:
+- `.info-notification-overlay`: Fixed full-screen overlay centered at top
+- `.info-notification`: Dark container with yellow border (#ffcc00) and glow shadow
+- `.info-notification-icon i`: Yellow (#ffcc00) info icon with glow effect
+- `.info-notification-message`: Light yellow (#ffffcc) text for info message
+
+**Integration**: Imported by `InfoNotification.vue` via `<style scoped src="...">`. Animations inherited from globally imported `animations.css`.
+
+---
+
+## GameResult Component (`src/components/GameResult.vue`)
+
+**Purpose**: Displays the game result (victory or defeat) in a full-screen overlay modal after a game finishes. Shows an icon (trophy for victory, skull for defeat), a result title, final scores comparison (Enemy vs My Score), and two action buttons: "Play Again" and "Back to Setup".
+
+**Component Properties**:
+- `name` (string): 'GameResult' - Component identifier
+- `components` (Object): Registered child components - AppButton
+
+**Props**:
+- `visible` (Boolean, default: false): Controls whether the result overlay is shown
+- `isVictory` (Boolean, default: false): True if the player won, false if defeated
+- `playerScore` (Number, default: 0): The player's final score
+- `enemyScore` (Number, default: 0): The enemy's final score
+
+**Emits**:
+- `playAgain`: Emitted when the user clicks "Play Again" — parent should navigate to restart the game
+- `backToSetup`: Emitted when the user clicks "Back to Setup" — parent should navigate to StartBotGame route
+
+**Template Structure**:
+- Full-screen dark overlay (z-index 2000) with centered container
+- Victory state: green container border and glow, green trophy icon, green "Victory" title
+- Defeat state: red container border and glow, red skull icon, red "Defeat" title
+- Scores section with Enemy label and score (left), VS divider (red), My Score label and score (right)
+  - Victory: enemy score in red, player score in green (winner accent)
+  - Defeat: enemy score in green (winner accent), player score in white
+- Two AppButton action buttons stacked vertically:
+  - "Play Again" (primary/red variant, full width) — emits `playAgain`
+  - "Back to Setup" (secondary/gray variant, full width) — emits `backToSetup`
+
+**Integration**: Used by BotGame component. Imported as `GameResult` and displayed conditionally when `showResult` is true. Receives final scores and victory status from BotGame's `handleGameMessage` method. Uses `game-result.css` for styling.
+
+---
+
+## GameResult Styles (`src/assets/styles/game-result.css`)
+
+**Purpose**: Contains styles for the GameResult component's result overlay modal. The `fadeIn` animation keyframe is inherited from the globally imported `animations.css`.
+
+**Key Classes**:
+- `.game-result-overlay`: Fixed full-screen dark backdrop (rgba 0,0,0,0.88) with centered flex layout, z-index 2000
+- `.game-result-container`: Dark modal (#1a1a1a) with default gray border, 16px rounded corners, red glow shadow, and fadeIn animation. Flex column with centered items and 1.5rem gap.
+- `.game-result-container--victory`: Overrides with green border (#4caf50) and green glow shadow
+- `.game-result-container--defeat`: Overrides with red border (#ff0000) and red glow shadow
+- `.game-result-icon`: 4rem icon with no line-height
+- `.game-result-icon--victory`: Green (#4caf50) with green glow text-shadow
+- `.game-result-icon--defeat`: Red (#ff0000) with red glow text-shadow
+- `.game-result-title`: 2.2rem bold uppercase title with letter-spacing
+- `.game-result-title--victory`: Green (#4caf50) with green glow text-shadow
+- `.game-result-title--defeat`: Red (#ff0000) with red glow text-shadow
+- `.game-result-scores`: Flex row with centered items, dark background (#222222), 10px border-radius
+- `.game-result-score-item`: Flex column for each score side
+- `.game-result-score-label`: Uppercase gray (#aaaaaa) label
+- `.game-result-score-value`: 2.2rem bold score number
+- `.game-result-score-value--enemy`: Red (#ff4444) enemy score color
+- `.game-result-score-value--player`: White player score color
+- `.game-result-score-value--winner`: Green (#4caf50) winner score color (applied to the winning side)
+- `.game-result-vs`: Red (#ff0000) VS divider with glow
+- `.game-result-buttons`: Flex column container with gap for action buttons
+- Responsive breakpoint at 480px (smaller padding, title, icon, and score values)
+
+**Integration**: Imported by `GameResult.vue` via `<style scoped src="...">`. Animations inherited from globally imported `animations.css`.
+
+---
+
+*Last Updated: June 7, 2026*

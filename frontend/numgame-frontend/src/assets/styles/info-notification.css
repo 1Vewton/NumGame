@@ -1,0 +1,63 @@
+/**
+ * info-notification.css - InfoNotification Component Styles
+ * 
+ * This file contains styles for the reusable info notification toast component.
+ * Shared animations (@keyframes slideIn, slideOut) are imported globally
+ * from animations.css.
+ * 
+ * @module InfoNotificationStyles
+ */
+
+/* Info notification overlay - covers the screen to center the toast */
+.info-notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Info notification toast container */
+.info-notification {
+  display: flex;
+  align-items: center;
+  background-color: #1a1a1a;
+  border: 1px solid #ffcc00;
+  border-radius: 8px;
+  padding: 12px 20px;
+  min-width: 300px;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(255, 204, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Info icon styling */
+.info-notification-icon {
+  flex-shrink: 0;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-notification-icon i {
+  color: #ffcc00;
+  font-size: 1.8rem;
+  text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+}
+
+/* Info message text styling */
+.info-notification-message {
+  flex: 1;
+  color: #ffffcc;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+}

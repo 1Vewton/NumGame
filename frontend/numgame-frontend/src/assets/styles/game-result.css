@@ -1,0 +1,199 @@
+/**
+ * game-result.css - GameResult Component Styles
+ * 
+ * This file contains styles specific to the GameResult component only.
+ * Shared base styles are imported globally from:
+ *   - modal-pattern.css (overlay, container, header, close button)
+ *   - animations.css    (@keyframes fadeIn, slideIn, slideOut)
+ * 
+ * @module GameResultStyles
+ */
+
+/* ============================================ */
+/* Game Result Overlay                           */
+/* ============================================ */
+
+.game-result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.88);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================================ */
+/* Game Result Container                         */
+/* ============================================ */
+
+.game-result-container {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 16px;
+  padding: 2.5rem 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 0 40px rgba(255, 0, 0, 0.2);
+  animation: fadeIn 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Victory result container gets a green glow */
+.game-result-container--victory {
+  box-shadow: 0 0 40px rgba(76, 175, 80, 0.3);
+  border-color: #4caf50;
+}
+
+/* Defeat result container gets a red glow */
+.game-result-container--defeat {
+  box-shadow: 0 0 40px rgba(255, 0, 0, 0.4);
+  border-color: #ff0000;
+}
+
+/* ============================================ */
+/* Result Icon                                   */
+/* ============================================ */
+
+.game-result-icon {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.game-result-icon--victory {
+  color: #4caf50;
+  text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+.game-result-icon--defeat {
+  color: #ff0000;
+  text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+/* ============================================ */
+/* Result Title                                  */
+/* ============================================ */
+
+.game-result-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.game-result-title--victory {
+  color: #4caf50;
+  text-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+}
+
+.game-result-title--defeat {
+  color: #ff0000;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+}
+
+/* ============================================ */
+/* Score Section                                 */
+/* ============================================ */
+
+.game-result-scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+  padding: 1.2rem;
+  background-color: #222222;
+  border-radius: 10px;
+}
+
+.game-result-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.game-result-score-label {
+  font-size: 0.75rem;
+  color: #aaaaaa;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.game-result-score-value {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.game-result-score-value--enemy {
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+}
+
+.game-result-score-value--player {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.game-result-score-value--winner {
+  color: #4caf50;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+}
+
+/* VS divider in scores */
+.game-result-vs {
+  font-size: 1.4rem;
+  color: #ff0000;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  font-weight: 700;
+}
+
+/* ============================================ */
+/* Button Container                              */
+/* ============================================ */
+
+.game-result-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+/* ============================================ */
+/* Responsive Breakpoints                        */
+/* ============================================ */
+
+@media (max-width: 480px) {
+  .game-result-container {
+    padding: 2rem 1.5rem 1.5rem;
+  }
+
+  .game-result-title {
+    font-size: 1.8rem;
+  }
+
+  .game-result-icon {
+    font-size: 3.2rem;
+  }
+
+  .game-result-score-value {
+    font-size: 1.8rem;
+  }
+
+  .game-result-scores {
+    gap: 1.2rem;
+    padding: 1rem;
+  }
+}

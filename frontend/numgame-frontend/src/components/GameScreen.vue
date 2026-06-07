@@ -106,6 +106,7 @@ and API calls without being coupled to this component.
       <div class="operation-item">
         <button
           class="operation-button"
+          :disabled="!isPlayerTurn"
           @click="$emit('operate', 'enhanceProductivity')"
         >
           <i class="fas fa-arrow-up"></i>
@@ -117,6 +118,7 @@ and API calls without being coupled to this component.
       <div class="operation-item">
         <button
           class="operation-button"
+          :disabled="!isPlayerTurn"
           @click="$emit('operate', 'produce')"
         >
           <i class="fas fa-plus-circle"></i>
@@ -128,6 +130,7 @@ and API calls without being coupled to this component.
       <div class="operation-item">
         <button
           class="operation-button"
+          :disabled="!isPlayerTurn"
           @click="$emit('operate', 'enhanceActionPoints')"
         >
           <i class="fas fa-bolt"></i>
@@ -139,6 +142,7 @@ and API calls without being coupled to this component.
       <div class="operation-item">
         <button
           class="operation-button"
+          :disabled="!isPlayerTurn"
           @click="$emit('operate', 'destruct')"
         >
           <i class="fas fa-minus-circle"></i>
@@ -150,6 +154,7 @@ and API calls without being coupled to this component.
       <div class="operation-item">
         <button
           class="operation-button"
+          :disabled="!isPlayerTurn"
           @click="$emit('operate', 'enhanceDestructivity')"
         >
           <i class="fas fa-arrow-down"></i>
@@ -161,6 +166,7 @@ and API calls without being coupled to this component.
       <div class="operation-item">
         <button
           class="operation-button"
+          :disabled="!isPlayerTurn"
           @click="$emit('operate', 'skip')"
         >
           <i class="fas fa-forward-step"></i>
@@ -246,6 +252,17 @@ export default {
     countdown: {
       type: Number,
       default: 0
+    },
+    /**
+     * Controls whether the operation buttons are enabled (clickable).
+     * When true (player's turn), buttons are enabled.
+     * When false (bot's turn or between turns), buttons are disabled.
+     *
+     * @property {Boolean} isPlayerTurn
+     */
+    isPlayerTurn: {
+      type: Boolean,
+      default: false
     }
   },
 
