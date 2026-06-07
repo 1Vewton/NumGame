@@ -96,7 +96,6 @@ async def botPlay(websocket: WebSocket,
                     # Initialize the game
                     is_game_initialized = True
                     game = BotGameStateMachine(
-                        session=session,
                         player_id=user_id,
                         player_timeout=player_timeout,
                         game_finished_event=game_finished,

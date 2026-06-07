@@ -1,13 +1,11 @@
 from logging import getLogger
 import asyncio
-from typing import Annotated
 import random
 # Redis
 import redis.asyncio as aioredis
 # FastAPI
-from fastapi import WebSocket, Depends
+from fastapi import WebSocket
 # sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import (
     select,
     update
@@ -31,13 +29,12 @@ from game_processes.bot_controller import BotStateMachine
 from data_management.data_management import get_db
 from utils.config import settings
 
-logger = getLogger("game_fsm")
+logger = getLogger("Game Fsm")
 
 
 # Game state machine
 class BotGameStateMachine:
     def __init__(self,
-                 session: Annotated[AsyncSession, Depends(get_db)],
                  player_id: str,
                  player_timeout: int,
                  game_finished_event: asyncio.Event,
@@ -45,8 +42,6 @@ class BotGameStateMachine:
                  redis_client: aioredis.Redis,
                  target=10,
                  ):
-        # Database session
-        self.session = session
         # websocket client
         self.ws_client = client
         # async lock
@@ -62,7 +57,7 @@ class BotGameStateMachine:
         self.bot_state_machine = BotStateMachine()
         self.target = target
         self.player_id = player_id
-        self.start_time = None
+        self.start_time = datetime.now()
         self.end_time = None
         self.round = 0
         self.is_player_win = True
@@ -187,11 +182,13 @@ class BotGameStateMachine:
                     }
                     await self.ws_client.send_json(content)
             # Update data
+            logger.info("Update data after player operation")
             data = await self.game.updateUserStatus()
             content = {
                 "type": WSResponseType.DATA_UPDATE.value,
                 "data": data
             }
+            print(data)
             await self.ws_client.send_json(content)
         else:
             content = {
@@ -203,6 +200,7 @@ class BotGameStateMachine:
 
     # Game finished
     async def game_finished(self):
+        logger.info("Game finish checking")
         # Users info
         first_move_user_id = None
         second_move_user_id = None
@@ -212,108 +210,111 @@ class BotGameStateMachine:
             logger.info("Player win")
         else:
             logger.info("Bot win")
-        # Update user info
-        user_info = await self.session.execute(
-            select(players).where(
-                players.id == self.player_id
+        async for session in get_db():
+            # Update user info
+            user_info = await session.execute(
+                select(players).where(
+                    players.id == self.player_id
+                )
             )
-        )
-        result = user_info.first()
-        if result:
-            processed_result = result[0]
-            new_total_games = processed_result.total_games + 1
-            await self.session.execute(
-                update(players).
-                where(players.id == self.player_id).
-                values(total_games=new_total_games)
-            )
-            logger.info("User info update complete")
-            # Record the user id to get stored in the games table
-            if self.is_user_first:
-                first_move_user_id = self.player_id
-            else:
-                second_move_user_id = self.player_id
-            # User win process
-            if self.is_player_win:
-                new_wins = processed_result.wins + 1
-                await self.session.execute(
+            result = user_info.first()
+            if result:
+                processed_result = result[0]
+                new_total_games = processed_result.total_games + 1
+                await session.execute(
                     update(players).
                     where(players.id == self.player_id).
-                    values(wins=new_wins)
+                    values(total_games=new_total_games)
                 )
-                # Content to send to the front-end
-                content = {
-                    "type": WSResponseType.PLAYER_WIN.value,
-                }
-                await self.ws_client.send_json(content)
-        # update bot info
-        bot_info = await self.session.execute(
-            select(players).where(
-                players.user_name == settings.simple_bot_name
+                logger.info(f"Total games: {new_total_games}")
+                logger.info("User info update complete")
+                # Record the user id to get stored in the games table
+                if self.is_user_first:
+                    first_move_user_id = self.player_id
+                else:
+                    second_move_user_id = self.player_id
+                # User win process
+                if self.is_player_win:
+                    new_wins = processed_result.wins + 1
+                    await session.execute(
+                        update(players).
+                        where(players.id == self.player_id).
+                        values(wins=new_wins)
+                    )
+                    # Content to send to the front-end
+                    content = {
+                        "type": WSResponseType.PLAYER_WIN.value,
+                    }
+                    await self.ws_client.send_json(content)
+            # update bot info
+            bot_info = await session.execute(
+                select(players).where(
+                    players.user_name == settings.simple_bot_name
+                )
             )
-        )
-        result = bot_info.first()
-        if result:
-            processed_result = result[0]
-            new_total_games = processed_result.total_games + 1
-            await self.session.execute(
-                update(players).
-                where(players.user_name == settings.simple_bot_name).
-                values(total_games=new_total_games)
-            )
-            logger.info("Bot profile update successful")
-            # Record bot info for games record
-            bot_id = processed_result.id
-            if self.is_user_first:
-                second_move_user_id = bot_id
-            else:
-                first_move_user_id = bot_id
-            # Update bot winning
-            if not self.is_player_win:
-                new_wins = processed_result.wins + 1
-                await self.session.execute(
+            result = bot_info.first()
+            if result:
+                processed_result = result[0]
+                new_total_games = processed_result.total_games + 1
+                await session.execute(
                     update(players).
-                    where(players.id == bot_id).
-                    values(wins=new_wins)
+                    where(players.user_name == settings.simple_bot_name).
+                    values(total_games=new_total_games)
                 )
-                content = {
-                    "type": WSResponseType.BOT_WIN.value
-                }
-                await self.ws_client.send_json(content)
-        self.end_time = datetime.now()
-        # Data for the game to get stored
-        if self.is_player_win:
-            new_game_data = games(
-                id=self.game_id,
-                first_move=first_move_user_id,
-                second_move=second_move_user_id,
-                winner=self.player_id,
-                rounds=self.round,
-                started_time=self.start_time,
-                ended_time=self.end_time
-            )
-        else:
-            new_game_data = games(
-                id=self.game_id,
-                first_move=first_move_user_id,
-                second_move=second_move_user_id,
-                winner=bot_id,
-                rounds=self.round,
-                started_time=self.start_time,
-                ended_time=self.end_time
-            )
-        self.session.add(new_game_data)
-        # Game finished
-        self.game_finished_event.set()
+                logger.info("Bot profile update successful")
+                # Record bot info for games record
+                bot_id = processed_result.id
+                if self.is_user_first:
+                    second_move_user_id = bot_id
+                else:
+                    first_move_user_id = bot_id
+                # Update bot winning
+                if not self.is_player_win:
+                    new_wins = processed_result.wins + 1
+                    await session.execute(
+                        update(players).
+                        where(players.id == bot_id).
+                        values(wins=new_wins)
+                    )
+                    content = {
+                        "type": WSResponseType.BOT_WIN.value
+                    }
+                    await self.ws_client.send_json(content)
+            self.end_time = datetime.now()
+            # Data for the game to get stored
+            if self.is_player_win:
+                new_game_data = games(
+                    id=self.game_id,
+                    first_move=first_move_user_id,
+                    second_move=second_move_user_id,
+                    winner=self.player_id,
+                    rounds=self.round,
+                    started_time=self.start_time,
+                    ended_time=self.end_time
+                )
+            else:
+                new_game_data = games(
+                    id=self.game_id,
+                    first_move=first_move_user_id,
+                    second_move=second_move_user_id,
+                    winner=bot_id,
+                    rounds=self.round,
+                    started_time=self.start_time,
+                    ended_time=self.end_time
+                )
+            session.add(new_game_data)
+            # Game finished
+            self.game_finished_event.set()
+        await self.state_transition(GameState.END)
 
     # Settlement
     async def game_settlement(self):
         logger.info("Start game settlement")
         self.round += 1
         await self.game.nextTurn()
-        player_score = await self.game.getPlayerScore()
-        bot_score = await self.game.getBotScore()
-        target = await self.game.getTarget()
+        player_score = int(await self.game.getPlayerScore())
+        bot_score = int(await self.game.getBotScore())
+        target = int(await self.game.getTarget())
         # update user status
         user_status = await self.game.updateUserStatus()
         content = {
@@ -323,6 +324,7 @@ class BotGameStateMachine:
         await self.ws_client.send_json(content)
         if (player_score >= target
                 or bot_score >= target):
+            logger.info(f"Player: {player_score}, Bot: {bot_score}, Target: {target}")
             self.end_time = datetime.now()
             if player_score > bot_score:
                 self.is_player_win = True
@@ -381,9 +383,9 @@ class BotGameStateMachine:
         # Execution loop
         while not self.game_finished_event.is_set():
             state = self.state
-            await self.on_enter_state(state)
-            if self.state == GameState.FINISH:
+            if self.state == GameState.END:
                 break
+            await self.on_enter_state(state)
 
     # End game
     async def end_game(self):

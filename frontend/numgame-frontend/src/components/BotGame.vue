@@ -31,6 +31,7 @@ user operations from GameScreen bubble back up via the @operate event.
     :actionPoints="actionPoints"
     :countdown="countdown"
     :turn="turn"
+    :isPlayerTurn="isPlayerTurn"
     @operate="handleOperation"
   />
 
@@ -39,6 +40,23 @@ user operations from GameScreen bubble back up via the @operate event.
     :visible="showError"
     :message="errorMessage"
     @close="showError = false"
+  />
+
+  <!-- Info notification toast for player turn start -->
+  <InfoNotification
+    :visible="showInfo"
+    :message="infoMessage"
+    @close="showInfo = false"
+  />
+
+  <!-- Game result overlay (shown when the game ends) -->
+  <GameResult
+    :visible="showResult"
+    :isVictory="isVictory"
+    :playerScore="finalPlayerScore"
+    :enemyScore="finalEnemyScore"
+    @playAgain="handlePlayAgain"
+    @backToSetup="handleBackToSetup"
   />
 </template>
 
@@ -63,6 +81,8 @@ user operations from GameScreen bubble back up via the @operate event.
  */
 import GameScreen from './GameScreen.vue';
 import ErrorNotification from './ErrorNotification.vue';
+import InfoNotification from './InfoNotification.vue';
+import GameResult from './GameResult.vue';
 import config from '../utils/config.js';
 import { WSResponseTypes, Operations } from '../utils/enums.js';
 
@@ -78,7 +98,9 @@ export default {
    */
   components: {
     GameScreen,
-    ErrorNotification
+    ErrorNotification,
+    InfoNotification,
+    GameResult
   },
 
   /**
@@ -98,6 +120,8 @@ export default {
    * @property {number} playerTimeout - The player's decision time limit in seconds, read from route query
    * @property {boolean} showError - Flag controlling error notification visibility
    * @property {string} errorMessage - The error message to display in the notification
+   * @property {boolean} isPlayerTurn - Flag indicating whether it's currently the player's turn
+   *   (controls operation button enabled state in GameScreen)
    */
   data() {
     return {
@@ -114,7 +138,15 @@ export default {
       countdownTimer: null,
       playerTimeout: 30,
       showError: false,
-      errorMessage: ''
+      errorMessage: '',
+      showInfo: false,
+      infoMessage: '',
+      isPlayerTurn: false,
+      showResult: false,
+      isVictory: false,
+      finalPlayerScore: 0,
+      finalEnemyScore: 0,
+      intentionalDisconnect: false
     };
   },
 
@@ -182,6 +214,9 @@ export default {
       this.ws.onopen = () => {
         console.log('WebSocket connection established');
         this.wsConnected = true;
+        // Show an info notification to confirm the WebSocket connection
+        this.infoMessage = 'WebSocket connected';
+        this.showInfo = true;
       };
 
       /**
@@ -252,14 +287,17 @@ export default {
           this.heartbeatTimer = null;
         }
 
-        // Show error notification and navigate back to game setup
-        this.showError = true;
-        this.errorMessage = 'Connection lost. Returning to game setup...';
+        // Only show error notification and navigate if the disconnect was unintentional
+        // (e.g., network error or server crash, not user navigation)
+        if (!this.intentionalDisconnect) {
+          this.showError = true;
+          this.errorMessage = 'Connection lost. Returning to game setup...';
 
-        // Navigate back to StartBotGame page after a brief delay
-        setTimeout(() => {
-          this.$router.push({ name: 'StartBotGame' });
-        }, 1500);
+          // Navigate back to StartBotGame page after a brief delay
+          setTimeout(() => {
+            this.$router.push({ name: 'StartBotGame' });
+          }, 1500);
+        }
       };
     },
 
@@ -303,57 +341,89 @@ export default {
      * @method handleGameMessage
      * @param {Object} message - The parsed WebSocket message object
      * @param {number} message.type - The message type identifier from WSResponseTypes
-     * @param {Object} [message.data] - The message payload with game state data
+     * @param {Object} [message.data] - The message payload with game state data (nested wrapper)
+     *   Fields may also be provided directly at the top level of the message object.
      */
     handleGameMessage(message) {
       switch (message.type) {
-        case WSResponseTypes.DATA_UPDATE:
-          console.log('Data update received:', message.data);
-          // Update game state from the data payload
-          if (message.data) {
-            if (message.data.opponent_point !== undefined) {
-              this.enemyScore = message.data.opponent_point;
+        case WSResponseTypes.DATA_UPDATE: {
+          console.log('Data update received:', message.data || message);
+          // Support both nested data wrapper (message.data.xxx) and flat (message.xxx) formats
+          const data = message.data || message;
+          if (data) {
+            if (data.opponent_point !== undefined) {
+              this.enemyScore = data.opponent_point;
             }
-            if (message.data.point !== undefined) {
-              this.playerScore = message.data.point;
+            if (data.point !== undefined) {
+              this.playerScore = data.point;
             }
-            if (message.data.action_point !== undefined) {
-              this.actionPoints = message.data.action_point;
+            if (data.action_point !== undefined) {
+              this.actionPoints = data.action_point;
             }
-            if (message.data.productivity !== undefined) {
-              this.productivity = message.data.productivity;
+            if (data.productivity !== undefined) {
+              this.productivity = data.productivity;
             }
-            if (message.data.destructivity !== undefined) {
-              this.destructivity = message.data.destructivity;
+            if (data.destructivity !== undefined) {
+              this.destructivity = data.destructivity;
             }
-            if (message.data.turn !== undefined) {
-              this.turn = message.data.turn;
+            if (data.turn !== undefined) {
+              this.turn = data.turn;
             }
           }
           break;
+        }
 
         case WSResponseTypes.PLAYER_TURN_START:
           console.log('Player turn started');
+          // Enable operation buttons for the player
+          this.isPlayerTurn = true;
+          // Show an info notification prompting the player to act
+          this.infoMessage = 'Your turn! Use your AP to perform operations.';
+          this.showInfo = true;
           // Start the countdown timer for the player's turn
           this.startCountdown();
           break;
 
         case WSResponseTypes.BOT_TURN_START:
           console.log('Bot turn started');
+          // Disable operation buttons during the bot's turn
+          this.isPlayerTurn = false;
           // Stop the countdown timer when the bot's turn begins
           this.stopCountdown();
           break;
 
-        case WSResponseTypes.BOT_TURN_FINISH:
+        case WSResponseTypes.BOT_TURN_FINISH: {
           console.log('Bot turn finished');
+          // Show an info notification indicating the current round has finished
+          this.infoMessage = 'Round finished. Waiting for next turn...';
+          this.showInfo = true;
+          // Keep operation buttons disabled until PLAYER_TURN_START is received
+          this.isPlayerTurn = false;
           break;
+        }
 
         case WSResponseTypes.PLAYER_WIN:
           console.log('Player wins!');
+          // Stop all game timers
+          this.stopCountdown();
+          this.isPlayerTurn = false;
+          // Show the game result overlay with victory
+          this.finalPlayerScore = this.playerScore;
+          this.finalEnemyScore = this.enemyScore;
+          this.isVictory = true;
+          this.showResult = true;
           break;
 
         case WSResponseTypes.BOT_WIN:
           console.log('Bot wins!');
+          // Stop all game timers
+          this.stopCountdown();
+          this.isPlayerTurn = false;
+          // Show the game result overlay with defeat
+          this.finalPlayerScore = this.playerScore;
+          this.finalEnemyScore = this.enemyScore;
+          this.isVictory = false;
+          this.showResult = true;
           break;
 
         default:
@@ -482,6 +552,41 @@ export default {
         this.countdownTimer = null;
       }
       this.countdown = 0;
+    },
+
+    /**
+     * handlePlayAgain - Handles the "Play Again" button click
+     *
+     * Navigates back to the BotGame route with the same query parameters
+     * (target, player_timeout) to restart the game. Sets the intentional
+     * disconnect flag to prevent the onclose error notification from showing.
+     *
+     * @method handlePlayAgain
+     */
+    handlePlayAgain() {
+      this.intentionalDisconnect = true;
+      this.disconnectWebSocket();
+      this.$router.push({
+        name: 'BotGame',
+        query: {
+          target: this.$route.query.target,
+          player_timeout: this.$route.query.player_timeout
+        }
+      });
+    },
+
+    /**
+     * handleBackToSetup - Handles the "Back to Setup" button click
+     *
+     * Navigates back to the StartBotGame setup screen. Sets the intentional
+     * disconnect flag to prevent the onclose error notification from showing.
+     *
+     * @method handleBackToSetup
+     */
+    handleBackToSetup() {
+      this.intentionalDisconnect = true;
+      this.disconnectWebSocket();
+      this.$router.push({ name: 'StartBotGame' });
     }
   }
 }

@@ -61,3 +61,4 @@ class GameState(Enum):
     BOT_TURN = 2
     SETTLEMENT = 3
     FINISH = 4
+    END = 5
