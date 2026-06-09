@@ -77,6 +77,7 @@ const routes = [
       }
     }
   },
+
   {
     /**
      * BotGame route
@@ -106,16 +107,27 @@ const routes = [
      * @param {Function} next - Function to resolve the navigation
      */
     beforeEnter: (to, from, next) => {
+      // Check if user is logged in
       if (!userStore.isUserLoggedIn()) {
         // Redirect to home page if user is not logged in
         next({ name: 'StartScreen' });
-      } else {
-        // Allow navigation to proceed
-        next();
+        return;
       }
+
+      // Only allow access from StartBotGame (programmatic navigation via "Start" button)
+      // Block direct URL access, browser back/forward, and navigation from any other page
+      if (from.name !== 'StartBotGame') {
+        // Redirect to StartBotGame if the user did not come from the setup screen
+        next({ name: 'StartBotGame' });
+        return;
+      }
+
+      // Allow navigation to proceed
+      next();
     }
   }
 ]
+
 
 /**
  * Creates and exports the Vue Router instance

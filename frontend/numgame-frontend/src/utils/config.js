@@ -80,6 +80,14 @@ class Config {
     this._botGameEndpoint = process.env.VUE_APP_BOT_GAME_ENDPOINT || '/api/game/botPlay';
     
     /**
+     * Games information endpoint path
+     * 
+     * @type {string}
+     * @private
+     */
+    this._gamesInfoEndpoint = process.env.VUE_APP_GAMES_INFO_ENDPOINT || '/api/user/gamesInfo';
+    
+    /**
      * WebSocket backend URL
      * 
      * @type {string}
@@ -239,7 +247,25 @@ class Config {
   }
 
   /**
+   * Gets the games information endpoint path
+   * 
+   * This method returns the endpoint path for games information API.
+   * The value is read from the VUE_APP_GAMES_INFO_ENDPOINT environment variable.
+   * If the environment variable is not set, a default endpoint path is returned.
+   * 
+   * @method getGamesInfoEndpoint
+   * @returns {string} The games information endpoint path
+   * @example
+   * // Returns '/api/user/gamesInfo' if VUE_APP_GAMES_INFO_ENDPOINT is not set
+   * const gamesInfoEndpoint = config.getGamesInfoEndpoint();
+   */
+  getGamesInfoEndpoint() {
+    return this._gamesInfoEndpoint;
+  }
+
+  /**
    * Gets the complete URL for user information endpoint
+
    * 
    * This method combines the backend base URL with the user information endpoint path
    * to return a complete URL that can be used for API requests.
@@ -271,7 +297,24 @@ class Config {
   }
 
   /**
+   * Gets the complete URL for games information endpoint
+   * 
+   * This method combines the backend base URL with the games information endpoint path
+   * to return a complete URL that can be used for API requests.
+   * 
+   * @method getGamesInfoUrl
+   * @returns {string} Complete URL for games information
+   * @example
+   * // Returns 'http://localhost:7111/api/user/gamesInfo'
+   * const gamesInfoUrl = config.getGamesInfoUrl();
+   */
+  getGamesInfoUrl() {
+    return `${this._backendUrl}${this._gamesInfoEndpoint}`;
+  }
+
+  /**
    * Gets the WebSocket backend URL
+
    * 
    * This method returns the WebSocket server URL for real-time communication.
    * The value is read from the VUE_APP_WS_BACKEND_URL environment variable.
@@ -321,13 +364,16 @@ class Config {
       autoLoginEndpoint: this._autoLoginEndpoint,
       userEndpoint: this._userEndpoint,
       botGameEndpoint: this._botGameEndpoint,
+      gamesInfoEndpoint: this._gamesInfoEndpoint,
       registerUrl: `${this._backendUrl}${this._registerEndpoint}`,
       loginUrl: `${this._backendUrl}${this._loginEndpoint}`,
       autoLoginUrl: `${this._backendUrl}${this._autoLoginEndpoint}`,
       userUrl: `${this._backendUrl}${this._userEndpoint}`,
-      botGameUrl: `${this._backendUrl}${this._botGameEndpoint}`
+      botGameUrl: `${this._backendUrl}${this._botGameEndpoint}`,
+      gamesInfoUrl: `${this._backendUrl}${this._gamesInfoEndpoint}`
     };
   }
+
 
   /**
    * Validates that required configuration values are present
@@ -374,8 +420,10 @@ class Config {
       { name: 'login', value: this._loginEndpoint },
       { name: 'auto-login', value: this._autoLoginEndpoint },
       { name: 'user', value: this._userEndpoint },
-      { name: 'bot-game', value: this._botGameEndpoint }
+      { name: 'bot-game', value: this._botGameEndpoint },
+      { name: 'games-info', value: this._gamesInfoEndpoint }
     ];
+
     
     for (const endpoint of endpoints) {
       if (!endpoint.value || endpoint.value.trim() === '') {
@@ -423,12 +471,16 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports.getAutoLoginEndpoint = configInstance.getAutoLoginEndpoint.bind(configInstance);
   module.exports.getUserEndpoint = configInstance.getUserEndpoint.bind(configInstance);
   module.exports.getBotGameEndpoint = configInstance.getBotGameEndpoint.bind(configInstance);
+  module.exports.getGamesInfoEndpoint = configInstance.getGamesInfoEndpoint.bind(configInstance);
   module.exports.getRegisterUrl = configInstance.getRegisterUrl.bind(configInstance);
+
   module.exports.getLoginUrl = configInstance.getLoginUrl.bind(configInstance);
   module.exports.getAutoLoginUrl = configInstance.getAutoLoginUrl.bind(configInstance);
   module.exports.getUserUrl = configInstance.getUserUrl.bind(configInstance);
   module.exports.getBotGameUrl = configInstance.getBotGameUrl.bind(configInstance);
+  module.exports.getGamesInfoUrl = configInstance.getGamesInfoUrl.bind(configInstance);
   module.exports.getWsBackendUrl = configInstance.getWsBackendUrl.bind(configInstance);
+
   module.exports.getAllConfig = configInstance.getAllConfig.bind(configInstance);
   module.exports.validateConfig = configInstance.validateConfig.bind(configInstance);
   

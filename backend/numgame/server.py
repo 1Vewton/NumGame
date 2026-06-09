@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 # FastAPI dependencies
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 # Project Dependencies
 from utils.config import settings
 import utils.logger_config as logger_config
@@ -92,6 +93,10 @@ tags = [
     {
         "name": "test",
         "description": "The test endpoint for game server"
+    },
+    {
+        "name": "gamesInfo",
+        "description": "Get the info of the games"
     }
 ]
 # APP
@@ -108,6 +113,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+app.add_middleware(
+    GZipMiddleware,
+    minimum_size=1000,
+    compresslevel=5
 )
 # Limiter setting
 app.state.limiter = limiter

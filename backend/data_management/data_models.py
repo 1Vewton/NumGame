@@ -64,6 +64,8 @@ class games(Base):
     rounds = Column(Integer, nullable=False)
     started_time = Column(DateTime, nullable=False)
     ended_time = Column(DateTime, nullable=True)
+    first_move_score = Column(Integer, nullable=True)
+    second_move_score = Column(Integer, nullable=True)
     # constraints
     __table_args__ = (
         CheckConstraint('first_move != second_move',

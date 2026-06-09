@@ -5,7 +5,10 @@ from fastapi import Depends, Request, APIRouter
 from fastapi.responses import JSONResponse
 # Project dependencies
 from data_management.data_management import get_db
-from data_management.data_models import players
+from data_management.data_models import (
+    games,
+    players,
+)
 from data_management.request_body import (
     PlayerData,
     NewPlayerData,
@@ -271,6 +274,105 @@ async def userInfo(request: Request,
                         "result": result_dict
                     }
                     return JSONResponse(content=content, status_code=200)
+                else:
+                    # If the user is not found
+                    content = {
+                        "success": False,
+                        "reason": "User not found or conflict with your cookie"
+                    }
+                    return JSONResponse(content=content, status_code=401)
+            else:
+                # Session expired or invalid
+                content = {
+                    "success": False,
+                    "reason": "Session expired or invalid"
+                }
+                return JSONResponse(content=content, status_code=401)
+        else:
+            # When cookie is not found
+            content = {
+                "success": False,
+                "reason": "Please login first"
+            }
+            return JSONResponse(content=content, status_code=401)
+    except Exception as e:
+        # Error handling
+        logger.error(f"Info fetching failed due to {e}")
+        # Response
+        content = {
+            "success": False,
+            "reason": str(e)
+        }
+        return JSONResponse(content=content, status_code=500)
+
+
+# Get games
+@user_router.post(path="/gamesInfo", tags=["gamesInfo"])
+async def gamesInfo(request: Request,
+                   player_data: PlayerData,
+                   session: Annotated[AsyncSession, Depends(get_db)],
+                   client: aioredis.Redis = Depends(get_redis)):
+    logger.info("Getting game info")
+    try:
+        # Get cookie
+        login_token = request.cookies.get("login_token")
+        if login_token:
+            # Get user_id from redis
+            user_id_search = await search_user_token(
+                token=login_token,
+                client=client
+            )
+            if user_id_search["success"]:
+                user_id = user_id_search["user_id"]
+                # User info query
+                user_info = await session.execute(
+                    select(players).where(
+                        (players.id == user_id) &
+                        (players.id == player_data.player_id) &
+                        (players.user_name == player_data.player_name)
+                    )
+                )
+                result = user_info.first()
+                if result:
+                    # Get all games
+                    games_info = await session.execute(
+                        select(games).where(
+                            (games.first_move == user_id) |
+                            (games.second_move == user_id)
+                        )
+                    )
+                    all_games = games_info.scalars().all()
+                    # Process data
+                    data = []
+                    users = {}
+                    logger.info(f"Number of games: {len(all_games)}")
+                    for game in all_games:
+                        logger.info(f"Getting game info for {game.id}")
+                        data.append(game.to_dict())
+                        if game.first_move not in users.keys():
+                            user_info = await session.execute(
+                                select(players).where(
+                                    players.id == game.first_move
+                                )
+                            )
+                            user_data = user_info.first()
+                            if user_data:
+                                users[game.first_move] = user_data[0].user_name
+                        if game.second_move not in users.keys():
+                            user_info = await session.execute(
+                                select(players).where(
+                                    players.id == game.second_move
+                                )
+                            )
+                            user_data = user_info.first()
+                            if user_data:
+                                users[game.second_move] = user_data[0].user_name
+                    result = {
+                        "success": True,
+                        "data": data,
+                        "appeared_users": users
+                    }
+                    return JSONResponse(content=result, status_code=200)
                 else:
                     # If the user is not found
                     content = {

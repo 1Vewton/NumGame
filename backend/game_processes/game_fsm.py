@@ -282,6 +282,13 @@ class BotGameStateMachine:
                     await self.ws_client.send_json(content)
             self.end_time = datetime.now()
             # Data for the game to get stored
+            # Get the data for user
+            if self.is_user_first:
+                first_move_score = await self.game.getPlayerScore()
+                second_move_score = await self.game.getBotScore()
+            else:
+                first_move_score = await self.game.getBotScore()
+                second_move_score = await self.game.getPlayerScore()
             if self.is_player_win:
                 new_game_data = games(
                     id=self.game_id,
@@ -290,7 +297,9 @@ class BotGameStateMachine:
                     winner=self.player_id,
                     rounds=self.round,
                     started_time=self.start_time,
-                    ended_time=self.end_time
+                    ended_time=self.end_time,
+                    first_move_score=first_move_score,
+                    second_move_score=second_move_score,
                 )
             else:
                 new_game_data = games(
@@ -300,7 +309,9 @@ class BotGameStateMachine:
                     winner=bot_id,
                     rounds=self.round,
                     started_time=self.start_time,
-                    ended_time=self.end_time
+                    ended_time=self.end_time,
+                    first_move_score=first_move_score,
+                    second_move_score=second_move_score,
                 )
             session.add(new_game_data)
             # Game finished
