@@ -309,9 +309,9 @@ async def userInfo(request: Request,
 # Get games
 @user_router.post(path="/gamesInfo", tags=["gamesInfo"])
 async def gamesInfo(request: Request,
-                   player_data: PlayerData,
-                   session: Annotated[AsyncSession, Depends(get_db)],
-                   client: aioredis.Redis = Depends(get_redis)):
+                    player_data: PlayerData,
+                    session: Annotated[AsyncSession, Depends(get_db)],
+                    client: aioredis.Redis = Depends(get_redis)):
     logger.info("Getting game info")
     try:
         # Get cookie
