@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # Bot config
     simple_bot_name: str = "<bot>"
     maximum_bot_operation_times: int = 5
-    bot_think: int = 5
+    bot_think: int = 3
 
     # Load .env
     model_config = SettingsConfigDict(

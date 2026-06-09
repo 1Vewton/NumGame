@@ -68,11 +68,11 @@ Victory shows green accents, defeat shows red accents.
           @click="$emit('playAgain')"
         />
         <AppButton
-          label="Back to Setup"
+          label="Back to Title"
           variant="secondary"
           size="medium"
           width="100%"
-          @click="$emit('backToSetup')"
+          @click="$emit('backToTitle')"
         />
       </div>
 
@@ -137,11 +137,12 @@ export default {
    * Component emits - Events emitted to the parent
    *
    * @event playAgain - Emitted when the user clicks "Play Again"
-   *   Parent should navigate back to BotGame or restart the game
-   * @event backToSetup - Emitted when the user clicks "Back to Setup"
-   *   Parent should navigate to StartBotGame route
+   *   Parent should navigate to StartBotGame to setup a new game
+   * @event backToTitle - Emitted when the user clicks "Back to Title"
+   *   Parent should navigate to the welcome screen (StartScreen)
    */
-  emits: ['playAgain', 'backToSetup']
+  emits: ['playAgain', 'backToTitle']
+
 }
 </script>
 

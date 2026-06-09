@@ -15,16 +15,16 @@ class BotStateMachine:
         # Weight of operation for each state
         self.operation_weights = {
             StateMachine.START_STAGE: [
-                0.1,
                 0.0,
+                0.0,
+                0.50,
                 0.45,
-                0.40,
                 0.05
             ],
             StateMachine.BALANCE: [
-                0.25,
-                0.25,
-                0.25,
+                0.2,
+                0.2,
+                0.35,
                 0.2,
                 0.05
             ],
@@ -36,10 +36,10 @@ class BotStateMachine:
                 0.05
             ],
             StateMachine.DISADVANTAGE: [
-                0.1,
-                0.4,
-                0.2,
-                0.3,
+                0.15,
+                0.25,
+                0.25,
+                0.35,
                 0.0
             ],
             StateMachine.RUSH_STAGE: [

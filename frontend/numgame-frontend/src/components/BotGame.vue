@@ -56,8 +56,9 @@ user operations from GameScreen bubble back up via the @operate event.
     :playerScore="finalPlayerScore"
     :enemyScore="finalEnemyScore"
     @playAgain="handlePlayAgain"
-    @backToSetup="handleBackToSetup"
+    @backToTitle="handleBackToTitle"
   />
+
 </template>
 
 <script>
@@ -146,7 +147,9 @@ export default {
       isVictory: false,
       finalPlayerScore: 0,
       finalEnemyScore: 0,
-      intentionalDisconnect: false
+      intentionalDisconnect: false,
+      gameEnded: false
+
     };
   },
 
@@ -287,6 +290,13 @@ export default {
           this.heartbeatTimer = null;
         }
 
+        // Do nothing if the game has already ended (win/loss received) -
+        // the result overlay is already displayed and the user can choose
+        // to play again or go back to the title screen.
+        if (this.gameEnded) {
+          return;
+        }
+
         // Only show error notification and navigate if the disconnect was unintentional
         // (e.g., network error or server crash, not user navigation)
         if (!this.intentionalDisconnect) {
@@ -298,6 +308,7 @@ export default {
             this.$router.push({ name: 'StartBotGame' });
           }, 1500);
         }
+
       };
     },
 
@@ -407,6 +418,9 @@ export default {
           // Stop all game timers
           this.stopCountdown();
           this.isPlayerTurn = false;
+          // Mark the game as ended so the WebSocket onclose handler
+          // does not show an error notification when the server terminates the connection
+          this.gameEnded = true;
           // Show the game result overlay with victory
           this.finalPlayerScore = this.playerScore;
           this.finalEnemyScore = this.enemyScore;
@@ -419,12 +433,16 @@ export default {
           // Stop all game timers
           this.stopCountdown();
           this.isPlayerTurn = false;
+          // Mark the game as ended so the WebSocket onclose handler
+          // does not show an error notification when the server terminates the connection
+          this.gameEnded = true;
           // Show the game result overlay with defeat
           this.finalPlayerScore = this.playerScore;
           this.finalEnemyScore = this.enemyScore;
           this.isVictory = false;
           this.showResult = true;
           break;
+
 
         default:
           console.log('Unhandled message type:', message.type);
@@ -557,37 +575,32 @@ export default {
     /**
      * handlePlayAgain - Handles the "Play Again" button click
      *
-     * Navigates back to the BotGame route with the same query parameters
-     * (target, player_timeout) to restart the game. Sets the intentional
-     * disconnect flag to prevent the onclose error notification from showing.
+     * Navigates to the StartBotGame setup screen so the player can configure
+     * a new game with different parameters. Sets the intentional disconnect
+     * flag to prevent the onclose error notification from showing.
      *
      * @method handlePlayAgain
      */
     handlePlayAgain() {
       this.intentionalDisconnect = true;
       this.disconnectWebSocket();
-      this.$router.push({
-        name: 'BotGame',
-        query: {
-          target: this.$route.query.target,
-          player_timeout: this.$route.query.player_timeout
-        }
-      });
+      this.$router.push({ name: 'StartBotGame' });
     },
 
     /**
-     * handleBackToSetup - Handles the "Back to Setup" button click
+     * handleBackToTitle - Handles the "Back to Title" button click
      *
-     * Navigates back to the StartBotGame setup screen. Sets the intentional
+     * Navigates back to the welcome screen (StartScreen). Sets the intentional
      * disconnect flag to prevent the onclose error notification from showing.
      *
-     * @method handleBackToSetup
+     * @method handleBackToTitle
      */
-    handleBackToSetup() {
+    handleBackToTitle() {
       this.intentionalDisconnect = true;
       this.disconnectWebSocket();
-      this.$router.push({ name: 'StartBotGame' });
+      this.$router.push({ name: 'StartScreen' });
     }
+
   }
 }
 </script>
