@@ -1,0 +1,314 @@
+/**
+ * game-info.css - GameInfo Component Styles
+ * 
+ * This file contains styles for the GameInfo component which displays
+ * a list of all games associated with the player. Shared base styles
+ * are inherited from globally imported CSS files.
+ * 
+ * @module GameInfoStyles
+ */
+
+/* --------------------- Game Info Page Layout --------------------- */
+.game-info-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  box-sizing: border-box;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+.game-info-header {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.game-info-title {
+  font-size: 1.8rem;
+  color: #ff0000;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* Back button in the header */
+.game-info-header .back-btn {
+  background: none;
+  border: none;
+  color: #ff0000;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.3rem;
+  border-radius: 50%;
+  transition: color 0.2s, text-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-info-header .back-btn:hover {
+  color: #ff4444;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+/* --------------------- Loading & Error States --------------------- */
+.game-info-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  color: #cccccc;
+  gap: 1rem;
+  font-size: 1rem;
+}
+
+.game-info-loading i {
+  font-size: 2rem;
+  color: #ff0000;
+}
+
+.game-info-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  color: #ff4444;
+  gap: 1rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.game-info-error i {
+  font-size: 2rem;
+}
+
+/* --------------------- Empty State --------------------- */
+.game-info-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  color: #aaaaaa;
+  gap: 1rem;
+  font-size: 1.1rem;
+}
+
+.game-info-empty i {
+  font-size: 3rem;
+  color: #555555;
+}
+
+/* --------------------- Games List --------------------- */
+.game-list {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* --------------------- Individual Game Card --------------------- */
+.game-card {
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.game-card--win {
+  border: 2px solid #4caf50;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.3);
+}
+
+.game-card--lose {
+  border: 2px solid #ff0000;
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.3);
+}
+
+/* --------------------- Win/Loss Icon Row --------------------- */
+.game-card-result {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 0.3rem;
+}
+
+.game-card-result i {
+  font-size: 1.6rem;
+}
+
+.game-card-result--win i {
+  color: #4caf50;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.game-card-result--lose i {
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+/* --------------------- Players & Scores Row --------------------- */
+.game-card-players {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Left player (first_move) and Right player (second_move) */
+.player-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.player-side--left {
+  align-items: flex-end;
+}
+
+.player-side--right {
+  align-items: flex-start;
+}
+
+.player-name {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.player-score {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.player-side--is-user .player-name {
+  color: #4caf50;
+}
+
+.player-side--is-user .player-score {
+  color: #4caf50;
+  text-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.player-side--is-opponent .player-name {
+  color: #ff4444;
+}
+
+.player-side--is-opponent .player-score {
+  color: #ff4444;
+  text-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
+}
+
+/* Crossed swords icon in the center */
+.game-card-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.game-card-vs i {
+  font-size: 1.8rem;
+  color: #ff0000;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/* --------------------- Game Meta Info Row --------------------- */
+.game-card-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid #333333;
+  font-size: 0.8rem;
+  color: #888888;
+}
+
+.game-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.game-card-meta i {
+  font-size: 0.85rem;
+  color: #ff0000;
+}
+
+/* --------------------- Responsive Design --------------------- */
+@media (max-width: 768px) {
+  .game-info-page {
+    padding: 1.5rem 1rem;
+  }
+
+  .game-info-title {
+    font-size: 1.4rem;
+  }
+
+  .game-card {
+    padding: 1rem 1.2rem;
+  }
+
+  .player-name {
+    font-size: 0.85rem;
+  }
+
+  .player-score {
+    font-size: 1.3rem;
+  }
+
+  .game-card-vs i {
+    font-size: 1.4rem;
+  }
+
+  .game-card-meta {
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-info-page {
+    padding: 1rem 0.8rem;
+  }
+
+  .game-info-title {
+    font-size: 1.2rem;
+  }
+
+  .game-card {
+    padding: 0.8rem 1rem;
+  }
+
+  .player-name {
+    font-size: 0.75rem;
+  }
+
+  .player-score {
+    font-size: 1.1rem;
+  }
+
+  .game-card-vs i {
+    font-size: 1.2rem;
+  }
+
+  .game-card-meta {
+    font-size: 0.7rem;
+  }
+}

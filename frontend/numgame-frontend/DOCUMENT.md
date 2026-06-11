@@ -429,10 +429,15 @@ The component determines login status through three mechanisms:
   - `name` (string): 'StartBotGame' — Route identifier for programmatic navigation
   - `component` (Component): StartBotGame — The Bot game setup screen component to render
   - `beforeEnter`: Navigation guard that checks if the user is logged in via `userStore.isUserLoggedIn()`. If not logged in, redirects to StartScreen.
+- `path: '/gameInfo'`: Maps to `GameInfo` component — renders the game history page when accessing `http://localhost:8080/gameInfo`
+  - `name` (string): 'GameInfo' — Route identifier for programmatic navigation
+  - `component` (Component): GameInfo — The game history page component
+  - `beforeEnter`: Navigation guard that checks if the user is logged in via `userStore.isUserLoggedIn()`. If not logged in, redirects to StartScreen.
 - `path: '/botGame'`: Maps to `BotGame` component — renders the Bot game mode interface when accessing `http://localhost:8080/botGame`
   - `name` (string): 'BotGame' — Route identifier for programmatic navigation
   - `component` (Component): BotGame — The Bot game mode component (wraps the shared GameScreen template)
   - `beforeEnter`: Navigation guard that checks if the user is logged in via `userStore.isUserLoggedIn()`. If not logged in, redirects to StartScreen.
+
 
 **Functions**:
 - `createRouter(options)`: Creates a new Vue Router instance with HTML5 history mode
@@ -557,8 +562,13 @@ The component determines login status through three mechanisms:
   - `playerName` (string, default: 'string'): The username of the player to look up
   - `playerId` (string, default: 'string'): The unique identifier of the player account
   - Returns: {Object} Request body with `player_name` and `player_id` properties
+- `getGamesInfoBody(playerName, playerId)`: Creates a request body for games information retrieval
+  - `playerName` (string, default: 'string'): The username of the player
+  - `playerId` (string, default: 'string'): The unique identifier of the player account
+  - Returns: {Object} Request body with `player_name` and `player_id` properties
 
-**Integration**: Provides request body generation functions used by application modules when making API calls to backend endpoints for registration, login, and user information retrieval.
+**Integration**: Provides request body generation functions used by application modules when making API calls to backend endpoints for registration, login, user information retrieval, and games information retrieval.
+
 
 ---
 
@@ -1124,4 +1134,135 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 
 ---
 
-*Last Updated: June 7, 2026*
+## GameInfo Component (`src/components/GameInfo.vue`)
+
+**Purpose**: Displays a list of all games the player has participated in, fetched from the backend GamesInfoEndpoint. Renders each game as a card showing the matchup, scores, win/loss status, and metadata.
+
+**Component Properties**:
+- `name` (string): 'GameInfo' - Component identifier
+
+**Dependencies**:
+- `fetchGamesInfo`, `parseGameRecord` (Module): Imported from `../utils/gamesService.js` — provides API calls and data parsing
+- `userStore` (Module): Imported from `../stores/userStore.js` — provides player credentials
+
+**Data Properties**:
+- `data.games` (Array\<Object\>): List of parsed game records (default: [])
+- `data.appearedUsers` (Object): Mapping of user IDs to display names (default: {})
+- `data.isLoading` (boolean): Flag indicating if data is being fetched (default: true)
+- `data.errorMessage` (string): Error message if the request fails (default: '')
+
+**Lifecycle Hooks**:
+- `mounted()`: Calls `fetchGames()` to load game history when component is mounted.
+
+**Methods**:
+- `fetchGames()`: Retrieves player credentials from userStore, sends request to GamesInfoEndpoint, and stores parsed game records along with the appeared users mapping. Handles loading state and error display.
+- `getPlayerId()`: Returns the current player's user ID from userStore.
+- `getPlayerName(userId)`: Resolves a user ID to a display name using the appearedUsers mapping. Falls back to the user ID if not found.
+- `formatScore(score)`: Formats a score value for display. Returns 'N/A' if null/undefined.
+- `formatDate(date)`: Formats a Date object to YYYY-MM-DD string. Returns 'N/A' if invalid.
+- `formatDuration(startTime, endTime)`: Calculates and formats duration between two Date objects (e.g., '2m 15s').
+- `isWin(game)`: Returns true if the current player is the winner.
+- `isLose(game)`: Returns true if the current player is not the winner.
+- `getCardClass(game)`: Returns 'game-card--win' or 'game-card--lose' CSS class based on result.
+- `getResultClass(game)`: Returns 'game-card-result--win' or 'game-card-result--lose' CSS class.
+- `getPlayerSideClass(userId)`: Returns 'player-side--is-user' (green) or 'player-side--is-opponent' (red) CSS class.
+
+**Template Structure**:
+- Page header with "Game History" title and back-to-home button (fa-house)
+- Loading state with spinner icon and "Loading game history..." text
+- Error state with warning icon and error message
+- Empty state with gamepad icon and "No games played yet" message
+- Game card list showing each game with:
+  - Win/Loss result icon (trophy for win, skull for loss) with green/red coloring
+  - Two player sides with names and scores, highlighted green for current user, red for opponent
+  - VS crossed swords divider between players
+  - Meta info row showing rounds, end date, and duration
+
+**Integration**: Registered in the Vue Router at `/gameInfo` route with authentication guard. Uses gamesService for API calls and data parsing, userStore for player credentials. Uses `game-info.css` for styling.
+
+---
+
+## GameInfo Styles (`src/assets/styles/game-info.css`)
+
+**Purpose**: Contains styles for the GameInfo component page layout, game cards with win/loss color coding, player side highlighting, and responsive design.
+
+**Key Classes**:
+- `.game-info-page`: Full-width flex column page container
+- `.game-info-header`: Flex row header with title and back button
+- `.game-info-title`: Red gradient title with glow effect
+- `.back-btn`: Red home icon button with hover glow effect
+- `.game-info-loading`, `.game-info-error`, `.game-info-empty`: Centered flex column status states with appropriate icon colors
+- `.game-list`: Flex column game card container
+- `.game-card`: Game card with dark background, border, rounded corners, and hover lift effect
+- `.game-card--win`: Green left border accent for victory
+- `.game-card--lose`: Red left border accent for defeat
+- `.game-card-result`: Centered icon row with trophy or skull
+- `.game-card-result--win i`: Green (#4caf50) trophy icon
+- `.game-card-result--lose i`: Red (#ff0000) skull icon
+- `.game-card-players`: Flex row showing two player sides with VS divider
+- `.player-side`: Flex column with name and score
+- `.player-side--is-user .player-name`: Green (#4caf50) text for current user
+- `.player-side--is-opponent .player-name`: Red (#ff4444) text for opponent
+- `.player-side--is-user .player-score`: Green (#4caf50) score for current user
+- `.player-side--is-opponent .player-score`: Red (#ff4444) score for opponent
+- `.game-card-vs`: Centered crossed swords icon in red
+- `.game-card-meta`: Flex row with gray meta info items (rounds, date, duration)
+- Responsive breakpoints at 768px and 480px
+
+**Integration**: Imported by `GameInfo.vue` via `<style scoped src="...">`.
+
+---
+
+## Games Service Module (`src/utils/gamesService.js`)
+
+
+**Purpose**: Provides functions for fetching and processing game history data from the backend GamesInfoEndpoint. Handles request construction, response parsing, and data normalization.
+
+**Functions**:
+- `fetchGamesInfo(playerName, playerId)`: Sends a POST request to the games information endpoint with player credentials and returns the parsed response containing all games, appeared users mapping, and success status
+  - `playerName` (string): The username of the player
+  - `playerId` (string): The unique identifier of the player account
+  - Returns: {Promise<Object>} API response with `success`, `data` (array of game objects), and `appeared_users` (object mapping user IDs to names)
+  - Throws: {Error} If the API request fails
+
+- `parseGameRecord(rawGame)`: Transforms a raw game record from the backend into a normalized JavaScript object with camelCase properties and JavaScript Date objects for timestamps
+  - `rawGame` (Object): The raw game record with fields: `id`, `first_move`, `second_move`, `winner`, `rounds`, `started_time`, `ended_time`, `first_move_score`, `second_move_score`
+  - Returns: {Object} Normalized game record with `id`, `firstMove`, `secondMove`, `winner`, `rounds`, `startedTime` (Date), `endedTime` (Date), `firstMoveScore`, `secondMoveScore`
+
+- `getGameResultForPlayer(game, playerId, appearedUsers)`: Determines if the specified player won or lost a game
+  - `game` (Object): A parsed game record
+  - `playerId` (string): The user ID of the player to check
+  - `appearedUsers` (Object): Mapping of user IDs to display names
+  - Returns: {string} `'win'`, `'lose'`, or `'unknown'`
+
+- `getOpponentName(game, playerId, appearedUsers)`: Determines the opponent's display name for a game
+  - `game` (Object): A parsed game record
+  - `playerId` (string): The user ID of the current player
+  - `appearedUsers` (Object): Mapping of user IDs to display names
+  - Returns: {string} The opponent's display name or `'Unknown'`
+
+**Integration**: Uses apiClient for HTTP requests, config for endpoint path, and requestBodies for payload generation. Can be imported by any component that needs to display game history (e.g., a future GameHistory component).
+
+**Usage Example**:
+```javascript
+import { fetchGamesInfo, parseGameRecord } from '@/utils/gamesService';
+import userStore from '@/stores/userStore';
+
+async function loadGames() {
+  const response = await fetchGamesInfo(
+    userStore.getUserName(),
+    userStore.getUserId()
+  );
+  if (response.success) {
+    const games = response.data.map(parseGameRecord);
+    const appearedUsers = response.appeared_users;
+    console.log(games, appearedUsers);
+  }
+}
+```
+
+---
+
+*Last Updated: June 11, 2026*
+
+
