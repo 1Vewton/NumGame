@@ -110,6 +110,38 @@ export function getUserInfoBody(playerName = 'string', playerId = 'string') {
 }
 
 /**
+ * Generates a request body for games information retrieval
+ *
+ * This function creates the payload structure required for the games information
+ * endpoint. It contains the player's identification details needed to fetch
+ * the history of all games associated with the player account.
+ *
+ * @function getGamesInfoBody
+ * @param {string} [playerName='string'] - The username of the player
+ * @param {string} [playerId='string'] - The unique identifier of the player account
+ * @returns {Object} The request body for games information
+ * @property {string} player_name - The username of the player
+ * @property {string} player_id - The unique identifier of the player account
+ * @example
+ * // Returns default template body
+ * const body = getGamesInfoBody();
+ * console.log(body);
+ * // { player_name: 'string', player_id: 'string' }
+ *
+ * @example
+ * // Returns customized body with actual data
+ * const body = getGamesInfoBody('player1', 'uuid-12345');
+ * console.log(body);
+ * // { player_name: 'player1', player_id: 'uuid-12345' }
+ */
+export function getGamesInfoBody(playerName = 'string', playerId = 'string') {
+  return {
+    player_name: playerName,
+    player_id: playerId
+  };
+}
+
+/**
  * All request body generation functions organized by endpoint name
  *
  * This aggregated object provides a convenient way to access all request body
@@ -120,12 +152,15 @@ export function getUserInfoBody(playerName = 'string', playerId = 'string') {
  * @property {Function} getUserRegisterBody - Function to generate user registration request body
  * @property {Function} getUserLoginBody - Function to generate user login request body
  * @property {Function} getUserInfoBody - Function to generate user information request body
+ * @property {Function} getGamesInfoBody - Function to generate games information request body
  */
 const requestBodies = {
   getUserRegisterBody,
   getUserLoginBody,
-  getUserInfoBody
+  getUserInfoBody,
+  getGamesInfoBody
 };
+
 
 export default requestBodies;
 
@@ -134,8 +169,11 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     getUserRegisterBody,
     getUserLoginBody,
-    getUserInfoBody
+    getUserInfoBody,
+    getGamesInfoBody
   };
   module.exports.default = requestBodies;
   module.exports.__esModule = true;
 }
+
+

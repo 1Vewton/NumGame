@@ -12,7 +12,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import StartScreen from '../components/StartScreen.vue'
 import StartBotGame from '../components/StartBotGame.vue'
 import BotGame from '../components/BotGame.vue'
+import GameInfo from '../components/GameInfo.vue'
 import userStore from '../stores/userStore.js'
+
 
 /**
  * Route configuration array
@@ -80,7 +82,42 @@ const routes = [
 
   {
     /**
+     * GameInfo route
+     * 
+     * When accessing http://localhost:8080/gameInfo,
+     * this route renders the GameInfo component which displays
+     * the player's game history fetched from the backend GamesInfoEndpoint.
+     * 
+     * @route GET /gameInfo
+     * @component GameInfo
+     */
+    path: '/gameInfo',
+    name: 'GameInfo',
+    component: GameInfo,
+    /**
+     * Navigation guard that checks if the user is logged in
+     * 
+     * If the user is not logged in, redirects to the home page (StartScreen).
+     * This prevents unauthorized access to the game history page.
+     * 
+     * @function beforeEnter
+     * @param {Object} to - Target route object
+     * @param {Object} from - Current route object
+     * @param {Function} next - Function to resolve the navigation
+     */
+    beforeEnter: (to, from, next) => {
+      if (!userStore.isUserLoggedIn()) {
+        next({ name: 'StartScreen' });
+      } else {
+        next();
+      }
+    }
+  },
+
+  {
+    /**
      * BotGame route
+
      * 
      * When accessing http://localhost:8080/botGame,
      * this route renders the BotGame component which wraps the

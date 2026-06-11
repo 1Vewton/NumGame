@@ -102,11 +102,11 @@ and API calls without being coupled to this component.
     <!-- ============================================ -->
     <div class="game-operations">
 
-      <!-- Enhance Productivity -->
+      <!-- Enhance Productivity (disabled when AP is below 10) -->
       <div class="operation-item">
         <button
           class="operation-button"
-          :disabled="!isPlayerTurn"
+          :disabled="!isPlayerTurn || isLowAp"
           @click="$emit('operate', 'enhanceProductivity')"
         >
           <i class="fas fa-arrow-up"></i>
@@ -114,11 +114,11 @@ and API calls without being coupled to this component.
         <span class="operation-label">Enhance<br/>Productivity</span>
       </div>
 
-      <!-- Produce -->
+      <!-- Produce (disabled when AP is below 10) -->
       <div class="operation-item">
         <button
           class="operation-button"
-          :disabled="!isPlayerTurn"
+          :disabled="!isPlayerTurn || isLowAp"
           @click="$emit('operate', 'produce')"
         >
           <i class="fas fa-plus-circle"></i>
@@ -126,11 +126,11 @@ and API calls without being coupled to this component.
         <span class="operation-label">Produce</span>
       </div>
 
-      <!-- Enhance Action Points -->
+      <!-- Enhance Action Points (disabled when AP is below 10) -->
       <div class="operation-item">
         <button
           class="operation-button"
-          :disabled="!isPlayerTurn"
+          :disabled="!isPlayerTurn || isLowAp"
           @click="$emit('operate', 'enhanceActionPoints')"
         >
           <i class="fas fa-bolt"></i>
@@ -138,11 +138,11 @@ and API calls without being coupled to this component.
         <span class="operation-label">Enhance<br/>AP</span>
       </div>
 
-      <!-- Destruct -->
+      <!-- Destruct (disabled when AP is below 10) -->
       <div class="operation-item">
         <button
           class="operation-button"
-          :disabled="!isPlayerTurn"
+          :disabled="!isPlayerTurn || isLowAp"
           @click="$emit('operate', 'destruct')"
         >
           <i class="fas fa-minus-circle"></i>
@@ -150,11 +150,11 @@ and API calls without being coupled to this component.
         <span class="operation-label">Destruct</span>
       </div>
 
-      <!-- Enhance Destructivity -->
+      <!-- Enhance Destructivity (disabled when AP is below 10) -->
       <div class="operation-item">
         <button
           class="operation-button"
-          :disabled="!isPlayerTurn"
+          :disabled="!isPlayerTurn || isLowAp"
           @click="$emit('operate', 'enhanceDestructivity')"
         >
           <i class="fas fa-arrow-down"></i>
@@ -162,7 +162,7 @@ and API calls without being coupled to this component.
         <span class="operation-label">Enhance<br/>Destructivity</span>
       </div>
 
-      <!-- Skip -->
+      <!-- Skip (always enabled during player's turn, even when AP is low) -->
       <div class="operation-item">
         <button
           class="operation-button"
@@ -275,6 +275,19 @@ export default {
    *      'enhanceActionPoints', 'skip')
    */
   emits: ['operate'],
+
+  /**
+   * Component computed properties
+   *
+   * @property {boolean} isLowAp - Whether the player's AP is below 10.
+   *   When true, all operation buttons except "Skip" are disabled,
+   *   forcing the player to skip their turn.
+   */
+  computed: {
+    isLowAp() {
+      return this.actionPoints < 10;
+    }
+  },
 
   /**
    * Component data properties

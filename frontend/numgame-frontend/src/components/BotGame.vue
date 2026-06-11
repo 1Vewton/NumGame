@@ -479,6 +479,9 @@ export default {
      * corresponding Operations enum numeric value, then sends it to the
      * backend via WebSocket as a PLAYER_OPERATION message.
      *
+     * When the player's AP is below 10, only the SKIP operation is allowed;
+     * all other operations are blocked with a warning log.
+     *
      * @method handleOperation
      * @param {string} operation - The operation identifier from GameScreen
      *   ('produce', 'destruct', 'enhanceProductivity', 'enhanceDestructivity',
@@ -492,6 +495,12 @@ export default {
 
       if (operationEnum === null) {
         console.warn('Unknown operation:', operation);
+        return;
+      }
+
+      // Block non-skip operations when AP is below 10
+      if (this.actionPoints < 10 && operationEnum !== Operations.SKIP) {
+        console.warn('Operation blocked: AP is below 10, only skip is allowed');
         return;
       }
 

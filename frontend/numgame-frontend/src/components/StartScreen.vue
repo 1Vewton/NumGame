@@ -26,6 +26,14 @@ includes password format validation and confirm password matching.
       </button>
     </div>
 
+    <!-- Game history icon button (top-right corner, only visible when logged in) -->
+    <div v-if="loggedIn" class="history-icon-container">
+      <button class="history-icon-button" @click="goToGameInfo" title="Game History">
+        <i class="fas fa-clock-rotate-left fa-2x"></i>
+      </button>
+    </div>
+
+
     <!-- User information modal overlay -->
     <UserInfo v-if="showUserInfo" @close="showUserInfo = false" />
 
@@ -556,8 +564,22 @@ export default {
      */
     goToBotGame() {
       this.$router.push({ name: 'StartBotGame' });
+    },
+
+    /**
+     * Navigates to the Game History page
+     * 
+     * This method uses Vue Router to navigate to the /gameInfo route,
+     * which renders the GameInfo component showing a list of all games
+     * the player has participated in.
+     * 
+     * @method goToGameInfo
+     */
+    goToGameInfo() {
+      this.$router.push({ name: 'GameInfo' });
     }
   }
+
 }
 </script>
 
