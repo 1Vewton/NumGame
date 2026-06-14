@@ -37,10 +37,10 @@ side is highlighted in green while the opponent's side is in red.
       <span>No games played yet. Start a game to see your history!</span>
     </div>
 
-    <!-- Games list -->
+    <!-- Games list with pagination -->
     <div v-else class="game-list">
       <div
-        v-for="game in games"
+        v-for="game in paginatedGames"
         :key="game.id"
         class="game-card"
         :class="getCardClass(game)"
@@ -96,7 +96,35 @@ side is highlighted in green while the opponent's side is in red.
           </span>
         </div>
       </div>
+
+      <!-- Pagination controls -->
+      <div v-if="totalPages > 1" class="pagination-controls">
+        <button
+          class="pagination-btn"
+          :class="{ 'pagination-btn--disabled': currentPage <= 1 }"
+          :disabled="currentPage <= 1"
+          @click="goToPage(currentPage - 1)"
+          title="Previous page"
+        >
+          <i class="fas fa-chevron-left"></i>
+          Prev
+        </button>
+        <span class="pagination-info">
+          Page {{ currentPage }} / {{ totalPages }}
+        </span>
+        <button
+          class="pagination-btn"
+          :class="{ 'pagination-btn--disabled': currentPage >= totalPages }"
+          :disabled="currentPage >= totalPages"
+          @click="goToPage(currentPage + 1)"
+          title="Next page"
+        >
+          Next
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -130,8 +158,37 @@ export default {
       games: [],
       appearedUsers: {},
       isLoading: true,
-      errorMessage: ''
+      errorMessage: '',
+      currentPage: 1,
+      pageSize: 10
     };
+  },
+
+  /**
+   * Computed properties for pagination
+   */
+  computed: {
+    /**
+     * Total number of pages based on games count and page size
+     *
+     * @property totalPages
+     * @returns {number} Total number of pages
+     */
+    totalPages() {
+      return Math.max(1, Math.ceil(this.games.length / this.pageSize));
+    },
+
+    /**
+     * Games for the current page (sliced from the full list)
+     *
+     * @property paginatedGames
+     * @returns {Array<Object>} Games to display on the current page
+     */
+    paginatedGames() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.games.slice(start, end);
+    }
   },
 
   /**
@@ -144,6 +201,7 @@ export default {
   },
 
   methods: {
+
     /**
      * Fetches all games for the current player
      *
@@ -327,7 +385,25 @@ export default {
         return 'player-side--is-user';
       }
       return 'player-side--is-opponent';
+    },
+
+    /**
+     * Navigates to a specific page
+     *
+     * Updates the current page number and ensures it stays within valid bounds.
+     *
+     * @method goToPage
+     * @param {number} page - The target page number
+     * @returns {void}
+     */
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+        // Scroll to top of the game list for better UX
+        this.$el.querySelector('.game-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
+
   }
 };
 </script>

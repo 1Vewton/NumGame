@@ -79,9 +79,14 @@
   word-break: break-all;
 }
 
+/* Log out button container */
+.logout-button-container {
+  margin-top: 1rem;
+}
+
 /* Back button container */
 .back-button-container {
-  margin-top: 0.5rem;
+  margin-top: 1.75rem;
 }
 
 /* User info modal - inherits base modal styles from shared.css, override max-width */

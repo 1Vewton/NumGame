@@ -18,5 +18,8 @@ const { defineConfig } = require('@vue/cli-service')
  *   This ensures compatibility with older browsers for third-party packages.
  */
 module.exports = defineConfig({
-  transpileDependencies: true
+  transpileDependencies: true,
+  devServer: {
+    port: process.env.VUE_APP_SERVER_PORT || 8080
+  }
 })

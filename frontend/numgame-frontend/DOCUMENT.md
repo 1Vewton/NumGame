@@ -358,6 +358,7 @@ The component determines login status through three mechanisms:
 - `userInfo` (Object|null): The fetched user information object from the backend API response
 - `isLoading` (boolean): Flag indicating if the API request to fetch user info is in progress
 - `errorMessage` (string): Error message to display if the API request fails
+- `isLoggingOut` (boolean): Flag indicating if a log out request is in progress
 
 **Computed Properties**:
 - `formattedDate` (string): Converts the `registered_at` Unix timestamp (seconds since epoch) to a human-readable YYYY-MM-DD date string. Returns 'N/A' if no timestamp is available.
@@ -365,6 +366,7 @@ The component determines login status through three mechanisms:
 
 **Methods**:
 - `fetchUserInfo()`: Sends a POST request to the user info endpoint (`/api/user/userInfo`) with `player_name` and `player_id` from the userStore. On success, stores the `result` field in `userInfo`. On failure, sets `errorMessage` using the unified error handler.
+- `handleLogOut()`: Sends a GET request to the log out endpoint (`/api/user/userLogout`). On success, calls `userStore.clearAll()` to clear all stored user data and reloads the page via `window.location.reload()`. On failure, still clears data and reloads to ensure local state is reset.
 
 **Template Structure**:
 - Full-screen dark overlay with centered modal container
@@ -372,6 +374,7 @@ The component determines login status through three mechanisms:
 - Loading state with spinning icon when fetching data
 - Error state with warning icon and error message
 - User info content showing: User ID, Username, Registered At (YYYY-MM-DD format), Wins, Total Games, Win Rate (percentage or N/A if no games)
+- Log Out button using AppButton component (primary variant, disabled while logging out)
 - Back button using AppButton component (primary variant)
 
 **Styling Features**:
@@ -411,9 +414,10 @@ The component determines login status through three mechanisms:
 - `setUser(userId, userName)`: Sets the current user's session data after successful login
   - `userId` (string): The unique identifier of the user
   - `userName` (string): The display name of the user
-- `clearUser()`: Clears the current user's session data on logout
+- `clearUser()`: Clears the current user's session data on logout (resets userId, userName, isLoggedIn)
+- `clearAll()`: Clears all stored user data in the store. Resets every property in the reactive state back to its initial value. Suitable for complete session cleanup or hard logout scenarios.
 
-**Integration**: Imported by components to access and modify user session data. Currently used by StartScreen to store user info after successful login.
+**Integration**: Imported by components to access and modify user session data. Currently used by StartScreen to store user info after successful login, and by UserInfo's handleLogOut method to clear data on logout.
 
 ---
 
@@ -468,8 +472,9 @@ The component determines login status through three mechanisms:
 
 **Properties**:
 - `transpileDependencies` (boolean): Enable transpilation of dependencies
+- `devServer.port` (number|string): Development server port — reads from `process.env.VUE_APP_SERVER_PORT` (the `.env` file), falls back to `8080` if unset
 
-**Integration**: Configures the Vue CLI build system.
+**Integration**: Configures the Vue CLI build system. The dev server port is sourced from the `VUE_APP_SERVER_PORT` environment variable in `.env`, ensuring it stays in sync with the `getServerPort()` method in the Configuration Module — both reference the same single source of truth.
 
 ---
 
@@ -490,6 +495,16 @@ The component determines login status through three mechanisms:
   - Returns: {string} The user information endpoint path (default: '/api/user/userInfo')
 - `getWsBackendUrl()`: Retrieves the WebSocket backend URL from VUE_APP_WS_BACKEND_URL environment variable
   - Returns: {string} The WebSocket backend URL (default: 'ws://localhost:7111')
+- `getServerPort()`: Retrieves the frontend dev server port from VUE_APP_SERVER_PORT environment variable
+  - Returns: {string} The frontend dev server port (default: '8080')
+- `getLogOutEndpoint()`: Retrieves the log out endpoint path from VUE_APP_LOG_OUT_ENDPOINT environment variable
+  - Returns: {string} The log out endpoint path (default: '/api/user/userLogout')
+- `getLogOutUrl()`: Returns complete URL for user log out (backend URL + endpoint path)
+  - Returns: {string} Complete URL for user log out
+- `getUserNameGenerationEndpoint()`: Retrieves the user name generation endpoint path from VUE_APP_USER_NAME_GENERATION_ENDPOINT
+  - Returns: {string} The user name generation endpoint path (default: '/api/utils/generateUserName')
+- `getUserNameGenerationUrl()`: Returns complete URL for user name generation (backend URL + endpoint path)
+  - Returns: {string} Complete URL for user name generation
 - `getRegisterUrl()`: Returns complete URL for user registration (backend URL + endpoint path)
   - Returns: {string} Complete URL for user registration
 - `getLoginUrl()`: Returns complete URL for user login (backend URL + endpoint path)
@@ -499,7 +514,7 @@ The component determines login status through three mechanisms:
 - `getUserUrl()`: Returns complete URL for user information (backend URL + endpoint path)
   - Returns: {string} Complete URL for user information
 - `getAllConfig()`: Returns all configuration values as a plain object including endpoints and full URLs
-  - Returns: {Object} Object containing all configuration values (backendUrl, wsBackendUrl, registerEndpoint, loginEndpoint, autoLoginEndpoint, userEndpoint, registerUrl, loginUrl, autoLoginUrl, userUrl)
+  - Returns: {Object} Object containing all configuration values (backendUrl, wsBackendUrl, registerEndpoint, loginEndpoint, autoLoginEndpoint, userEndpoint, gamesInfoEndpoint, logOutEndpoint, serverPort, registerUrl, loginUrl, autoLoginUrl, userUrl, botGameUrl, gamesInfoUrl, logOutUrl)
 - `validateConfig()`: Validates that all required configuration values are present and valid, including backend URL format, WebSocket URL format, and endpoint path validation
   - Throws: {Error} If required configuration values are missing or invalid
   - Returns: {boolean} True if all configuration values are valid
@@ -621,15 +636,58 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
   - `BOT_TURN_FINISH` (9): Notification that the bot's turn has finished
   - `PLAYER_WIN` (10): Notification that the player has won
   - `BOT_WIN` (11): Notification that the bot has won
+- `Operations` (Object.freeze): Game operations identifiers mapped to numeric values (1-6)
+  - `PRODUCE` (1): Produce resources
+  - `DESTRUCT` (2): Destruct opponent's resources
+  - `ENHANCE_PRODUCTIVITY` (3): Enhance productivity capability
+  - `ENHANCE_DESTRUCTIBILITY` (4): Enhance destructibility capability
+  - `ENHANCE_ACTION_POINT` (5): Enhance action point capacity
+  - `SKIP` (6): Skip the current turn
+- `FailReason` (Object.freeze): Operation failure reason identifiers mapped to numeric values (1-3)
+  - `NO_ENOUGH_ACTION_POINT` (1): Insufficient action points to perform the operation
+  - `NO_SUCH_OPERATION` (2): The requested operation does not exist
+  - `NOT_YOUR_TURN` (3): Operation rejected because it is not the player's turn
 
 **Exports**:
-- Named export: `WSResponseTypes` — Individual enum import via `import { WSResponseTypes } from '@/utils/enums'`
+- Named exports: `WSResponseTypes`, `Operations`, `FailReason` — Individual enum imports via `import { WSResponseTypes } from '@/utils/enums'`
 - Default export: `enums` — Aggregate object for single-import access via `import enums from '@/utils/enums'`
 
-**Integration**: Used by any component that needs to interpret WebSocket message types from the backend server. Provides standardized numeric type identifiers for type-safe message handling in switch statements and conditional logic.
+**Integration**: Used by any component that needs to interpret WebSocket message types, game operation types, or operation failure reasons from the backend server. Provides standardized numeric type identifiers for type-safe message handling in switch statements and conditional logic.
 
 ---
 
+## Fail Reason Utility Module (`src/utils/failReason.js`)
+
+**Purpose**: Provides a utility function for converting FailReason enum values into human-readable, English display strings. Ensures consistent error messaging across the application when operation failures occur.
+
+**Functions**:
+- `getFailReasonMessage(failReason)`: Converts a FailReason enum value into a human-readable English string
+  - `failReason` (number): The FailReason enum value (1, 2, or 3)
+  - Returns: {string} A human-readable description of the fail reason
+  - If the value is not a recognized FailReason, returns `'Unknown error'`
+
+**Mapping**:
+- `FailReason.NO_ENOUGH_ACTION_POINT` (1) → `'Insufficient action points'`
+- `FailReason.NO_SUCH_OPERATION` (2) → `'Operation does not exist'`
+- `FailReason.NOT_YOUR_TURN` (3) → `'Not your turn'`
+- Unknown values → `'Unknown error'`
+
+**Exports**:
+- Named export: `getFailReasonMessage` — via `import { getFailReasonMessage } from '@/utils/failReason'`
+- Default export: Object with `getFailReasonMessage` method — via `import failReasonUtils from '@/utils/failReason'`
+
+**Usage Example**:
+```javascript
+import { getFailReasonMessage } from '@/utils/failReason';
+import { FailReason } from '@/utils/enums';
+
+const message = getFailReasonMessage(FailReason.NO_ENOUGH_ACTION_POINT);
+// Returns: 'Insufficient action points'
+```
+
+**Integration**: Depends on the `FailReason` enum from the Enums module. Can be used by any component that needs to display user-facing error messages related to operation failures (e.g., GameScreen, BotGame, error notification components).
+
+---
 ---
 
 ## Scrollbar Styles (`src/assets/styles/scrollbar.css`)
@@ -867,7 +925,8 @@ extractErrorMessage({ message: 'Network Error' }, 'Login failed')
 - `.user-info-content`: Content area with gap spacing
 - `.info-row`: Info row with dark background and red left border accent
 - `.info-label`, `.info-value`: Label and value text styling
-- `.back-button-container`: Button container
+- `.logout-button-container`: Container for the Log Out button (1rem top margin)
+- `.back-button-container`: Container for the Back button (1.5rem top margin)
 - `.user-info-modal`: Overrides base modal max-width to 480px
 - Responsive breakpoint at 480px (stacks rows vertically)
 
@@ -1263,6 +1322,8 @@ async function loadGames() {
 
 ---
 
-*Last Updated: June 11, 2026*
+*Last Updated: June 14, 2026*
+
+
 
 

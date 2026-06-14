@@ -7,6 +7,7 @@ This file defines coding standards for the NumGame frontend project. As an AI ag
 ### 1. Scope Constraints
 - **Only implement the specific features I explicitly ask for.** Do not add extra functionality, refactor existing code, or make improvements beyond what I request.
 - If you think something needs to be added or improved, ask me first before implementing it.
+- **After finishing any new feature, module, or API integration, you must immediately update DOCUMENT.md with the corresponding documentation.** This includes documenting new enums, utility functions, components, services, stores, and any changes to existing module interfaces. Do not mark the task as complete without ensuring DOCUMENT.md is up to date.
 
 ### 2. Data Structure & Design Questions
 - If you have any questions about **third-party libraries or frameworks** (e.g., Vue.js, axios, Font Awesome), **use DeepWiki's MCP tools** (`cdNP410mcp0ask_question`, `cdNP410mcp0read_wiki_structure`, `cdNP410mcp0read_wiki_contents`) to look up the official repository documentation first.

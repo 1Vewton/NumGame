@@ -251,7 +251,53 @@
   color: #ff0000;
 }
 
+/* --------------------- Pagination Controls --------------------- */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.pagination-btn {
+  background: none;
+  border: 2px solid #ff0000;
+  color: #ff0000;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.pagination-btn:not(.pagination-btn--disabled):hover {
+  background-color: #ff0000;
+  color: #000000;
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+}
+
+.pagination-btn--disabled {
+  border-color: #555555;
+  color: #555555;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination-info {
+  color: #cccccc;
+  font-size: 0.9rem;
+  min-width: 100px;
+  text-align: center;
+}
+
 /* --------------------- Responsive Design --------------------- */
+
 @media (max-width: 768px) {
   .game-info-page {
     padding: 1.5rem 1rem;
