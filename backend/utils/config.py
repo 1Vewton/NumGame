@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     redis_password: Optional[str] = None
     game_management_hashtable: str = "GameManagement"
     # Frontend setting
-    dev_frontend_url: str = "http://localhost:8080/"
+    frontend_url: str = "http://localhost:8080/"
     # Util setting
     names_csv: str = "names_and_connotations.csv"
     # Bot config

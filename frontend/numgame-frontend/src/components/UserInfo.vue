@@ -73,6 +73,18 @@ red and black color theme as the rest of the application.
         </div>
       </div>
 
+      <!-- Log out button -->
+      <div class="logout-button-container">
+        <AppButton
+          label="Log Out"
+          variant="primary"
+          size="medium"
+          width="100%"
+          :disabled="isLoggingOut"
+          @click="handleLogOut"
+        />
+      </div>
+
       <!-- Back button -->
       <div class="back-button-container">
         <AppButton
@@ -83,6 +95,12 @@ red and black color theme as the rest of the application.
           @click="$emit('close')"
         />
       </div>
+      <!-- Logout error notification -->
+      <ErrorNotification
+        :visible="showLogoutError"
+        :message="logoutErrorMessage"
+        @close="showLogoutError = false"
+      />
     </div>
   </div>
 </template>
@@ -100,6 +118,7 @@ red and black color theme as the rest of the application.
  * @module UserInfo
  */
 import AppButton from './AppButton.vue';
+import ErrorNotification from './ErrorNotification.vue';
 import apiClient from '../utils/api.js';
 import config from '../utils/config.js';
 import userStore from '../stores/userStore.js';
@@ -112,10 +131,12 @@ export default {
   /**
    * Child components registered in this component
    * 
-   * @property {Component} AppButton - Reusable styled button component for the Back button
+   * @property {Component} AppButton - Reusable styled button component
+   * @property {Component} ErrorNotification - Reusable error notification toast component
    */
   components: {
-    AppButton
+    AppButton,
+    ErrorNotification
   },
 
   /**
@@ -123,13 +144,18 @@ export default {
    * 
    * @property {Object|null} userInfo - The fetched user information object from the API
    * @property {boolean} isLoading - Flag indicating if the API request is in progress
-   * @property {string} errorMessage - The error message to display if the request fails
+   * @property {string} errorMessage - The error message to display
+   * @property {boolean} isLoggingOut - Flag indicating if a log out request is in progress
+   * @property {boolean} showError - Flag controlling the error notification visibility
    */
   data() {
     return {
       userInfo: null,
       isLoading: true,
-      errorMessage: ''
+      errorMessage: '',
+      isLoggingOut: false,
+      showLogoutError: false,
+      logoutErrorMessage: ''
     };
   },
 
@@ -232,6 +258,46 @@ export default {
       } finally {
         // Reset loading state
         this.isLoading = false;
+      }
+    },
+
+    /**
+     * Handles user log out
+     * 
+     * Sends a GET request to the log out endpoint to terminate the server-side session.
+     * If the response contains "success": true, clears all stored user data via
+     * userStore.clearAll() and reloads the page to reset the application state.
+     * If the response contains "success": false, displays an error notification
+     * with the reason from the response.
+     * 
+     * @method handleLogOut
+     * @async
+     * @returns {Promise<void>}
+     */
+    async handleLogOut() {
+      this.isLoggingOut = true;
+      this.logoutErrorMessage = '';
+      this.showLogoutError = false;
+
+      try {
+        // Send GET request to the log out endpoint
+        const logOutUrl = config.getLogOutUrl();
+        const response = await apiClient.get(logOutUrl);
+
+        if (response.success) {
+          // Logout successful — clear data and reload
+          userStore.clearAll();
+          window.location.reload();
+        } else {
+          // Logout failed — show error notification with reason
+          this.logoutErrorMessage = response.reason || 'Logout failed';
+          this.showLogoutError = true;
+          this.isLoggingOut = false;
+        }
+      } catch (error) {
+        // Even if the request fails, clear local data and reload
+        userStore.clearAll();
+        window.location.reload();
       }
     }
   }

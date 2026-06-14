@@ -94,6 +94,30 @@ class Config {
      * @private
      */
     this._wsBackendUrl = process.env.VUE_APP_WS_BACKEND_URL || 'ws://localhost:7111';
+    
+    /**
+     * Log out endpoint path
+     * 
+     * @type {string}
+     * @private
+     */
+    this._logOutEndpoint = process.env.VUE_APP_LOG_OUT_ENDPOINT || '/api/user/userLogout';
+
+    /**
+     * User name generation endpoint path
+     * 
+     * @type {string}
+     * @private
+     */
+    this._userNameGenerationEndpoint = process.env.VUE_APP_USER_NAME_GENERATION_ENDPOINT || '/api/utils/generateUserName';
+
+    /**
+     * Frontend dev server port
+     * 
+     * @type {string}
+     * @private
+     */
+    this._serverPort = process.env.VUE_APP_SERVER_PORT || '8080';
   }
 
   /**
@@ -313,6 +337,89 @@ class Config {
   }
 
   /**
+   * Gets the log out endpoint path
+   * 
+   * This method returns the endpoint path for user log out API.
+   * The value is read from the VUE_APP_LOG_OUT_ENDPOINT environment variable.
+   * If the environment variable is not set, a default endpoint path is returned.
+   * 
+   * @method getLogOutEndpoint
+   * @returns {string} The log out endpoint path
+   * @example
+   * // Returns '/api/user/userLogout' if VUE_APP_LOG_OUT_ENDPOINT is not set
+   * const logOutEndpoint = config.getLogOutEndpoint();
+   */
+  getLogOutEndpoint() {
+    return this._logOutEndpoint;
+  }
+
+  /**
+   * Gets the complete URL for log out endpoint
+   * 
+   * This method combines the backend base URL with the log out endpoint path
+   * to return a complete URL that can be used for API requests.
+   * 
+   * @method getLogOutUrl
+   * @returns {string} Complete URL for log out
+   * @example
+   * // Returns 'http://localhost:7111/api/user/userLogout'
+   * const logOutUrl = config.getLogOutUrl();
+   */
+  getLogOutUrl() {
+    return `${this._backendUrl}${this._logOutEndpoint}`;
+  }
+
+  /**
+   * Gets the user name generation endpoint path
+   * 
+   * This method returns the endpoint path for generating random user names.
+   * The value is read from the VUE_APP_USER_NAME_GENERATION_ENDPOINT environment variable.
+   * If the environment variable is not set, a default endpoint path is returned.
+   * 
+   * @method getUserNameGenerationEndpoint
+   * @returns {string} The user name generation endpoint path
+   * @example
+   * // Returns '/api/utils/generateUserName' if VUE_APP_USER_NAME_GENERATION_ENDPOINT is not set
+   * const userNameGenerationEndpoint = config.getUserNameGenerationEndpoint();
+   */
+  getUserNameGenerationEndpoint() {
+    return this._userNameGenerationEndpoint;
+  }
+
+  /**
+   * Gets the complete URL for user name generation endpoint
+   * 
+   * This method combines the backend base URL with the user name generation endpoint path
+   * to return a complete URL that can be used for API requests.
+   * 
+   * @method getUserNameGenerationUrl
+   * @returns {string} Complete URL for user name generation
+   * @example
+   * // Returns 'http://localhost:7111/api/utils/generateUserName'
+   * const userNameGenerationUrl = config.getUserNameGenerationUrl();
+   */
+  getUserNameGenerationUrl() {
+    return `${this._backendUrl}${this._userNameGenerationEndpoint}`;
+  }
+
+  /**
+   * Gets the frontend dev server port
+   * 
+   * This method returns the port number on which the Vue dev server runs.
+   * The value is read from the VUE_APP_SERVER_PORT environment variable.
+   * If the environment variable is not set, the default Vue CLI port (8080) is returned.
+   * 
+   * @method getServerPort
+   * @returns {string} The frontend dev server port
+   * @example
+   * // Returns '3000' if VUE_APP_SERVER_PORT is set to 3000
+   * const serverPort = config.getServerPort();
+   */
+  getServerPort() {
+    return this._serverPort;
+  }
+
+  /**
    * Gets the WebSocket backend URL
 
    * 
@@ -347,11 +454,16 @@ class Config {
    * //   autoLoginEndpoint: '/api/user/autoLogin',
    * //   userEndpoint: '/api/user/userInfo',
    * //   botGameEndpoint: '/api/game/botPlay',
+   * //   gamesInfoEndpoint: '/api/user/gamesInfo',
+   * //   logOutEndpoint: '/api/user/userLogout',
+   * //   serverPort: '8080',
    * //   registerUrl: 'http://localhost:7111/api/user/userRegister',
    * //   loginUrl: 'http://localhost:7111/api/user/userLogin',
    * //   autoLoginUrl: 'http://localhost:7111/api/user/autoLogin',
    * //   userUrl: 'http://localhost:7111/api/user/userInfo',
-   * //   botGameUrl: 'http://localhost:7111/api/game/botPlay'
+   * //   botGameUrl: 'http://localhost:7111/api/game/botPlay',
+   * //   gamesInfoUrl: 'http://localhost:7111/api/user/gamesInfo',
+   * //   logOutUrl: 'http://localhost:7111/api/user/userLogout'
    * // }
    * const allConfig = config.getAllConfig();
    */
@@ -365,12 +477,17 @@ class Config {
       userEndpoint: this._userEndpoint,
       botGameEndpoint: this._botGameEndpoint,
       gamesInfoEndpoint: this._gamesInfoEndpoint,
+      logOutEndpoint: this._logOutEndpoint,
+      userNameGenerationEndpoint: this._userNameGenerationEndpoint,
+      serverPort: this._serverPort,
       registerUrl: `${this._backendUrl}${this._registerEndpoint}`,
       loginUrl: `${this._backendUrl}${this._loginEndpoint}`,
       autoLoginUrl: `${this._backendUrl}${this._autoLoginEndpoint}`,
       userUrl: `${this._backendUrl}${this._userEndpoint}`,
       botGameUrl: `${this._backendUrl}${this._botGameEndpoint}`,
-      gamesInfoUrl: `${this._backendUrl}${this._gamesInfoEndpoint}`
+      gamesInfoUrl: `${this._backendUrl}${this._gamesInfoEndpoint}`,
+      logOutUrl: `${this._backendUrl}${this._logOutEndpoint}`,
+      userNameGenerationUrl: `${this._backendUrl}${this._userNameGenerationEndpoint}`
     };
   }
 
@@ -421,7 +538,9 @@ class Config {
       { name: 'auto-login', value: this._autoLoginEndpoint },
       { name: 'user', value: this._userEndpoint },
       { name: 'bot-game', value: this._botGameEndpoint },
-      { name: 'games-info', value: this._gamesInfoEndpoint }
+      { name: 'games-info', value: this._gamesInfoEndpoint },
+      { name: 'log-out', value: this._logOutEndpoint },
+      { name: 'user-name-generation', value: this._userNameGenerationEndpoint }
     ];
 
     
@@ -472,6 +591,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports.getUserEndpoint = configInstance.getUserEndpoint.bind(configInstance);
   module.exports.getBotGameEndpoint = configInstance.getBotGameEndpoint.bind(configInstance);
   module.exports.getGamesInfoEndpoint = configInstance.getGamesInfoEndpoint.bind(configInstance);
+  module.exports.getLogOutEndpoint = configInstance.getLogOutEndpoint.bind(configInstance);
+  module.exports.getUserNameGenerationEndpoint = configInstance.getUserNameGenerationEndpoint.bind(configInstance);
   module.exports.getRegisterUrl = configInstance.getRegisterUrl.bind(configInstance);
 
   module.exports.getLoginUrl = configInstance.getLoginUrl.bind(configInstance);
@@ -479,7 +600,10 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports.getUserUrl = configInstance.getUserUrl.bind(configInstance);
   module.exports.getBotGameUrl = configInstance.getBotGameUrl.bind(configInstance);
   module.exports.getGamesInfoUrl = configInstance.getGamesInfoUrl.bind(configInstance);
+  module.exports.getLogOutUrl = configInstance.getLogOutUrl.bind(configInstance);
+  module.exports.getUserNameGenerationUrl = configInstance.getUserNameGenerationUrl.bind(configInstance);
   module.exports.getWsBackendUrl = configInstance.getWsBackendUrl.bind(configInstance);
+  module.exports.getServerPort = configInstance.getServerPort.bind(configInstance);
 
   module.exports.getAllConfig = configInstance.getAllConfig.bind(configInstance);
   module.exports.validateConfig = configInstance.validateConfig.bind(configInstance);

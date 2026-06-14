@@ -45,6 +45,10 @@
   padding: 2rem;
   width: 100%;
   max-width: 480px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
   animation: fadeIn 0.3s ease;
 }
@@ -62,6 +66,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #333333;
+  flex-shrink: 0;
 }
 
 /* Modal title with red glow */

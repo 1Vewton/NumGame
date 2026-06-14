@@ -102,6 +102,36 @@ export const Operations = Object.freeze({
 });
 
 /**
+ * FailReason Enumeration
+ *
+ * Defines the numeric identifiers for operation failure reasons returned by the
+ * backend server. Each value represents a specific reason why a player's operation
+ * could not be executed, enabling the frontend to provide appropriate feedback
+ * and handle error conditions gracefully.
+ *
+ * @enum {Object<string, number>}
+ * @readonly
+ * @property {number} NO_ENOUGH_ACTION_POINT - 1: Insufficient action points to perform the operation
+ * @property {number} NO_SUCH_OPERATION - 2: The requested operation does not exist
+ * @property {number} NOT_YOUR_TURN - 3: Operation rejected because it is not the player's turn
+ *
+ * @example
+ * // Access a specific fail reason
+ * console.log(FailReason.NO_ENOUGH_ACTION_POINT); // 1
+ *
+ * @example
+ * // Use in a conditional check
+ * if (reason === FailReason.NOT_YOUR_TURN) {
+ *   console.log('It is not your turn yet');
+ * }
+ */
+export const FailReason = Object.freeze({
+  NO_ENOUGH_ACTION_POINT: 1,
+  NO_SUCH_OPERATION: 2,
+  NOT_YOUR_TURN: 3
+});
+
+/**
  * Aggregate object containing all application enums for convenient single-import access.
  *
  * This object groups all enumeration constants defined in this module under a single
@@ -111,17 +141,19 @@ export const Operations = Object.freeze({
  * @type {Object}
  * @property {Object} WSResponseTypes - WebSocket response type enum constants
  * @property {Object} Operations - Game operations enum constants
+ * @property {Object} FailReason - Operation failure reason enum constants
  */
 const enums = {
   WSResponseTypes,
-  Operations
+  Operations,
+  FailReason
 };
 
 export default enums;
 
 // Support CommonJS exports for Node.js environments
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { WSResponseTypes, Operations };
+  module.exports = { WSResponseTypes, Operations, FailReason };
   module.exports.default = enums;
   module.exports.__esModule = true;
 }

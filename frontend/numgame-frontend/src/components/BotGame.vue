@@ -148,7 +148,8 @@ export default {
       finalPlayerScore: 0,
       finalEnemyScore: 0,
       intentionalDisconnect: false,
-      gameEnded: false
+      gameEnded: false,
+      hasHadFirstPlayerTurn: false
 
     };
   },
@@ -386,6 +387,8 @@ export default {
 
         case WSResponseTypes.PLAYER_TURN_START:
           console.log('Player turn started');
+          // Mark that the player has had at least one turn
+          this.hasHadFirstPlayerTurn = true;
           // Enable operation buttons for the player
           this.isPlayerTurn = true;
           // Show an info notification prompting the player to act
@@ -401,6 +404,15 @@ export default {
           this.isPlayerTurn = false;
           // Stop the countdown timer when the bot's turn begins
           this.stopCountdown();
+          // Show an info notification
+          // Before the first PLAYER_TURN_START, only say "Waiting for the bot..."
+          // After the first PLAYER_TURN_START, also mention that the player's turn has ended
+          if (this.hasHadFirstPlayerTurn) {
+            this.infoMessage = 'Your turn has ended. Waiting for the bot...';
+          } else {
+            this.infoMessage = 'Waiting for the bot...';
+          }
+          this.showInfo = true;
           break;
 
         case WSResponseTypes.BOT_TURN_FINISH: {

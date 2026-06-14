@@ -102,5 +102,20 @@ export default {
     state.userId = null;
     state.userName = null;
     state.isLoggedIn = false;
+  },
+
+  /**
+   * Clears all stored user data in the store
+   * 
+   * This method resets every property in the reactive state back to its initial value.
+   * It is more comprehensive than clearUser() as it ensures all fields (current and future)
+   * are reset, making it suitable for complete session cleanup or hard logout scenarios.
+   * 
+   * @function clearAll
+   */
+  clearAll() {
+    state.userId = null;
+    state.userName = null;
+    state.isLoggedIn = false;
   }
 };

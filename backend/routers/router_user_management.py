@@ -1,7 +1,12 @@
 import logging
 from typing import Annotated
 # FastAPI dependencies
-from fastapi import Depends, Request, APIRouter
+from fastapi import (
+    Depends,
+    Request,
+    APIRouter,
+    Response
+)
 from fastapi.responses import JSONResponse
 # Project dependencies
 from data_management.data_management import get_db
@@ -299,6 +304,79 @@ async def userInfo(request: Request,
         # Error handling
         logger.error(f"Info fetching failed due to {e}")
         # Response
+        content = {
+            "success": False,
+            "reason": str(e)
+        }
+        return JSONResponse(content=content, status_code=500)
+
+
+# Logout
+@user_router.get(path="/userLogout", tags=["userLogout"])
+async def userLogout(
+        request: Request,
+        response: Response,
+        session: Annotated[AsyncSession, Depends(get_db)],
+        client: aioredis.Redis = Depends(get_redis),
+):
+    logger.info("logging user out")
+    try:
+        # Get cookie
+        login_token = request.cookies.get("login_token")
+        # Check if user id exists.
+        if login_token:
+            # Get user_id from redis
+            user_id_search = await search_user_token(
+                token=login_token,
+                client=client
+            )
+            if user_id_search["success"]:
+                user_id = user_id_search["user_id"]
+                # Get user from dB
+                user_info = await session.execute(select(players).where(
+                    players.id == user_id
+                ))
+                result = user_info.first()
+                if result:
+                    # Successfully logged in
+                    processed_result = result[0]
+                    if processed_result.user_name != settings.simple_bot_name:
+                        content = {
+                            "success": True,
+                        }
+                        # Delete cookie
+                        response = JSONResponse(content=content, status_code=200)
+                        response.delete_cookie("login_token")
+                        return response
+                    else:
+                        # Response
+                        content = {
+                            "success": False,
+                            "reason": "You cannot log in the system with bot account!"
+                        }
+                        response = JSONResponse(content=content, status_code=403)
+                        return response
+                else:
+                    content = {
+                        "success": False,
+                        "reason": "Log in first"
+                    }
+                    return JSONResponse(content=content, status_code=401)
+            else:
+                # Session expired
+                content = {
+                    "success": False,
+                    "reason": "Session expired or invalid"
+                }
+                return JSONResponse(content=content, status_code=401)
+        else:
+            content = {
+                "success": False,
+                "reason": "User id not found"
+            }
+            return JSONResponse(content=content, status_code=401)
+    except Exception as e:
+        logger.error(f"logout failed due to {e}")
         content = {
             "success": False,
             "reason": str(e)
