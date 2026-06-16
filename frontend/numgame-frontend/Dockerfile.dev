@@ -1,0 +1,43 @@
+# Dockerfile.dev - Dev/Test Dockerfile for NumGame Frontend
+#
+# This Dockerfile is intended for development and testing environments.
+# It installs all dependencies (including devDependencies) and runs the
+# Vue.js development server with hot-reload enabled.
+#
+# Usage:
+#   docker build -f Dockerfile.dev -t numgame-frontend:dev .
+#   docker run -d -p 3000:3000 numgame-frontend:dev
+#
+# For live code reloading with volumes:
+#   docker run -d -p 3000:3000 -v ${PWD}/src:/app/src numgame-frontend:dev
+
+FROM node:18-alpine
+
+LABEL stage="development"
+LABEL description="NumGame Frontend - Development / Test Environment"
+LABEL maintainer="NumGame Team"
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install ALL dependencies (including devDependencies)
+# (separated from source copy to leverage Docker layer caching)
+COPY package*.json ./
+RUN npm install && \
+    npm cache clean --force
+
+# Copy the rest of the application source code
+COPY . .
+
+# Build argument for the dev server port (default 3000, configured via .env)
+ARG VUE_APP_SERVER_PORT=3000
+
+# Expose the development server port
+EXPOSE $VUE_APP_SERVER_PORT
+
+# Health check to verify the dev server is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:$VUE_APP_SERVER_PORT/ || exit 1
+
+# Default command: run the Vue.js development server
+CMD ["npm", "run", "serve"]
