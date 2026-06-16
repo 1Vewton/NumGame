@@ -1320,10 +1320,112 @@ async function loadGames() {
 }
 ```
 
+## .dockerignore
+
+**Purpose**: Specifies files and directories to exclude from the Docker build context to keep images lean and prevent secrets from leaking into the image.
+
+**Excluded items**:
+- `node_modules` — Installed inside the container; no need to send host modules
+- `/dist` — Generated during the build stage
+- `.git`, `.gitignore`, `*.md` — Version control and documentation not needed at runtime
+- `.DS_Store`, `.vscode`, `.idea` — Editor/OS artifacts
+- `key/private.pem` — Private key must NOT be included in the image
+- `.env.local`, `.env.*.local` — Local environment overrides with potentially sensitive values
+
 ---
 
-*Last Updated: June 14, 2026*
+## Production Dockerfile (`Dockerfile.prod`)
+
+**Purpose**: Multi‑stage Dockerfile for building and serving the NumGame frontend in production with **HTTPS** and **backend reverse proxy**.
+
+**Stages**:
+
+1. **Build Stage** (`node:18-alpine`)
+   - Installs only production dependencies via `npm ci --only=production` for deterministic, minimal builds
+   - Copies all source code and runs `npm run build` to generate the compiled output in `/app/dist`
+   - Layer caching is leveraged by copying `package*.json` and running `npm ci` **before** copying the rest of the source
+
+2. **Runtime Stage** (`nginx:1.25-alpine`)
+   - Installs `openssl` and `gettext` (for `envsubst`)
+   - **Generates a self-signed SSL certificate** at build time (for testing/dev — mount real certs for production)
+   - Replaces the default Nginx configuration with custom `nginx/nginx.conf` (HTTPS, SPA routing, backend proxy)
+   - Uses `envsubst` at container startup to inject the `BACKEND_HOST` environment variable into `nginx.conf`
+   - Copies the built static files from the build stage into `/usr/share/nginx/html`
+   - Exposes ports `80` (HTTP → HTTPS redirect) and `443` (HTTPS)
+   - Health check pings `https://localhost/` every 30 seconds
+
+**Usage**:
+```bash
+# Build
+docker build -f Dockerfile.prod -t numgame-frontend:prod .
+
+# Run (self-signed cert, development/test)
+docker run -d -p 80:80 -p 443:443 numgame-frontend:prod
+
+# Run (with custom backend address)
+docker run -d -p 80:80 -p 443:443 -e BACKEND_HOST=192.168.1.100:7111 numgame-frontend:prod
+
+# Run (production, mount real SSL certificates)
+docker run -d -p 80:80 -p 443:443 \
+  -v /etc/ssl/cert.pem:/etc/nginx/ssl/cert.pem \
+  -v /etc/ssl/key.pem:/etc/nginx/ssl/key.pem \
+  numgame-frontend:prod
+```
+
+---
+
+## Development / Test Dockerfile (`Dockerfile.dev`)
+
+**Purpose**: Single‑stage Dockerfile for running the NumGame frontend in a development or test environment with hot‑reload support.
+
+**Details**:
+- Based on `node:18-alpine`
+- Installs **all** dependencies (including `devDependencies`) via `npm install`
+- Exposes the dev server port (default `3000`, configurable via the `VUE_APP_SERVER_PORT` build argument)
+- Includes a `HEALTHCHECK` that pings the dev server URL every 30 seconds
+- The default command is `npm run serve`
+
+**Usage**:
+```bash
+docker build -f Dockerfile.dev -t numgame-frontend:dev .
+docker run -d -p 3000:3000 numgame-frontend:dev
+```
+
+**Live code reloading with volume mounts**:
+```bash
+docker run -d -p 3000:3000 -v ${PWD}/src:/app/src numgame-frontend:dev
+```
+
+---
+
+## Nginx Configuration (`nginx/nginx.conf`)
+
+**Purpose**: Configures Nginx to serve the production‑built NumGame frontend over **HTTPS**, redirect all HTTP traffic to HTTPS, and reverse‑proxy all `/api/` requests (including WebSocket) to the backend server.
+
+**Key features**:
+- **HTTP → HTTPS redirect** — Port 80 issues a `301` redirect to the HTTPS counterpart
+- **HTTPS (TLS 1.2/1.3)** on port `443` with HTTP/2 support
+- **Self‑signed certificate** generated at build time via `openssl` (for development/testing)
+- **Production SSL** — mount real certificates at runtime: `-v /host/cert.pem:/etc/nginx/ssl/cert.pem -v /host/key.pem:/etc/nginx/ssl/key.pem`
+- **HSTS** — `Strict-Transport-Security` header with 2-year max-age
+- **Frontend static file serving** with SPA routing (`try_files $uri $uri/ /index.html`)
+- **Backend reverse proxy** — all `/api/` requests are forwarded to `http://backend`
+- **WebSocket proxy** — `/api/game/botPlay` includes proper `Upgrade`/`Connection` headers and extended timeouts (3600s) for long-lived WebSocket connections
+- **Gzip compression** enabled for CSS, JS, JSON, SVG, and XML
+- **Security headers**: `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Referrer-Policy`
+- **Static asset caching**: CSS, JS, images, and fonts are cached for 1 year with `public, immutable`
+- **`index.html`**: No caching (`no-store`) so the browser always fetches the latest version
+- **Hidden/sensitive files** are denied access (`.env`, `.git`, config files, etc.)
+
+**Backend upstream** (`upstream backend`):
+- Pointed to `${BACKEND_HOST}` — resolved at container runtime via `envsubst`
+- Default value when running the Docker container: `host.docker.internal:7111` (Docker Desktop's host gateway)
+- Override at runtime: `docker run -e BACKEND_HOST=192.168.1.100:7111 ...`
+
+**Exposed ports**: `80` (HTTP redirect), `443` (HTTPS)
+
+---
 
 
-
+*Last Updated: June 16, 2026*
 
