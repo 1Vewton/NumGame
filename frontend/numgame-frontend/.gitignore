@@ -22,7 +22,7 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# Key
+# Key (contains private key - MUST stay out of version control)
 key
 
 # Nginx

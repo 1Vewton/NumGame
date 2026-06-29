@@ -6,14 +6,11 @@
 #                      (HTTP 80 -> HTTPS 443 redirect, backend API and
 #                      WebSocket reverse proxy).
 #
-# SSL: The domain's TLS certificate and private key from the key/ directory
-#      are baked into the image.
-#        key/public.pem   → /etc/nginx/ssl/cert.pem  (TLS certificate)
-#        key/private.pem  → /etc/nginx/ssl/key.pem   (private key)
-#
-#   ⚠️ NOTE: key/public.pem must be a signed certificate (-----BEGIN CERTIFICATE-----),
-#      NOT a Certificate Signing Request (-----BEGIN CERTIFICATE REQUEST-----).
-#      Obtain the signed certificate from your CA first.
+# SSL: The domain's TLS certificate, CA bundle, and private key from the key/
+#      directory are baked into the image.
+#        key/certificate.crt  → merged into /etc/nginx/ssl/cert.pem (full chain)
+#        key/ca_bundle.crt    ┘
+#        key/private.key      → /etc/nginx/ssl/key.pem  (private key)
 #
 # Usage:
 #   docker build -f Dockerfile.prod -t numgame-frontend:prod .
@@ -63,11 +60,14 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Create SSL directory
 RUN mkdir -p /etc/nginx/ssl
 
-# Copy the domain's real TLS certificate and private key into the image
-#   key/public.pem   → /etc/nginx/ssl/cert.pem  (TLS certificate)
-#   key/private.pem  → /etc/nginx/ssl/key.pem   (private key)
-COPY key/public.pem        /etc/nginx/ssl/cert.pem
-COPY key/private.pem       /etc/nginx/ssl/key.pem
+# Copy the domain's certificate, CA bundle, and private key
+COPY key/certificate.crt     /etc/nginx/ssl/certificate.crt
+COPY key/ca_bundle.crt       /etc/nginx/ssl/ca_bundle.crt
+COPY key/private.key         /etc/nginx/ssl/key.pem
+
+# Merge certificate + CA bundle into a single fullchain file (as Nginx expects)
+RUN cat /etc/nginx/ssl/certificate.crt /etc/nginx/ssl/ca_bundle.crt \
+    > /etc/nginx/ssl/cert.pem
 
 # Copy custom Nginx configuration (with HTTPS, backend proxy, SPA routing)
 COPY nginx/nginx.conf       /etc/nginx/conf.d/default.conf

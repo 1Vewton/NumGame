@@ -1329,7 +1329,6 @@ async function loadGames() {
 - `/dist` — Generated during the build stage
 - `.git`, `.gitignore`, `*.md` — Version control and documentation not needed at runtime
 - `.DS_Store`, `.vscode`, `.idea` — Editor/OS artifacts
-- `key/private.pem` — Private key must NOT be included in the image
 - `.env.local`, `.env.*.local` — Local environment overrides with potentially sensitive values
 
 ---
@@ -1346,8 +1345,12 @@ async function loadGames() {
    - Layer caching is leveraged by copying `package*.json` and running `npm ci` **before** copying the rest of the source
 
 2. **Runtime Stage** (`nginx:1.25-alpine`)
-   - Installs `openssl` and `gettext` (for `envsubst`)
-   - **Generates a self-signed SSL certificate** at build time (for testing/dev — mount real certs for production)
+   - Installs `gettext` (for `envsubst`)
+   - **Copies the domain's real TLS certificate into the image**:
+     - `key/certificate.crt` → domain certificate
+     - `key/ca_bundle.crt`   → CA intermediate chain
+     - `key/private.key`     → private key
+   - **Merges certificate + CA bundle** into a single fullchain file for Nginx
    - Replaces the default Nginx configuration with custom `nginx/nginx.conf` (HTTPS, SPA routing, backend proxy)
    - Uses `envsubst` at container startup to inject the `BACKEND_HOST` environment variable into `nginx.conf`
    - Copies the built static files from the build stage into `/usr/share/nginx/html`
@@ -1359,17 +1362,11 @@ async function loadGames() {
 # Build
 docker build -f Dockerfile.prod -t numgame-frontend:prod .
 
-# Run (self-signed cert, development/test)
+# Run (default backend via Docker host)
 docker run -d -p 80:80 -p 443:443 numgame-frontend:prod
 
 # Run (with custom backend address)
 docker run -d -p 80:80 -p 443:443 -e BACKEND_HOST=192.168.1.100:7111 numgame-frontend:prod
-
-# Run (production, mount real SSL certificates)
-docker run -d -p 80:80 -p 443:443 \
-  -v /etc/ssl/cert.pem:/etc/nginx/ssl/cert.pem \
-  -v /etc/ssl/key.pem:/etc/nginx/ssl/key.pem \
-  numgame-frontend:prod
 ```
 
 ---
@@ -1405,8 +1402,8 @@ docker run -d -p 3000:3000 -v ${PWD}/src:/app/src numgame-frontend:dev
 **Key features**:
 - **HTTP → HTTPS redirect** — Port 80 issues a `301` redirect to the HTTPS counterpart
 - **HTTPS (TLS 1.2/1.3)** on port `443` with HTTP/2 support
-- **Self‑signed certificate** generated at build time via `openssl` (for development/testing)
-- **Production SSL** — mount real certificates at runtime: `-v /host/cert.pem:/etc/nginx/ssl/cert.pem -v /host/key.pem:/etc/nginx/ssl/key.pem`
+- **Real TLS certificate baked into the image** — `key/certificate.crt` + `key/ca_bundle.crt` merged into `cert.pem` at build time
+- **Private key** — `key/private.key` → `key.pem` at build time
 - **HSTS** — `Strict-Transport-Security` header with 2-year max-age
 - **Frontend static file serving** with SPA routing (`try_files $uri $uri/ /index.html`)
 - **Backend reverse proxy** — all `/api/` requests are forwarded to `http://backend`
@@ -1427,5 +1424,5 @@ docker run -d -p 3000:3000 -v ${PWD}/src:/app/src numgame-frontend:dev
 ---
 
 
-*Last Updated: June 16, 2026*
+*Last Updated: June 29, 2026*
 
