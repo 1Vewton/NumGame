@@ -1,0 +1,118 @@
+# docker-compose.yml - Production Deployment for NumGame
+#
+# This configuration orchestrates the full stack:
+#   - PostgreSQL 16    (production database)
+#   - Redis 7          (session/cache store)
+#   - NumGame Backend  (FastAPI + WebSocket)
+#   - NumGame Frontend (Nginx with HTTPS + backend proxy)
+#
+# Usage:
+#   docker compose --profile prod up -d
+#   docker compose down
+
+version: "3.8"
+
+services:
+  # ==============================
+  # PostgreSQL (Production Database)
+  # ==============================
+  postgres:
+    image: postgres:16-alpine
+    container_name: numgame-postgres
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: numgame
+      POSTGRES_USER: numgame
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-numgame_secret}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U numgame -d numgame"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - numgame
+
+  # ==============================
+  # Redis (Session/Cache Store)
+  # ==============================
+  redis:
+    image: redis:7-alpine
+    container_name: numgame-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-numgame_redis}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-numgame_redis}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - numgame
+
+  # ==============================
+  # NumGame Backend (FastAPI)
+  # ==============================
+  numgame-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - MIRROR=${PYPI_MIRROR:-https://pypi.org/simple}
+    container_name: numgame-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      - DATABASE_URL=postgresql+asyncpg://numgame:${PG_PASSWORD:-numgame_secret}@postgres:5432/numgame
+      - SYNC_DATABASE_URL=postgresql+psycopg2://numgame:${PG_PASSWORD:-numgame_secret}@postgres:5432/numgame
+      # Server
+      - SERVER_PORT=7111
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-numgame_redis}
+      # Frontend URL (for CORS)
+      - FRONTEND_URL=https://numgame.fun
+      # Bot
+      - NAMES_CSV=names_and_connotations.csv
+      - SIMPLE_BOT_NAME=<bot>
+      - HEARTBEAT_INTERVAL=30
+      - HEARTBEAT_TIMEOUT=10
+      - TOTAL_TIMEOUT_CNT=3
+      - MAXIMUM_BOT_OPERATION_TIMES=3
+    networks:
+      - numgame
+
+  # ==============================
+  # NumGame Frontend (Nginx + HTTPS)
+  # ==============================
+  numgame-frontend:
+    build:
+      context: ./frontend/numgame-frontend
+      dockerfile: Dockerfile.prod
+    container_name: numgame-frontend
+    restart: unless-stopped
+    depends_on:
+      - numgame-backend
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Backend host that Nginx proxies /api/ to
+      - BACKEND_HOST=numgame-backend:7111
+    networks:
+      - numgame
+
+networks:
+  numgame:
+    driver: bridge
+
+volumes:
+  pgdata:
