@@ -12,6 +12,7 @@
     "axios": "^1.15.0",
     "core-js": "^3.8.3",
     "vue": "^3.2.13",
+    "vue-cli-service": "^5.0.10",
     "vue-router": "^4.6.4",
     "websocket": "^1.0.35"
   },

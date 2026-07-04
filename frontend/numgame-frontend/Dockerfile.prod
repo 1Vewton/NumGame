@@ -1,7 +1,7 @@
 # Dockerfile.prod - Production Dockerfile for NumGame Frontend
 #
 # This Dockerfile uses a multi-stage build strategy:
-#   1. Build stage   - Compiles the Vue.js application into static files
+#   1. Build stage   - Compiles the Vue.js application via build-prod.sh
 #   2. Runtime stage - Serves static files via Nginx with HTTPS support
 #                      (HTTP 80 -> HTTPS 443 redirect, backend API and
 #                      WebSocket reverse proxy).
@@ -15,6 +15,10 @@
 # Usage:
 #   docker build -f Dockerfile.prod -t numgame-frontend:prod .
 #   docker run -d -p 80:80 -p 443:443 -e BACKEND_HOST=host.docker.internal:7111 numgame-frontend:prod
+#
+# Alternatively via docker compose:
+#   docker compose build numgame-frontend
+#   docker compose up -d
 #
 # BACKEND_HOST environment variable configures the backend proxy target
 # (default: host.docker.internal:7111 for Docker Desktop).
@@ -30,19 +34,14 @@ LABEL description="NumGame Frontend - Build Stage"
 # Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
-# (separated from source copy to leverage Docker layer caching)
-COPY package*.json ./
-RUN npm ci --include=dev
+# Copy build script and package files first (leverage Docker layer caching)
+COPY build-prod.sh package*.json ./
 
 # Copy the rest of the application source code
 COPY . .
 
-# Build the application for production
-RUN npm run build
-
-# Clean npm cache to reduce image size
-RUN npm cache clean --force
+# Run the build script in CI mode (install deps + build dist/)
+RUN bash build-prod.sh --ci
 
 # ==============================
 # Stage 2: Serve with Nginx (HTTPS)

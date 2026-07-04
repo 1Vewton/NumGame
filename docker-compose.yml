@@ -97,7 +97,6 @@ services:
     build:
       context: ./frontend/numgame-frontend
       dockerfile: Dockerfile.prod
-      no_cache: true
     container_name: numgame-frontend
     restart: unless-stopped
     depends_on:
