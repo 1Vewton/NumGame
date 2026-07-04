@@ -41,7 +41,7 @@ COPY build-prod.sh package*.json ./
 COPY . .
 
 # Run the build script in CI mode (install deps + build dist/)
-RUN bash build-prod.sh --ci
+RUN sh build-prod.sh --ci
 
 # ==============================
 # Stage 2: Serve with Nginx (HTTPS)
