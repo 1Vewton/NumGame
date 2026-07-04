@@ -106,7 +106,7 @@ services:
       - "443:443"
     environment:
       # Backend host that Nginx proxies /api/ to
-      - BACKEND_HOST=numgame-backend:7111
+      - BACKEND_HOST=http://localhost:7111
     networks:
       - numgame
 
