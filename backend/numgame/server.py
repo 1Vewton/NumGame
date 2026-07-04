@@ -132,7 +132,7 @@ app.include_router(game_router)
 def run():
     logger_config.setup_logging()
     logger.info("Starting server")
-    uvicorn.run(app, host="localhost", port=settings.server_port)
+    uvicorn.run(app, host="0.0.0.0", port=settings.server_port)
 
 
 if __name__ == "__main__":
