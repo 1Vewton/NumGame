@@ -40,7 +40,7 @@ done
 # ---- Step 1: Install dependencies ----
 echo "[1/3] Installing dependencies..."
 if [ "$CI_MODE" = true ]; then
-  npm ci --include=dev
+  npm install --include=dev
 else
   npm install
 fi
