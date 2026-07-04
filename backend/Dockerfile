@@ -13,5 +13,5 @@ COPY . .
 RUN uv sync --index-url $MIRROR
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 4000
+EXPOSE 7111
 ENTRYPOINT ["./entrypoint.sh"]
