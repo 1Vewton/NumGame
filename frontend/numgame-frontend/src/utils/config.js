@@ -37,7 +37,7 @@ class Config {
      * @type {string}
      * @private
      */
-    this._backendUrl = process.env.VUE_APP_BACKEND_URL || 'http://localhost:7111';
+    this._backendUrl = process.env.VUE_APP_BACKEND_URL || '';
     
     /**
      * User registration endpoint path
@@ -93,7 +93,7 @@ class Config {
      * @type {string}
      * @private
      */
-    this._wsBackendUrl = process.env.VUE_APP_WS_BACKEND_URL || 'ws://localhost:7111';
+    this._wsBackendUrl = process.env.VUE_APP_WS_BACKEND_URL || '';
     
     /**
      * Log out endpoint path
