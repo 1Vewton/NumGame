@@ -95,6 +95,42 @@
   padding: 0 0.2rem;
 }
 
+/* Registration username wrapper - positions the random generate button next to the input */
+.register-username-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
+
+/* Random username generate button - positioned inside the username input area */
+.random-username-button {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.6rem;
+  background: none;
+  border: none;
+  color: #ff0000;
+  cursor: pointer;
+  padding: 0.3rem;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  transition: color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.random-username-button:hover {
+  color: #ff4444;
+  transform: scale(1.15);
+}
+
+.random-username-button:focus {
+  outline: none;
+}
+
 /* Game mode selection container - shown after login */
 .game-mode-container {
   display: flex;

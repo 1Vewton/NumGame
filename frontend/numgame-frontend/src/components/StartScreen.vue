@@ -162,14 +162,23 @@ includes password format validation and confirm password matching.
 
       <!-- Registration form -->
       <div v-else class="login-form">
-        <!-- Username input field -->
-        <AppInput
-          v-model="registerUsername"
-          type="text"
-          placeholder="Enter your username"
-          label="Username"
-          input-id="register-username"
-        />
+        <!-- Username input field with random generation button -->
+        <div class="register-username-wrapper">
+          <AppInput
+            v-model="registerUsername"
+            type="text"
+            placeholder="Enter your username"
+            label="Username"
+            input-id="register-username"
+          />
+          <button
+            class="random-username-button"
+            @click="generateRandomUsername"
+            title="Generate random username"
+          >
+            <i class="fas fa-arrows-rotate"></i>
+          </button>
+        </div>
 
         <!-- Password input field -->
         <AppInput
@@ -255,11 +264,10 @@ import ErrorNotification from './ErrorNotification.vue';
 import SuccessNotification from './SuccessNotification.vue';
 import UserInfo from './UserInfo.vue';
 import GameRulesModal from './GameRulesModal.vue';
-import apiClient from '../utils/api.js';
-import config from '../utils/config.js';
-import { getUserLoginBody, getUserRegisterBody } from '../utils/requestBodies.js';
 import userStore from '../stores/userStore.js';
 import { extractErrorMessage } from '../utils/errorHandler.js';
+import { login, register, autoLogin } from '../utils/authService.js';
+import { generateUserName } from '../utils/gamesService.js';
 
 
 
@@ -395,20 +403,14 @@ export default {
      * @returns {Promise<void>}
      */
     async handleAutoLogin() {
-      try {
-        const autoLoginEndpoint = config.getAutoLoginEndpoint();
-        const response = await apiClient.get(autoLoginEndpoint);
+      const response = await autoLogin();
 
-        if (response.success) {
-          // Auto-login succeeded - store user data silently
-          userStore.setUser(response.user_id, response.user_name);
-          console.log('Auto-login successful:', response.user_name, response.user_id);
-        }
-        // Auto-login failed silently - no notification shown
-      } catch (error) {
-        // Auto-login request failed silently - no notification shown
-        console.log('Auto-login not available:', error.message);
+      if (response.success) {
+        // Auto-login succeeded - store user data silently
+        userStore.setUser(response.user_id, response.user_name);
+        console.log('Auto-login successful:', response.user_name, response.user_id);
       }
+      // Auto-login failed silently - no notification shown
     },
 
     /**
@@ -459,12 +461,7 @@ export default {
       this.isLoggingIn = true;
 
       try {
-        // Get the login endpoint and request body
-        const loginEndpoint = config.getLoginEndpoint();
-        const requestBody = getUserLoginBody(this.username.trim(), this.password);
-
-        // Send the login request to the backend
-        const response = await apiClient.post(loginEndpoint, requestBody);
+        const response = await login(this.username.trim(), this.password);
 
         // Check if login was successful
         if (response.success) {
@@ -521,12 +518,7 @@ export default {
       this.isRegistering = true;
 
       try {
-        // Get the register endpoint and request body
-        const registerEndpoint = config.getRegisterEndpoint();
-        const requestBody = getUserRegisterBody(this.registerUsername.trim(), this.registerPassword);
-
-        // Send the registration request to the backend
-        const response = await apiClient.post(registerEndpoint, requestBody);
+        const response = await register(this.registerUsername.trim(), this.registerPassword);
 
         // Check if registration was successful
         if (response.success) {
@@ -550,6 +542,31 @@ export default {
       } finally {
         // Reset loading state
         this.isRegistering = false;
+      }
+    },
+
+    /**
+     * Generates a random username via the backend API
+     * 
+     * This method sends a GET request to the user name generation endpoint.
+     * On success, it fills the registration username field with the generated
+     * username from the server response.
+     * 
+     * @method generateRandomUsername
+     * @async
+     * @returns {Promise<void>}
+     */
+    async generateRandomUsername() {
+      try {
+        const response = await generateUserName();
+
+        if (response.success && response.username) {
+          this.registerUsername = response.username;
+        } else {
+          this.showErrorMessage(response.reason || 'Failed to generate username');
+        }
+      } catch (error) {
+        this.showErrorMessage(extractErrorMessage(error, 'Failed to generate username'));
       }
     },
 

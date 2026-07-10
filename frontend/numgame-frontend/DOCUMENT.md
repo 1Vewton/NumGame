@@ -243,10 +243,11 @@
 **Methods**:
 - `switchToRegister()`: Sets showLogin to false to display the registration form
 - `switchToLogin()`: Sets showLogin to true to display the login form
-- `handleAutoLogin()`: Sends a GET request to the auto-login endpoint (no request body) when the component mounts. If `response.success` is truthy, the user's session data (`user_id`, `user_name`) is stored in userStore silently — no notification shown regardless of success or failure.
-- `handleLogin()`: Validates credentials and sends login request to backend API. On success (`response.success === true`), stores `user_id` and `user_name` in the reactive in-memory userStore. Shows error notification on failure.
+- `handleAutoLogin()`: Calls `autoLogin()` from `authService.js`. If the response is successful, stores `user_id` and `user_name` in the reactive in-memory userStore silently — no notification shown regardless of success or failure.
+- `handleLogin()`: Validates credentials and calls `login()` from `authService.js`. On success, stores `user_id` and `user_name` in the reactive in-memory userStore. Shows error notification on failure.
 - `showErrorMessage(message)`: Sets error message and shows the error notification toast.
-- `handleRegister()`: Sends registration request to backend API with username and password. Shows success notification on success or error notification on failure.
+- `handleRegister()`: Calls `register()` from `authService.js` with username and password. Shows success notification on success or error notification on failure.
+- `generateRandomUsername()`: Calls `generateUserName()` from `gamesService.js` to request a random username from the backend. On success, fills the registration username field with the generated username. On failure, shows an error notification.
 
 **Login Status Determination Logic**:
 The component determines login status through three mechanisms:
@@ -523,6 +524,30 @@ The component determines login status through three mechanisms:
 
 ---
 
+## Auth Service Module (`src/utils/authService.js`)
+
+**Purpose**: Provides a centralized service for user authentication operations including login, registration, and auto-login. Encapsulates all API communication logic for authentication endpoints and returns normalized response objects.
+
+**Functions**:
+- `login(playerName, playerPassword)`: Authenticates a user with their credentials via the login endpoint
+  - `playerName` (string): The username of the player
+  - `playerPassword` (string): The password credential for authentication
+  - Returns: {Promise<Object>} Normalized login response with `success` (boolean), `user_id` (string), `user_name` (string), and `reason` (string) properties
+  - Throws: {Error} If the API request fails (network error, etc.)
+
+- `register(playerName, playerPassword)`: Registers a new user account via the registration endpoint
+  - `playerName` (string): The username for the new account
+  - `playerPassword` (string): The password for the new account
+  - Returns: {Promise<Object>} Normalized registration response with `success` (boolean) and `reason` (string) properties
+  - Throws: {Error} If the API request fails (network error, etc.)
+
+- `autoLogin()`: Attempts automatic login using existing session cookies via the auto-login endpoint. Handles network errors internally and returns a failure response instead of throwing.
+  - Returns: {Promise<Object>} Normalized auto-login response with `success` (boolean), `user_id` (string), and `user_name` (string) properties
+
+**Integration**: Uses apiClient for HTTP requests, config for endpoint paths, and requestBodies for request payload generation and response normalization. Imported by StartScreen component to replace inline API call logic.
+
+---
+
 ## API Client Module (`src/utils/api.js`)
 
 **Purpose**: Provides a generic API client for making HTTP requests to the backend server using axios.
@@ -577,6 +602,25 @@ The component determines login status through three mechanisms:
   - `playerName` (string, default: 'string'): The username of the player to look up
   - `playerId` (string, default: 'string'): The unique identifier of the player account
   - Returns: {Object} Request body with `player_name` and `player_id` properties
+- `getUserLoginResponse(success, userId, userName, reason)`: Returns the standardized response data format for the user login endpoint
+  - `success` (boolean, default: false): Whether the login was successful
+  - `userId` (string, default: ''): The unique identifier of the logged-in user
+  - `userName` (string, default: ''): The display name of the logged-in user
+  - `reason` (string, default: ''): Error reason if login failed
+  - Returns: {Object} Response with `success` (boolean), `user_id` (string), `user_name` (string), and `reason` (string) properties
+- `getUserRegisterResponse(success, reason)`: Returns the standardized response data format for the user registration endpoint
+  - `success` (boolean, default: false): Whether the registration was successful
+  - `reason` (string, default: ''): Error reason if registration failed
+  - Returns: {Object} Response with `success` (boolean) and `reason` (string) properties
+- `getAutoLoginResponse(success, userId, userName)`: Returns the standardized response data format for the auto-login endpoint
+  - `success` (boolean, default: false): Whether auto-login was successful
+  - `userId` (string, default: ''): The unique identifier of the user
+  - `userName` (string, default: ''): The display name of the user
+  - Returns: {Object} Response with `success` (boolean), `user_id` (string), and `user_name` (string) properties
+- `getGenerateUserNameResponse(success, username)`: Returns the standardized response data format for the user name generation endpoint
+  - `success` (boolean, default: false): Whether the request was successful
+  - `username` (string, default: ''): The generated username (e.g., "Rilan Aide")
+  - Returns: {Object} Response with `success` (boolean) and `username` (string) properties
 - `getGamesInfoBody(playerName, playerId)`: Creates a request body for games information retrieval
   - `playerName` (string, default: 'string'): The username of the player
   - `playerId` (string, default: 'string'): The unique identifier of the player account
@@ -1278,6 +1322,10 @@ const message = getFailReasonMessage(FailReason.NO_ENOUGH_ACTION_POINT);
 **Purpose**: Provides functions for fetching and processing game history data from the backend GamesInfoEndpoint. Handles request construction, response parsing, and data normalization.
 
 **Functions**:
+- `generateUserName()`: Sends a GET request to the user name generation endpoint (`/api/utils/generateUserName`) and returns the response with the generated username
+  - Returns: {Promise<Object>} API response with `success` (boolean) and `username` (string, e.g., "Rilan Aide")
+  - Throws: {Error} If the API request fails
+
 - `fetchGamesInfo(playerName, playerId)`: Sends a POST request to the games information endpoint with player credentials and returns the parsed response containing all games, appeared users mapping, and success status
   - `playerName` (string): The username of the player
   - `playerId` (string): The unique identifier of the player account

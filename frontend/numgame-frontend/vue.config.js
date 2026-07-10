@@ -21,5 +21,11 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     port: process.env.VUE_APP_SERVER_PORT || 8080
+  },
+  pages: {
+    index: {
+      entry: 'src/main.js',
+      title: 'Numgame',
+    }
   }
 })

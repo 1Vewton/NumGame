@@ -13,7 +13,35 @@
 
 import apiClient from './api.js';
 import config from './config.js';
-import { getGamesInfoBody } from './requestBodies.js';
+import { getGamesInfoBody, getGenerateUserNameResponse } from './requestBodies.js';
+
+/**
+ * Generates a random username via the backend API
+ *
+ * This function sends a GET request to the user name generation endpoint.
+ * On success, it returns a normalized response with the generated username.
+ * On failure, it returns a normalized failure response.
+ *
+ * @async
+ * @function generateUserName
+ * @returns {Promise<Object>} The normalized API response object
+ * @property {boolean} success - Whether the request was successful
+ * @property {string} username - The generated username (e.g., "Rilan Aide"), empty string on failure
+ * @throws {Error} If the API request fails
+ * @example
+ * const response = await generateUserName();
+ * console.log(response); // { success: true, username: 'Rilan Aide' }
+ */
+export async function generateUserName() {
+  const endpoint = config.getUserNameGenerationEndpoint();
+  const response = await apiClient.get(endpoint);
+
+  if (response.success && response.username) {
+    return getGenerateUserNameResponse(true, response.username);
+  }
+
+  return getGenerateUserNameResponse(false, '');
+}
 
 /**
  * Fetches all games associated with a player from the backend
@@ -154,6 +182,7 @@ export function getOpponentName(game, playerId, appearedUsers) {
 }
 
 export default {
+  generateUserName,
   fetchGamesInfo,
   parseGameRecord,
   getGameResultForPlayer,

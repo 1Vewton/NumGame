@@ -110,6 +110,116 @@ export function getUserInfoBody(playerName = 'string', playerId = 'string') {
 }
 
 /**
+ * Returns the response data format for the user login endpoint
+ *
+ * This function defines the expected response structure from the
+ * user login POST endpoint.
+ *
+ * @function getUserLoginResponse
+ * @param {boolean} [success=false] - Whether the login was successful
+ * @param {string} [userId=''] - The unique identifier of the logged-in user
+ * @param {string} [userName=''] - The display name of the logged-in user
+ * @param {string} [reason=''] - Error reason if login failed
+ * @returns {Object} The response object for user login
+ * @property {boolean} success - Whether login was successful
+ * @property {string} user_id - The unique identifier of the user
+ * @property {string} user_name - The display name of the user
+ * @property {string} reason - Error reason if login failed
+ * @example
+ * const response = getUserLoginResponse(true, 'uuid-123', 'Player1');
+ * // { success: true, user_id: 'uuid-123', user_name: 'Player1', reason: '' }
+ */
+export function getUserLoginResponse(success = false, userId = '', userName = '', reason = '') {
+  return {
+    success,
+    user_id: userId,
+    user_name: userName,
+    reason
+  };
+}
+
+/**
+ * Returns the response data format for the user registration endpoint
+ *
+ * This function defines the expected response structure from the
+ * user registration POST endpoint.
+ *
+ * @function getUserRegisterResponse
+ * @param {boolean} [success=false] - Whether the registration was successful
+ * @param {string} [reason=''] - Error reason if registration failed
+ * @returns {Object} The response object for user registration
+ * @property {boolean} success - Whether registration was successful
+ * @property {string} reason - Error reason if registration failed
+ * @example
+ * const response = getUserRegisterResponse(true);
+ * // { success: true, reason: '' }
+ */
+export function getUserRegisterResponse(success = false, reason = '') {
+  return {
+    success,
+    reason
+  };
+}
+
+/**
+ * Returns the response data format for the auto-login endpoint
+ *
+ * This function defines the expected response structure from the
+ * auto-login GET endpoint.
+ *
+ * @function getAutoLoginResponse
+ * @param {boolean} [success=false] - Whether auto-login was successful
+ * @param {string} [userId=''] - The unique identifier of the user
+ * @param {string} [userName=''] - The display name of the user
+ * @returns {Object} The response object for auto-login
+ * @property {boolean} success - Whether auto-login was successful
+ * @property {string} user_id - The unique identifier of the user
+ * @property {string} user_name - The display name of the user
+ * @example
+ * const response = getAutoLoginResponse(true, 'uuid-123', 'Player1');
+ * // { success: true, user_id: 'uuid-123', user_name: 'Player1' }
+ */
+export function getAutoLoginResponse(success = false, userId = '', userName = '') {
+  return {
+    success,
+    user_id: userId,
+    user_name: userName
+  };
+}
+
+/**
+ * Returns the response data format for the user name generation endpoint
+ *
+ * This function defines the expected response structure from the
+ * generate user name GET endpoint. It serves as documentation for the
+ * response format and provides a way to construct a default response object.
+ *
+ * @function getGenerateUserNameResponse
+ * @param {boolean} [success=false] - Whether the request was successful
+ * @param {string} [username=''] - The generated username (e.g., "Rilan Aide")
+ * @returns {Object} The response object for user name generation
+ * @property {boolean} success - Whether the request was successful
+ * @property {string} username - The generated username string
+ * @example
+ * // Returns success response with a username
+ * const response = getGenerateUserNameResponse(true, 'Rilan Aide');
+ * console.log(response);
+ * // { success: true, username: 'Rilan Aide' }
+ *
+ * @example
+ * // Returns failure response
+ * const response = getGenerateUserNameResponse(false);
+ * console.log(response);
+ * // { success: false, username: '' }
+ */
+export function getGenerateUserNameResponse(success = false, username = '') {
+  return {
+    success,
+    username
+  };
+}
+
+/**
  * Generates a request body for games information retrieval
  *
  * This function creates the payload structure required for the games information
@@ -152,12 +262,20 @@ export function getGamesInfoBody(playerName = 'string', playerId = 'string') {
  * @property {Function} getUserRegisterBody - Function to generate user registration request body
  * @property {Function} getUserLoginBody - Function to generate user login request body
  * @property {Function} getUserInfoBody - Function to generate user information request body
+ * @property {Function} getUserLoginResponse - Function to generate user login response format
+ * @property {Function} getUserRegisterResponse - Function to generate user registration response format
+ * @property {Function} getAutoLoginResponse - Function to generate auto-login response format
+ * @property {Function} getGenerateUserNameResponse - Function to generate user name generation response format
  * @property {Function} getGamesInfoBody - Function to generate games information request body
  */
 const requestBodies = {
   getUserRegisterBody,
   getUserLoginBody,
   getUserInfoBody,
+  getUserLoginResponse,
+  getUserRegisterResponse,
+  getAutoLoginResponse,
+  getGenerateUserNameResponse,
   getGamesInfoBody
 };
 
@@ -170,10 +288,12 @@ if (typeof module !== 'undefined' && module.exports) {
     getUserRegisterBody,
     getUserLoginBody,
     getUserInfoBody,
+    getUserLoginResponse,
+    getUserRegisterResponse,
+    getAutoLoginResponse,
+    getGenerateUserNameResponse,
     getGamesInfoBody
   };
   module.exports.default = requestBodies;
   module.exports.__esModule = true;
 }
-
-
