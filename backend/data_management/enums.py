@@ -62,3 +62,9 @@ class GameState(Enum):
     SETTLEMENT = 3
     FINISH = 4
     END = 5
+
+
+# Database Type
+class DataBaseType(Enum):
+    SQLITE = 0
+    POSTGRES = 1

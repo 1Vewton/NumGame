@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # Database
     database_url: str = ""
     sync_database_url: str = ""
+    database_type: int = 0
     # Server
     server_port: int = 8080
     # Websocket Connection

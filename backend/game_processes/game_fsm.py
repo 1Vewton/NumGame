@@ -17,7 +17,7 @@ from data_management.enums import (
     WSResponseType,
     Operations,
     FailReason,
-    TurnFinishReason
+    TurnFinishReason,
 )
 from data_management.data_models import players, games
 from game_processes.bot_game_process import BotGameProcess
@@ -298,8 +298,8 @@ class BotGameStateMachine:
                     rounds=self.round,
                     started_time=self.start_time,
                     ended_time=self.end_time,
-                    first_move_score=first_move_score,
-                    second_move_score=second_move_score,
+                    first_move_score=int(first_move_score),
+                    second_move_score=int(second_move_score),
                 )
             else:
                 new_game_data = games(
@@ -310,8 +310,8 @@ class BotGameStateMachine:
                     rounds=self.round,
                     started_time=self.start_time,
                     ended_time=self.end_time,
-                    first_move_score=first_move_score,
-                    second_move_score=second_move_score,
+                    first_move_score=int(first_move_score),
+                    second_move_score=int(second_move_score),
                 )
             session.add(new_game_data)
             # Game finished
