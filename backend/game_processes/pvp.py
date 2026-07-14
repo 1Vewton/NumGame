@@ -3,10 +3,14 @@ from logging import getLogger
 # Asyncio
 from threading import Lock
 import asyncio
-# Fastapi Dependencies
+# Fastapi dependencies
 from fastapi import WebSocket
+# Sqlalchemy dependencies
+from sqlalchemy import select
 # Project dependencies
 from utils.utils import generate_uuid
+from data_management.data_management import get_db
+from data_management.data_models import players
 
 logger = getLogger("PVP")
 
@@ -111,9 +115,35 @@ class ConnectionManager:
             self,
     ):
         self.rooms: Dict[str, Room] = {}
+        self.user_id2user_name: Dict[str, str] = {}
+        self.lock: Lock = Lock()
+
+    # Get username from user id
+    async def get_user_name(self, id: str):
+        if id not in self.user_id2user_name.keys():
+            res: str = ""
+            async for session in get_db():
+                user_info = await session.execute(
+                    select(players).
+                    where(players.id == id)
+                )
+                result = user_info.first()
+                if result:
+                    res = result.user_name
+                else:
+                    raise Exception(f"User {id} not found")
+            with self.lock:
+                self.user_id2user_name[id] = res
+
+    # Get the user of room
+    async def set_room_id(self, room_id: str) -> None:
+        result = self.rooms[room_id].to_dict()
+        tasks = [self.get_user_name(i) for i in result["player_ids"]]
+        await asyncio.gather(*tasks)
+        return None
 
     # Room id
-    async def new_room(self, public: bool) -> str:
+    def new_room(self, public: bool) -> str:
         room_id = generate_uuid()
         self.rooms[room_id] = Room(
             room_id=room_id,
